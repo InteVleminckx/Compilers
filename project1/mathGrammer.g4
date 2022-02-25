@@ -1,11 +1,14 @@
 grammar mathGrammer;
 
 math		: log_op1 ';' math
+            | EOF
 			;
 
 comp_expr	: comp_expr1 EQ_OP comp_expr1
+            | comp_expr1
 			;
 comp_expr1 	: expr COMP_OP expr
+            | expr
 			;
 
 
