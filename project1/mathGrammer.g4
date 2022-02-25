@@ -1,6 +1,6 @@
 grammar mathGrammer;
 
-math		: log_op1 ';' '/n' math
+math		: log_op1 ';' math
 			;
 
 comp_expr	: comp_expr1 EQ_OP comp_expr1
@@ -58,4 +58,6 @@ var			: INT
 			
 INT			: [0-9]+
 			;
-			
+
+WS          : [ \n\t\r]+ -> skip
+            ;

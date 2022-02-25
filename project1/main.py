@@ -9,7 +9,7 @@ def main(argv):
     lexer = mathGrammerLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = mathGrammerParser(stream)
-    tree = parser.startRule()
+    tree = parser.math()
 
 
 if __name__ == '__main__':
