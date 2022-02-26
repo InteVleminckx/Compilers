@@ -1,4 +1,4 @@
-# Generated from .\mathGrammer.g4 by ANTLR 4.9.3
+# Generated from mathGrammer.g4 by ANTLR 4.9.3
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -29,18 +29,18 @@ def serializedATN():
         buf.write("#\5\6\4\2\"\35\3\2\2\2\"!\3\2\2\2#\5\3\2\2\2$%\5\b\5\2")
         buf.write("%&\7\13\2\2&\'\5\b\5\2\'*\3\2\2\2(*\5\b\5\2)$\3\2\2\2")
         buf.write(")(\3\2\2\2*\7\3\2\2\2+,\b\5\1\2,-\5\n\6\2-\63\3\2\2\2")
-        buf.write("./\f\4\2\2/\60\7\t\2\2\60\62\5\n\6\2\61.\3\2\2\2\62\65")
+        buf.write("./\f\4\2\2/\60\7\6\2\2\60\62\5\n\6\2\61.\3\2\2\2\62\65")
         buf.write("\3\2\2\2\63\61\3\2\2\2\63\64\3\2\2\2\64\t\3\2\2\2\65\63")
         buf.write("\3\2\2\2\66\67\b\6\1\2\678\5\f\7\28>\3\2\2\29:\f\4\2\2")
-        buf.write(":;\7\n\2\2;=\5\f\7\2<9\3\2\2\2=@\3\2\2\2><\3\2\2\2>?\3")
+        buf.write(":;\7\7\2\2;=\5\f\7\2<9\3\2\2\2=@\3\2\2\2><\3\2\2\2>?\3")
         buf.write("\2\2\2?\13\3\2\2\2@>\3\2\2\2AB\7\r\2\2BE\5\f\7\2CE\5\24")
-        buf.write("\13\2DA\3\2\2\2DC\3\2\2\2E\r\3\2\2\2FK\5\20\t\2GH\7\4")
+        buf.write("\13\2DA\3\2\2\2DC\3\2\2\2E\r\3\2\2\2FK\5\20\t\2GH\7\b")
         buf.write("\2\2HJ\5\20\t\2IG\3\2\2\2JM\3\2\2\2KI\3\2\2\2KL\3\2\2")
-        buf.write("\2L\17\3\2\2\2MK\3\2\2\2NS\5\22\n\2OP\7\5\2\2PR\5\22\n")
+        buf.write("\2L\17\3\2\2\2MK\3\2\2\2NS\5\22\n\2OP\7\t\2\2PR\5\22\n")
         buf.write("\2QO\3\2\2\2RU\3\2\2\2SQ\3\2\2\2ST\3\2\2\2T\21\3\2\2\2")
-        buf.write("US\3\2\2\2VW\7\6\2\2WZ\5\22\n\2XZ\5\4\3\2YV\3\2\2\2YX")
-        buf.write("\3\2\2\2Z\23\3\2\2\2[a\7\16\2\2\\]\7\7\2\2]^\5\b\5\2^")
-        buf.write("_\7\b\2\2_a\3\2\2\2`[\3\2\2\2`\\\3\2\2\2a\25\3\2\2\2\f")
+        buf.write("US\3\2\2\2VW\7\n\2\2WZ\5\22\n\2XZ\5\4\3\2YV\3\2\2\2YX")
+        buf.write("\3\2\2\2Z\23\3\2\2\2[a\7\16\2\2\\]\7\4\2\2]^\5\b\5\2^")
+        buf.write("_\7\5\2\2_a\3\2\2\2`[\3\2\2\2`\\\3\2\2\2a\25\3\2\2\2\f")
         buf.write("\33\")\63>DKSY`")
         return buf.getvalue()
 
@@ -55,11 +55,12 @@ class mathGrammerParser ( Parser ):
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [ "<INVALID>", "';'", "'||'", "'&&'", "'!'", "'('", "')'" ]
+    literalNames = [ "<INVALID>", "';'", "'('", "')'", "<INVALID>", "<INVALID>", 
+                     "'||'", "'&&'", "'!'" ]
 
     symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "<INVALID>", "<INVALID>", "BIN_OP1", 
-                      "BIN_OP2", "COMP_OP", "EQ_OP", "UN_OP", "INT", "WS" ]
+                      "BIN_OP1", "BIN_OP2", "LOG_OR", "LOG_AND", "LOG_NOT", 
+                      "COMP_OP", "EQ_OP", "UN_OP", "INT", "WS" ]
 
     RULE_math = 0
     RULE_comp_expr = 1
@@ -79,11 +80,11 @@ class mathGrammerParser ( Parser ):
     T__0=1
     T__1=2
     T__2=3
-    T__3=4
-    T__4=5
-    T__5=6
-    BIN_OP1=7
-    BIN_OP2=8
+    BIN_OP1=4
+    BIN_OP2=5
+    LOG_OR=6
+    LOG_AND=7
+    LOG_NOT=8
     COMP_OP=9
     EQ_OP=10
     UN_OP=11
@@ -145,7 +146,7 @@ class mathGrammerParser ( Parser ):
             self.state = 25
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [mathGrammerParser.T__3, mathGrammerParser.T__4, mathGrammerParser.UN_OP, mathGrammerParser.INT]:
+            if token in [mathGrammerParser.T__1, mathGrammerParser.LOG_NOT, mathGrammerParser.UN_OP, mathGrammerParser.INT]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 20
                 self.log_op1()
@@ -526,7 +527,7 @@ class mathGrammerParser ( Parser ):
                 self.state = 64
                 self.term()
                 pass
-            elif token in [mathGrammerParser.T__4, mathGrammerParser.INT]:
+            elif token in [mathGrammerParser.T__1, mathGrammerParser.INT]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 65
                 self.var()
@@ -556,6 +557,12 @@ class mathGrammerParser ( Parser ):
             else:
                 return self.getTypedRuleContext(mathGrammerParser.Log_op2Context,i)
 
+
+        def LOG_OR(self, i:int=None):
+            if i is None:
+                return self.getTokens(mathGrammerParser.LOG_OR)
+            else:
+                return self.getToken(mathGrammerParser.LOG_OR, i)
 
         def getRuleIndex(self):
             return mathGrammerParser.RULE_log_op1
@@ -589,9 +596,9 @@ class mathGrammerParser ( Parser ):
             self.state = 73
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==mathGrammerParser.T__1:
+            while _la==mathGrammerParser.LOG_OR:
                 self.state = 69
-                self.match(mathGrammerParser.T__1)
+                self.match(mathGrammerParser.LOG_OR)
                 self.state = 70
                 self.log_op2()
                 self.state = 75
@@ -620,6 +627,12 @@ class mathGrammerParser ( Parser ):
             else:
                 return self.getTypedRuleContext(mathGrammerParser.Log_op3Context,i)
 
+
+        def LOG_AND(self, i:int=None):
+            if i is None:
+                return self.getTokens(mathGrammerParser.LOG_AND)
+            else:
+                return self.getToken(mathGrammerParser.LOG_AND, i)
 
         def getRuleIndex(self):
             return mathGrammerParser.RULE_log_op2
@@ -653,9 +666,9 @@ class mathGrammerParser ( Parser ):
             self.state = 81
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==mathGrammerParser.T__2:
+            while _la==mathGrammerParser.LOG_AND:
                 self.state = 77
-                self.match(mathGrammerParser.T__2)
+                self.match(mathGrammerParser.LOG_AND)
                 self.state = 78
                 self.log_op3()
                 self.state = 83
@@ -677,6 +690,9 @@ class mathGrammerParser ( Parser ):
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
             self.parser = parser
+
+        def LOG_NOT(self):
+            return self.getToken(mathGrammerParser.LOG_NOT, 0)
 
         def log_op3(self):
             return self.getTypedRuleContext(mathGrammerParser.Log_op3Context,0)
@@ -714,14 +730,14 @@ class mathGrammerParser ( Parser ):
             self.state = 87
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [mathGrammerParser.T__3]:
+            if token in [mathGrammerParser.LOG_NOT]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 84
-                self.match(mathGrammerParser.T__3)
+                self.match(mathGrammerParser.LOG_NOT)
                 self.state = 85
                 self.log_op3()
                 pass
-            elif token in [mathGrammerParser.T__4, mathGrammerParser.UN_OP, mathGrammerParser.INT]:
+            elif token in [mathGrammerParser.T__1, mathGrammerParser.UN_OP, mathGrammerParser.INT]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 86
                 self.comp_expr()
@@ -785,14 +801,14 @@ class mathGrammerParser ( Parser ):
                 self.state = 89
                 self.match(mathGrammerParser.INT)
                 pass
-            elif token in [mathGrammerParser.T__4]:
+            elif token in [mathGrammerParser.T__1]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 90
-                self.match(mathGrammerParser.T__4)
+                self.match(mathGrammerParser.T__1)
                 self.state = 91
                 self.expr(0)
                 self.state = 92
-                self.match(mathGrammerParser.T__5)
+                self.match(mathGrammerParser.T__2)
                 pass
             else:
                 raise NoViableAltException(self)
