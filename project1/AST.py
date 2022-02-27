@@ -14,78 +14,62 @@ getChildCount():
 
 class Node:
 
-    def __init__(self, parent, value, token):
-        self.parent = parent
+    def __init__(self, value, token):
         self.value = value
         self.token = token
-        self.children = []
 
+    def getValue(self):
+        return self.value
+
+    def getToken(self):
+        return self.token
+
+def createNodeItem(value, token):
+    node = Node(value, token)
+    return node
 
 class AST:
 
-    def __init__(self, root=None):
+    def __init__(self, parent=None, root=None):
         self.root = root
+        self.parent = parent
+        self.children = []
 
     def addNode(self, node, parent):
         if self.root is None:
             self.root = node
         elif parent is None:
-            self.root.children.append(node)
+            self.children.append(AST(self, node))
         else:
-            self.getParent(parent).children.append(node)
-
-    # def inorderTraverse(self, visit):
-    #
-    #     if self.root is not None:
-    #
-    #         if self.linkerKind is not None:
-    #             self.linkerKind.inorderTraverse(visit)
-    #         visit(self.waarde.getSearchkey())
-    #         if self.rechterKind is not None:
-    #             self.rechterKind.inorderTraverse(visit)
-    #     else:
-    #         return None
+            self.getParent(parent).children.append(AST(self.getParent(parent), node))
 
     def getParent(self, parent):
 
         if self.root is not None:
-            for child in self.root.children:
+            for child in self.children:
                 if child == parent:
                     return child
-
                 else:
                     return self.getParent(child)
         else:
             return None
 
-
 ast = AST()
 
-
 def createNode(parent, ctx, token, value):
-    pass
-    # node = None
 
-    # Betekent dat het een blad is
-    # if ctx.getChildCount == 0:
-    # node = Node(parent, value, token)
-    #
-    # if value != "INT":
-    #     parent = node
-    #
-    # elif ctx.getChild(ctx.getChildCount()-1) == token:
+    node = createNodeItem(value, token)
+
+    if value != "INT":
+        parent = node
+    # if ctx.getChild(ctx.getChildCount()-1) == token:
     #     parent = parent.parent
+    elif ctx.getChildCount == 1:
+        pass
+    else:
+        pass
 
-    #
-    # elif ctx.getChildCount == 1:
-    #     pass
-    #
-    # else:
-    #     pass
-
-    # ast.addNode(node, parent)
-
-
+    ast.addNode(node, parent)
 
 class ASTprinter(mathGrammerListener):
 
@@ -237,10 +221,10 @@ class ASTprinter(mathGrammerListener):
         if ctx.getChildCount() == 1:
             print(ctx.INT())
             createNode(self.prevNode, ctx, ctx.INT(), "INT")
-            print("var heeft 1 child")
+            # print("var heeft 1 child")
         else: # if there are 3 children
             print(ctx.INT())
-            print("var heeft 3 children")
+            # print("var heeft 3 children")
 
         # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
