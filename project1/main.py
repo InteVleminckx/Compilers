@@ -16,19 +16,19 @@ def main(argv):
     walker.walk(printer, tree)
 
     a = ast
-    print("\n")
-    print(a.root.getToken())
-    print(a.root.getValue())
-    print("\n")
-    for child in a.children:
-        print("child:")
-        print(child.root.getToken())
-        print(child.root.getValue())
-        if len(child.children):
-            for child1 in child.children:
-                print("child2:")
-                print(child1.root.getToken())
-                print(child1.root.getValue())
+    # print("\n")
+    # print(a.root.getToken())
+    # print(a.root.getValue())
+    # print("\n")
+    # for child in a.children:
+    #     print("child:")
+    #     print(child.root.getToken())
+    #     print(child.root.getValue())
+    #     if len(child.children):
+    #         for child1 in child.children:
+    #             print("child2:")
+    #             print(child1.root.getToken())
+    #             print(child1.root.getValue())
 
 
 if __name__ == '__main__':

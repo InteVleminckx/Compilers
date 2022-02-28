@@ -1,22 +1,19 @@
 from mathGrammerListener import mathGrammerListener
 from mathGrammerParser import mathGrammerParser
 
-"""
-getChildCount():
-    Geeft het aantal kinderen weer -> als deze 0 is hebben we een blad
 
-
-
-
-"""
-
+def createNodeItem(value, token, parent):
+    node = Node(value, token, parent)
+    return node
 
 
 class Node:
 
-    def __init__(self, value, token):
+    def __init__(self, value, token, parent):
         self.value = value
         self.token = token
+        self.parent = parent
+        self.children = []
 
     def getValue(self):
         return self.value
@@ -24,57 +21,64 @@ class Node:
     def getToken(self):
         return self.token
 
-def createNodeItem(value, token):
-    node = Node(value, token)
-    return node
 
 class AST:
 
-    def __init__(self, parent=None, root=None):
+    def __init__(self, root=None):
         self.root = root
-        self.parent = parent
-        self.children = []
+        self.parentsList = []
 
-    def addNode(self, node, parent):
+    def createNode(self, token, value, numberOfChilds):
+        # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
+        for parent in self.parentsList:
+            hasUnfilledChildren = False
+            for child in parent.children:
+                if child is None:
+                    hasUnfilledChildren = True
+                    break
+
+            if not hasUnfilledChildren:
+                self.parentsList.remove(parent)
+
+        # We maken een node aan en pre-fillen al de children
         if self.root is None:
+            node = createNodeItem(token, value, None)
+            for i in range(numberOfChilds):
+                node.children.append(None)
             self.root = node
-        elif parent is None:
-            self.children.append(AST(self, node))
-        else:
-            self.getParent(parent).children.append(AST(self.getParent(parent), node))
+            if value != "INT":
+                self.parentsList.append(node)
 
-    def getParent(self, parent):
-
-        if self.root is not None:
-            for child in self.children:
-                if child == parent:
-                    return child
-                else:
-                    return self.getParent(child)
         else:
-            return None
+            curParent = self.parentsList[len(self.parentsList) - 1]
+
+            if value == "INT":
+                # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinder aan toevoegen.
+                node = createNodeItem(token, value, curParent)
+                for i in range(len(curParent.children)):
+                    if curParent.children[i] is None:
+                        curParent.children[i] = node
+                        break
+
+            else:
+                # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinder aan toevoegen.
+                node = createNodeItem(token, value, curParent)
+                for i in range(numberOfChilds):
+                    node.children.append(None)
+                for i in range(len(curParent.children)):
+                    if curParent.children[i] is None:
+                        curParent.children[i] = node
+                        break
+                self.parentsList.append(node)
+
 
 ast = AST()
 
-def createNode(parent, ctx, token, value):
-
-    node = createNodeItem(value, token)
-
-    if value != "INT":
-        parent = node
-    # if ctx.getChild(ctx.getChildCount()-1) == token:
-    #     parent = parent.parent
-    elif ctx.getChildCount == 1:
-        pass
-    else:
-        pass
-
-    ast.addNode(node, parent)
 
 class ASTprinter(mathGrammerListener):
 
-    def __init__(self, prevNode=None):
-        self.prevNode = prevNode
+    def __init__(self):
+        self.prevParents = []
 
     # Enter a parse tree produced by mathGrammerParser#math.
     def enterMath(self, ctx: mathGrammerParser.MathContext):
@@ -93,7 +97,7 @@ class ASTprinter(mathGrammerListener):
         if ctx.getChildCount() == 3:
             print(ctx.EQ_OP())
             # node = Node(None, ctx.EQ_OP(), "EQ_OP")
-            createNode(self.prevNode, ctx, ctx.EQ_OP(), "EQ_OP")
+            ast.createNode(ctx.EQ_OP(), "EQ_OP", 2)
 
         pass
 
@@ -109,7 +113,7 @@ class ASTprinter(mathGrammerListener):
         if ctx.getChildCount() == 3:
             print(ctx.COMP_OP())
             # node = Node(None, ctx.COMP_OP(), "COMP_OP")
-            createNode(self.prevNode, ctx, ctx.COMP_OP(), "COMP_OP")
+            ast.createNode( ctx.COMP_OP(), "COMP_OP", 2)
         pass
 
     # Exit a parse tree produced by mathGrammerParser#comp_expr1.
@@ -125,7 +129,7 @@ class ASTprinter(mathGrammerListener):
         if ctx.getChildCount() == 3:
             print(ctx.BIN_OP1())
             # node = Node(None, ctx.BIN_OP1(), "BIN_OP1")
-            createNode(self.prevNode, ctx, ctx.BIN_OP1(), "BIN_OP1")
+            ast.createNode(ctx.BIN_OP1(), "BIN_OP1", 2)
 
         pass
 
@@ -141,7 +145,7 @@ class ASTprinter(mathGrammerListener):
 
         if ctx.getChildCount() == 3:
             print(ctx.BIN_OP2())
-            createNode(self.prevNode, ctx, ctx.BIN_OP2(), "BIN_OP2")
+            ast.createNode( ctx.BIN_OP2(), "BIN_OP2", 2)
 
         pass
 
@@ -157,7 +161,7 @@ class ASTprinter(mathGrammerListener):
 
         if ctx.getChildCount() == 2:
             print(ctx.UN_OP())
-            createNode(self.prevNode, ctx, ctx.UN_OP(), "UN_OP")
+            ast.createNode( ctx.UN_OP(), "UN_OP", 1)
 
         pass
 
@@ -173,7 +177,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterLog_op1")
         if ctx.getChildCount() > 1:
             for log in ctx.LOG_OR():
-                createNode(self.prevNode, ctx, log, "LOG_OR")
+                ast.createNode( log, "LOG_OR", ctx.getChildCount()-1)
 
         pass
 
@@ -189,7 +193,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterLog_op2")
         if ctx.getChildCount() > 1:
             for log in ctx.LOG_AND():
-                createNode(self.prevNode, ctx, log, "LOG_AND")
+                ast.createNode( log, "LOG_AND", ctx.getChildCount()-1)
 
         pass
 
@@ -204,7 +208,7 @@ class ASTprinter(mathGrammerListener):
         # print(ctx)
         # print("enterLog_op3")
         if ctx.getChildCount() > 1:
-            createNode(self.prevNode, ctx, ctx.LOG_NOT(), "LOG_NOT")
+            ast.createNode( ctx.LOG_NOT(), "LOG_NOT", ctx.getChildCount()-1)
 
         pass
 
@@ -220,7 +224,7 @@ class ASTprinter(mathGrammerListener):
             return
         if ctx.getChildCount() == 1:
             print(ctx.INT())
-            createNode(self.prevNode, ctx, ctx.INT(), "INT")
+            ast.createNode( ctx.INT(), "INT", 0)
             # print("var heeft 1 child")
         else: # if there are 3 children
             print(ctx.INT())
