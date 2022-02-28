@@ -2,14 +2,129 @@ from mathGrammerListener import mathGrammerListener
 from mathGrammerParser import mathGrammerParser
 
 
-def createNodeItem(value, token, parent):
-    node = Node(value, token, parent)
+# void AST::createAstDot() {
+#
+#     m_astFile.clear();
+#
+#     m_astFile << "digraph G{" << "\n";
+#
+#     makeAllNodes();
+#     makeAllEdges();
+#
+#     m_astFile << "}" << "\n";
+#     m_astFile.close();
+#
+#     system("dot -Tpng ast.dot -o ast.png");
+# }
+#
+# void AST::makeAllNodes(const shared_ptr<ast::Node> &curNode) {
+#
+#     static int nodeNumber = 0;
+#
+#     //root
+#     if (curNode == nullptr){
+#         m_astFile << "n" << nodeNumber << "[label=<<B>" << m_root->m_token << "</B>>, color=\"#FF595E\", fontcolor=\"#FF595E\"]" << endl;
+#         m_root->m_dotNode = to_string(nodeNumber);
+#         for (const auto& child : m_root->m_childeren) {
+#             nodeNumber++;
+#             if (child->m_isLeaf){
+#                 string token;
+#                 if (child->m_token == "<"){
+#                     token = "lt";
+#                 }
+#                 else if (child->m_token == ">"){
+#                     token = "gt";
+#                 }
+#                 else if (child->m_token == "<="){
+#                     token = "lte";
+#                 }
+#                 else if (child->m_token == ">="){
+#                     token = "gte";
+#                 }
+#                 else{
+#                     token = child->m_token;
+#                 }
+#                 m_astFile << "n" << nodeNumber << "[label=<<B> " << token << " </B>>, color=\"#242038\", fontcolor=\"#242038\"]" << endl;
+#                 child->m_dotNode = to_string(nodeNumber);
+#             }
+#             else{
+#                 makeAllNodes(child);
+#             }
+#         }
+#         //reset de node number.
+#         nodeNumber = 0;
+#     }
+#         //no root
+#     else {
+#         m_astFile << "n" << nodeNumber << "[label=<<B>" << curNode->m_token << "</B>>, color=\"#FF595E\", fontcolor=\"#FF595E\"]" << endl;
+#         curNode->m_dotNode = to_string(nodeNumber);
+#         for (const auto& child : curNode->m_childeren) {
+#             nodeNumber++;
+#             if (child->m_isLeaf){
+#                 string token;
+#                 if (child->m_token == "<"){
+#                     token = "lt";
+#                 }
+#                 else if (child->m_token == ">"){
+#                     token = "gt";
+#                 }
+#                 else if (child->m_token == "<="){
+#                     token = "lte";
+#                 }
+#                 else if (child->m_token == ">="){
+#                     token = "gte";
+#                 }
+#                 else{
+#                     token = child->m_token;
+#                 }
+#                 m_astFile << "n" << nodeNumber << "[label=<<B> " << token << " </B>>, color=\"#242038\", fontcolor=\"#242038\"]" << endl;
+#                 child->m_dotNode = to_string(nodeNumber);
+#             }
+#             else{
+#                 makeAllNodes(child);
+#             }
+#         }
+#     }
+#
+# }
+#
+# void AST::makeAllEdges(const shared_ptr<ast::Node> &curNode) {
+#     //root
+#     if (curNode == nullptr){
+#         for (const auto& child : m_root->m_childeren) {
+#             if (child->m_isLeaf){
+#                 m_astFile << "n" << m_root->m_dotNode << "->n" << child->m_dotNode << "[color=\"#242038\"]" << endl;
+#             }
+#             else{
+#                 m_astFile << "n" << m_root->m_dotNode << "->n" << child->m_dotNode << "[color=\"#FF595E\"]" << endl;
+#                 makeAllEdges(child);
+#             }
+#         }
+#     }
+#
+#         //no root
+#     else {
+#         for (const auto& child : curNode->m_childeren) {
+#             if (child->m_isLeaf){
+#                 m_astFile << "n" << curNode->m_dotNode << "->n" << child->m_dotNode << "[color=\"#242038\"]" << endl;
+#             }
+#             else{
+#                 m_astFile << "n" << curNode->m_dotNode << "->n" << child->m_dotNode << "[color=\"#FF595E\"]" << endl;
+#                 makeAllEdges(child);
+#             }
+#         }
+#     }
+
+
+
+def createNodeItem(token, value, parent):
+    node = Node(token, value, parent)
     return node
 
 
 class Node:
 
-    def __init__(self, value, token, parent):
+    def __init__(self, token, value, parent):
         self.value = value
         self.token = token
         self.parent = parent
@@ -28,7 +143,7 @@ class AST:
         self.root = root
         self.parentsList = []
 
-    def createNode(self, token, value, numberOfChilds):
+    def createNode(self, value, token, numberOfChilds):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
         for parent in self.parentsList:
             hasUnfilledChildren = False
@@ -46,13 +161,13 @@ class AST:
             for i in range(numberOfChilds):
                 node.children.append(None)
             self.root = node
-            if value != "INT":
+            if token != "INT" and token != "!":
                 self.parentsList.append(node)
 
         else:
             curParent = self.parentsList[len(self.parentsList) - 1]
 
-            if value == "INT":
+            if token == "INT" or token == "!":
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinder aan toevoegen.
                 node = createNodeItem(token, value, curParent)
                 for i in range(len(curParent.children)):

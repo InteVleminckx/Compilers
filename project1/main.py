@@ -4,6 +4,32 @@ from mathGrammerLexer import mathGrammerLexer
 from mathGrammerParser import mathGrammerParser
 from AST import *
 
+
+def printA(a, root):
+
+    if root:
+        if len(a.root.children) != 0:
+            for i in range(len(a.root.children)):
+                if i == 1:
+                    print(a.root.value)
+
+                printA(a.root.children[i], False)
+        else:
+            print(a.root.value)
+
+    else:
+        if len(a.children) != 0:
+            for i in range(len(a.children)):
+
+                if i == 1:
+                    print(a.value)
+
+                printA(a.children[i], False)
+
+        else:
+            print(a.value)
+
+
 def main(argv):
 
     input_stream = FileStream(argv[1])
@@ -16,19 +42,11 @@ def main(argv):
     walker.walk(printer, tree)
 
     a = ast
-    # print("\n")
-    # print(a.root.getToken())
-    # print(a.root.getValue())
-    # print("\n")
-    # for child in a.children:
-    #     print("child:")
-    #     print(child.root.getToken())
-    #     print(child.root.getValue())
-    #     if len(child.children):
-    #         for child1 in child.children:
-    #             print("child2:")
-    #             print(child1.root.getToken())
-    #             print(child1.root.getValue())
+    print("-------------------------------------------------")
+    printA(a,True)
+    print("-------------------------------------------------")
+
+
 
 
 if __name__ == '__main__':
