@@ -43,7 +43,8 @@ def main(argv):
 
     a = ast
     print("-------------------------------------------------")
-    printA(a,True)
+    # printA(a,True)
+    a.inorderTraversal(print)
     print("-------------------------------------------------")
 
 

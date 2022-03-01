@@ -116,7 +116,6 @@ from mathGrammerParser import mathGrammerParser
 #     }
 
 
-
 def createNodeItem(token, value, parent):
     node = Node(token, value, parent)
     return node
@@ -185,6 +184,37 @@ class AST:
                         curParent.children[i] = node
                         break
                 self.parentsList.append(node)
+
+
+    def inorderTraversal(self,visit,node=None):
+
+        if self.root is None:
+            return None
+
+        elif node is None: #Hebben we de root
+            count = 0
+            if len(self.root.children) > 0:
+                for child in self.root.children:
+                    self.inorderTraversal(visit, child)
+                    count+=1
+                    if count == len(self.root.children) / 2:
+                        visit(self.root.value)
+
+            else:
+                #Heeft geen kinderen dus er is enkel een root
+                visit(self.root.value)
+
+        else:
+            count = 0
+            if len(node.children) > 0:
+                for child in node.children:
+                    self.inorderTraversal(visit, child)
+                    count+=1
+                    if count == len(node.children) / 2:
+                        visit(node.value)
+            else:
+                #Heeft geen kinderen dus er is enkel een root
+                visit(node.value)
 
 
 ast = AST()
