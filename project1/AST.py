@@ -185,7 +185,6 @@ class AST:
                         break
                 self.parentsList.append(node)
 
-
     def inorderTraversal(self,visit,node=None):
 
         if self.root is None:
@@ -219,6 +218,9 @@ class AST:
 
 ast = AST()
 
+#De self.root kan eigenlijk nooit None zijn dan dus we voegen deze gewoon al toe aan het begin van de expressie
+ast.root = createNodeItem("ROOT", "ROOT", None)
+
 
 class ASTprinter(mathGrammerListener):
 
@@ -228,7 +230,22 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#math.
     def enterMath(self, ctx: mathGrammerParser.MathContext):
         # print("enterMath")
-        pass
+
+        #Elke keer als we een nieuwe lijn tegen komen betekent dat de parent een extra child gaat krijgen
+        #We voegen dus een placeholder toe aan de root zijn children
+        ast.root.children.append(None)
+
+        #bij het enteren van een math beginnen we aan een nieuwe expressie/lijn code
+        #We resetten hier eigen dan de self.prevParents want we beginnen dan aan een nieuwe ast.
+        #Waarbij de eerste parent direct de root gewoon gaat zijn, dus deze voegen we al toe aan de lijst
+        ast.parentsList = [ast.root]
+
+        #Het is wel zo dat we altijd een extra kind gaan toevoegen als None type en dat is niet de bedoeling
+        #We moeten zijn dat dit voorkomen wordt, we kunnen deze verwijderen als de child count == 0
+        #Want dan hebben we een EOF
+        if ctx.getChildCount() == 0:
+            ast.root.children.pop()
+            ast.parentsList = []
 
     # Exit a parse tree produced by mathGrammerParser#math.
     def exitMath(self, ctx: mathGrammerParser.MathContext):

@@ -7,7 +7,7 @@ from AST import *
 
 def printA(a, root):
 
-    if root:
+    if root and root is not None:
         if len(a.root.children) != 0:
             for i in range(len(a.root.children)):
                 if i == 1:
@@ -17,7 +17,7 @@ def printA(a, root):
         else:
             print(a.root.value)
 
-    else:
+    elif a is not None:
         if len(a.children) != 0:
             for i in range(len(a.children)):
 
@@ -43,8 +43,8 @@ def main(argv):
 
     a = ast
     print("-------------------------------------------------")
-    # printA(a,True)
-    a.inorderTraversal(print)
+    printA(a,True)
+    # a.inorderTraversal(print)
     print("-------------------------------------------------")
 
 
