@@ -13,8 +13,7 @@ def createGraph(ast):
 
     tempLabel = "l1"
     tempLabel2 = ""
-    data = []
-    createVerticesAndEdges(tempLabel2, data, ast, f, tempLabel)
+    createVerticesAndEdges(tempLabel2, ast, f, tempLabel)
 
     # f.write("B1 [label=\"B\"]\n")
     # f.write("B2 [label=\"B\"]\n")
@@ -27,7 +26,7 @@ def createGraph(ast):
     f.close()
     os.system("dot -Tpng graph.gv -o ast.png")
 
-def createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, node=None):
+def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
 
     if ast.root is None:
         return None
@@ -42,7 +41,7 @@ def createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, node=Non
                         graphFile.write("\"" + str(child.value) + "\"" + "\n")
                     else:
                         graphFile.write(str(child.value) + "\n")
-                    createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, child)
+                    createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, child)
         else:
             graphFile.write(str(ast.root.value) + "\n")
 
@@ -74,7 +73,7 @@ def createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, node=Non
                 else:
                     graphFile.write(tempLabels[child] + "\n")
                 tempLabel = tempLabel + "3"
-                createVerticesAndEdges(tempLabels[child], data, ast, graphFile, tempLabel, node.children[child])
+                createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, node.children[child])
 
         # else:
         #     graphFile.write(str(node.value) + "\n")
