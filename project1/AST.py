@@ -226,53 +226,61 @@ class ASTprinter(mathGrammerListener):
 def createGraph(ast):
     f = open("graph.gv", "w")
 
-    f.write("strict digraph G{\n")
+    f.write("strict digraph G{\n") # we gebruiken een directed graph met max. één edge tussen twee vertices
 
-    tempLabel = "l1"
-    tempLabel2 = ""
+    tempLabel = "l1" # label die gebruikt wordt om nodes (kinderen) met dezelfde waarde te onderscheiden van elkaar.
+    tempLabel2 = "" # gelijkaardig aan tempLabel, maar tempLabel2 zorgt ervoor dat we de root juist onthouden en gebruiken.
     createVerticesAndEdges(tempLabel2, ast, f, tempLabel)
 
     f.write("}\n")
 
     f.close()
-    os.system("dot -Tpng graph.gv -o ast.png")
+    os.system("dot -Tpng graph.gv -o ast.png") # "run" command voor graphviz, "ast.png" bevat het schema van de AST.
 
 def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
+
+    # graphviz werkt op een manier waarbij, als je één vertice 'A' hebt,
+    # die je naar twee aparte vertices wil laten gaan d.m.v. twee directed/undirected edges
+    # waarbij de twee vertices dezelfde waarde (bv. 'B') bevatten, dat er maar één
+    # vertice 'B' wordt aangemaakt met twee edges hiernaartoe vanuit 'A', wat niet de bedoeling is.
+    # Het grotendeel van onderstaande code (gebruik van labels, tempLabel en dergelijke) probeert dit op te lossen.
 
     if ast.root is None:
         return None
 
-    elif node is None: # we zitten in de root root
+    elif node is None: # we zitten in de ROOT root
         if len(ast.root.children) > 0:
 
-            tempLabels = []
+            tempLabels = [] # bevat de labels voor de kinderen, hebben we nodig voor de volgende for loop.
             for child in ast.root.children:
-                tempLabel = tempLabel + "1"
+                tempLabel = tempLabel + "1" # unieke templabel per kind.
 
-                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")
+                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n") # labeled vertices maken
                 tempLabels.append(tempLabel)
 
             for child in range(len(ast.root.children)):
 
                 graphFile.write("\"" + str(ast.root.value) + "\"" + "->")
                 if len(ast.root.children[child].children) > 0:
-                    graphFile.write("\"" + tempLabels[child] + "\"" + "\n")
+                    graphFile.write("\"" + tempLabels[child] + "\"" + "\n") # speciale tekens moeten tussen "" geplaatst worden.
                 else:
                     graphFile.write(tempLabels[child] + "\n")
-                tempLabel = tempLabel + "3"
+                tempLabel = tempLabel + "3" # zodat er onder siblings geen zelfde labels ontstaan.
                 createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, ast.root.children[child])
     else: # we zitten in een node
         if len(node.children) > 0:
 
-            a = False
+            a = False # kleine contructie om te weten of we met het symbool zelf/met de label ervan moeten werken.
+            # Als a False is en blijft, betekent dit dat we ergens in het begin van de boom zitten (merk de if-statement op),
+            # en voor het eerste teken onder de root hoeven we niet te vervangen door de label
             if (tempLabel2 != ""):
                 a = True
 
-            tempLabels = []
+            tempLabels = [] # bevat de labels voor de kinderen, hebben we nodig voor de volgende for loop.
             for child in node.children:
-                tempLabel = tempLabel + "1"
+                tempLabel = tempLabel + "1" # unieke templabel per kind
 
-                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")
+                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n") # labeled vertices maken
                 tempLabels.append(tempLabel)
 
             for child in range(len(node.children)):
@@ -280,11 +288,11 @@ def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
                 if (not a):
                     graphFile.write("\"" + str(node.value) + "\"" + "->")
                 else:
-                    graphFile.write("\"" + tempLabel2 + "\"" + "->")  # str(node.value)
+                    graphFile.write("\"" + tempLabel2 + "\"" + "->")
 
                 if len(node.children[child].children) > 0:
-                    graphFile.write("\"" + tempLabels[child] + "\"" + "\n")
+                    graphFile.write("\"" + tempLabels[child] + "\"" + "\n") # speciale tekens moeten tussen "" geplaatst worden.
                 else:
                     graphFile.write(tempLabels[child] + "\n")
-                tempLabel = tempLabel + "3"
+                tempLabel = tempLabel + "3" # zodat er onder siblings geen zelfde labels ontstaan.
                 createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, node.children[child])
