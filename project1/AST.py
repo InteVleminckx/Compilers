@@ -142,7 +142,7 @@ class ASTprinter(mathGrammerListener):
     def enterComp_expr(self, ctx: mathGrammerParser.Comp_exprContext):
         # print("enterComp_expr")
         if ctx.getChildCount() == 3:
-            print(ctx.EQ_OP())
+            # print(ctx.EQ_OP())
             # node = Node(None, ctx.EQ_OP(), "EQ_OP")
             ast.createNode(ctx.EQ_OP(), "EQ_OP", 2)
 
@@ -158,7 +158,7 @@ class ASTprinter(mathGrammerListener):
     def enterComp_expr1(self, ctx: mathGrammerParser.Comp_expr1Context):
         # print("enterComp_expr1")
         if ctx.getChildCount() == 3:
-            print(ctx.COMP_OP())
+            # print(ctx.COMP_OP())
             # node = Node(None, ctx.COMP_OP(), "COMP_OP")
             ast.createNode( ctx.COMP_OP(), "COMP_OP", 2)
         pass
@@ -174,7 +174,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterExpr")
 
         if ctx.getChildCount() == 3:
-            print(ctx.BIN_OP1())
+            # print(ctx.BIN_OP1())
             # node = Node(None, ctx.BIN_OP1(), "BIN_OP1")
             ast.createNode(ctx.BIN_OP1(), "BIN_OP1", 2)
 
@@ -191,7 +191,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterFactor")
 
         if ctx.getChildCount() == 3:
-            print(ctx.BIN_OP2())
+            # print(ctx.BIN_OP2())
             ast.createNode( ctx.BIN_OP2(), "BIN_OP2", 2)
 
         pass
@@ -207,7 +207,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterTerm")
 
         if ctx.getChildCount() == 2:
-            print(ctx.UN_OP())
+            # print(ctx.UN_OP())
             ast.createNode( ctx.UN_OP(), "UN_OP", 1)
 
         pass
@@ -270,11 +270,12 @@ class ASTprinter(mathGrammerListener):
         if ctx.INT() is None: # speciale regel => zie grammar
             return
         if ctx.getChildCount() == 1:
-            print(ctx.INT())
+            # print(ctx.INT())
             ast.createNode( ctx.INT(), "INT", 0)
             # print("var heeft 1 child")
         else: # if there are 3 children
-            print(ctx.INT())
+            # print(ctx.INT())
+            pass
             # print("var heeft 3 children")
 
         # Exit a parse tree produced by mathGrammerParser#var.

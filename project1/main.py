@@ -6,6 +6,7 @@ from AST import *
 
 import os
 
+
 def createGraph(ast):
     f = open("graph.gv", "w")
 
@@ -33,9 +34,9 @@ def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
 
     elif node is None: # root root
         if len(ast.root.children) > 0:
-            a = False
-            if (tempLabel2 != ""):
-                a = True
+            # a = False
+            # if (tempLabel2 != ""):
+            #     a = True
 
             tempLabels = []
             for child in ast.root.children:
@@ -47,7 +48,7 @@ def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
             for child in range(len(ast.root.children)):
 
                 graphFile.write("\"" + str(ast.root.value) + "\"" + "->")
-                if (len(ast.root.children[child].children) > 0):
+                if len(ast.root.children[child].children) > 0:
                     graphFile.write("\"" + tempLabels[child] + "\"" + "\n")
                 else:
                     graphFile.write(tempLabels[child] + "\n")
@@ -120,10 +121,10 @@ def main(argv):
     walker.walk(printer, tree)
 
     a = ast
-    print("-------------------------------------------------")
-    printA(a,True)
+    # print("-------------------------------------------------")
+    # printA(a,True)
     # a.inorderTraversal(print)
-    print("-------------------------------------------------")
+    # print("-------------------------------------------------")
 
     createGraph(a)
 
