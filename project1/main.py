@@ -4,6 +4,82 @@ from mathGrammerLexer import mathGrammerLexer
 from mathGrammerParser import mathGrammerParser
 from AST import *
 
+import os
+
+def createGraph(ast):
+    f = open("graph.gv", "w")
+
+    f.write("strict digraph G{\n")
+
+    tempLabel = "l1"
+    tempLabel2 = ""
+    data = []
+    createVerticesAndEdges(tempLabel2, data, ast, f, tempLabel)
+
+    # f.write("B1 [label=\"B\"]\n")
+    # f.write("B2 [label=\"B\"]\n")
+    # f.write("A -> B1\n")
+    # f.write("A -> B2\n")
+    # f.write("B1 -> C\n")
+
+
+    f.write("}\n")
+
+    f.close()
+    os.system("dot -Tpng graph.gv -o ast.png")
+
+def createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, node=None):
+
+    if ast.root is None:
+        return None
+
+    elif node is None: # root root
+        if len(ast.root.children) > 0:
+            # tempLabel = "l1"
+            for child in ast.root.children:
+                if child is not None:
+                    # graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")
+
+                    graphFile.write("\"" + str(ast.root.value) + "\"" + "->")
+                    if (len(child.children) > 0):
+                        graphFile.write("\"" + str(child.value) + "\"" + "\n")
+                    else:
+                        graphFile.write(str(child.value) + "\n")
+                    createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, child)
+                    # tempLabel = tempLabel + "1"
+        else:
+            graphFile.write(str(ast.root.value) + "\n")
+
+    else:
+        if len(node.children) > 0:
+
+            a = False
+            if (tempLabel2 != ""):
+                a = True
+            tempLabel2 = tempLabel
+
+            tempLabels = []
+            for child in node.children:
+                tempLabel = tempLabel + "1"
+
+                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")
+                tempLabels.append(tempLabel)
+                data.append((str(child.value), 1, tempLabel))
+
+            for child in range(len(node.children)):
+                # graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")
+
+                graphFile.write("\"" + str(node.value) + "\"" + "->")
+                if len(node.children[child].children) > 0:
+                    graphFile.write("\"" + tempLabels[child] + "\"" + "\n")
+                else:
+                    graphFile.write(tempLabels[child] + "\n")
+                # tempLabel = tempLabel + "1"
+                createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, node.children[child])
+
+        else:
+            graphFile.write(str(node.value) + "\n")
+
 
 def printA(a, root):
 
@@ -47,6 +123,7 @@ def main(argv):
     # a.inorderTraversal(print)
     print("-------------------------------------------------")
 
+    createGraph(a)
 
 
 

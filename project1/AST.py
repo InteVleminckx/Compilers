@@ -175,7 +175,7 @@ class AST:
                         break
 
             else:
-                # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinder aan toevoegen.
+                # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
                 node = createNodeItem(token, value, curParent)
                 for i in range(numberOfChilds):
                     node.children.append(None)
