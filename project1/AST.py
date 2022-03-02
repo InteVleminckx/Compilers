@@ -241,9 +241,9 @@ class ASTprinter(mathGrammerListener):
         ast.parentsList = [ast.root]
 
         #Het is wel zo dat we altijd een extra kind gaan toevoegen als None type en dat is niet de bedoeling
-        #We moeten zijn dat dit voorkomen wordt, we kunnen deze verwijderen als de child count == 0
+        #We moeten zijn dat dit voorkomen wordt, we kunnen deze verwijderen als de child count == 1
         #Want dan hebben we een EOF
-        if ctx.getChildCount() == 0:
+        if ctx.getChildCount() == 1:
             ast.root.children.pop()
             ast.parentsList = []
 

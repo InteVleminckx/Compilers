@@ -121,7 +121,7 @@ def main(argv):
     # a.inorderTraversal(print)
     print("-------------------------------------------------")
 
-    createGraph(a)
+    # createGraph(a)
 
 
 
