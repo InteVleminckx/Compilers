@@ -22,7 +22,6 @@ def createGraph(ast):
     # f.write("A -> B2\n")
     # f.write("B1 -> C\n")
 
-
     f.write("}\n")
 
     f.close()
@@ -35,10 +34,8 @@ def createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, node=Non
 
     elif node is None: # root root
         if len(ast.root.children) > 0:
-            # tempLabel = "l1"
             for child in ast.root.children:
                 if child is not None:
-                    # graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")
 
                     graphFile.write("\"" + str(ast.root.value) + "\"" + "->")
                     if (len(child.children) > 0):
@@ -46,7 +43,6 @@ def createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, node=Non
                     else:
                         graphFile.write(str(child.value) + "\n")
                     createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, child)
-                    # tempLabel = tempLabel + "1"
         else:
             graphFile.write(str(ast.root.value) + "\n")
 
@@ -56,7 +52,7 @@ def createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, node=Non
             a = False
             if (tempLabel2 != ""):
                 a = True
-            tempLabel2 = tempLabel
+            # tempLabel2 = tempLabel
 
             tempLabels = []
             for child in node.children:
@@ -64,21 +60,24 @@ def createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, node=Non
 
                 graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")
                 tempLabels.append(tempLabel)
-                data.append((str(child.value), 1, tempLabel))
+                # data.append((str(child.value), 1, tempLabel))
 
             for child in range(len(node.children)):
-                # graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")
 
-                graphFile.write("\"" + str(node.value) + "\"" + "->")
+                if (not a):
+                    graphFile.write("\"" + str(node.value) + "\"" + "->")
+                else:
+                    graphFile.write("\"" + tempLabel2 + "\"" + "->")  # str(node.value)
+
                 if len(node.children[child].children) > 0:
                     graphFile.write("\"" + tempLabels[child] + "\"" + "\n")
                 else:
                     graphFile.write(tempLabels[child] + "\n")
-                # tempLabel = tempLabel + "1"
-                createVerticesAndEdges(tempLabel2, data, ast, graphFile, tempLabel, node.children[child])
+                tempLabel = tempLabel + "3"
+                createVerticesAndEdges(tempLabels[child], data, ast, graphFile, tempLabel, node.children[child])
 
-        else:
-            graphFile.write(str(node.value) + "\n")
+        # else:
+        #     graphFile.write(str(node.value) + "\n")
 
 
 def printA(a, root):
