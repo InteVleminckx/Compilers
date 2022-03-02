@@ -1,5 +1,7 @@
 from mathGrammerListener import mathGrammerListener
 from mathGrammerParser import mathGrammerParser
+import os
+
 
 def createNodeItem(token, value, parent):
     node = Node(token, value, parent)
@@ -114,7 +116,6 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#math.
     def enterMath(self, ctx: mathGrammerParser.MathContext):
-        # print("enterMath")
 
         #Elke keer als we een nieuwe lijn tegen komen betekent dat de parent een extra child gaat krijgen
         #We voegen dus een placeholder toe aan de root zijn children
@@ -134,135 +135,80 @@ class ASTprinter(mathGrammerListener):
 
     # Exit a parse tree produced by mathGrammerParser#math.
     def exitMath(self, ctx: mathGrammerParser.MathContext):
-        # # print(ctx)
-        # print("exitMath")
         pass
 
     # Enter a parse tree produced by mathGrammerParser#comp_expr.
     def enterComp_expr(self, ctx: mathGrammerParser.Comp_exprContext):
-        # print("enterComp_expr")
         if ctx.getChildCount() == 3:
-            # print(ctx.EQ_OP())
-            # node = Node(None, ctx.EQ_OP(), "EQ_OP")
             ast.createNode(ctx.EQ_OP(), "EQ_OP", 2)
-
-        pass
 
     # Exit a parse tree produced by mathGrammerParser#comp_expr.
     def exitComp_expr(self, ctx: mathGrammerParser.Comp_exprContext):
-        # # print(ctx)
-        # print("exitComp_expr")
         pass
 
     # Enter a parse tree produced by mathGrammerParser#comp_expr1.
     def enterComp_expr1(self, ctx: mathGrammerParser.Comp_expr1Context):
-        # print("enterComp_expr1")
         if ctx.getChildCount() == 3:
-            # print(ctx.COMP_OP())
-            # node = Node(None, ctx.COMP_OP(), "COMP_OP")
             ast.createNode( ctx.COMP_OP(), "COMP_OP", 2)
-        pass
 
     # Exit a parse tree produced by mathGrammerParser#comp_expr1.
     def exitComp_expr1(self, ctx: mathGrammerParser.Comp_expr1Context):
-        # # print(ctx)
-        # print("exitComp_expr1")
         pass
 
     # Enter a parse tree produced by mathGrammerParser#expr.
     def enterExpr(self, ctx: mathGrammerParser.ExprContext):
-        # print("enterExpr")
-
         if ctx.getChildCount() == 3:
-            # print(ctx.BIN_OP1())
-            # node = Node(None, ctx.BIN_OP1(), "BIN_OP1")
             ast.createNode(ctx.BIN_OP1(), "BIN_OP1", 2)
-
-        pass
 
     # Exit a parse tree produced by mathGrammerParser#expr.
     def exitExpr(self, ctx: mathGrammerParser.ExprContext):
-        # # print(ctx)
-        # print("exitExpr")
         pass
 
     # Enter a parse tree produced by mathGrammerParser#factor.
     def enterFactor(self, ctx: mathGrammerParser.FactorContext):
-        # print("enterFactor")
-
         if ctx.getChildCount() == 3:
-            # print(ctx.BIN_OP2())
             ast.createNode( ctx.BIN_OP2(), "BIN_OP2", 2)
-
-        pass
 
     # Exit a parse tree produced by mathGrammerParser#factor.
     def exitFactor(self, ctx: mathGrammerParser.FactorContext):
-        # # print(ctx)
-        # print("exitFactor")
         pass
 
     # Enter a parse tree produced by mathGrammerParser#term.
     def enterTerm(self, ctx: mathGrammerParser.TermContext):
-        # print("enterTerm")
-
         if ctx.getChildCount() == 2:
-            # print(ctx.UN_OP())
             ast.createNode( ctx.UN_OP(), "UN_OP", 1)
-
-        pass
 
     # Exit a parse tree produced by mathGrammerParser#term.
     def exitTerm(self, ctx: mathGrammerParser.TermContext):
-        # # print(ctx)
-        # print("exitTerm")
         pass
 
     # Enter a parse tree produced by mathGrammerParser#log_op1.
     def enterLog_op1(self, ctx: mathGrammerParser.Log_op1Context):
-        # print(ctx)
-        # print("enterLog_op1")
         if ctx.getChildCount() > 1:
             for log in ctx.LOG_OR():
                 ast.createNode( log, "LOG_OR", ctx.getChildCount()-1)
 
-        pass
-
     # Exit a parse tree produced by mathGrammerParser#log_op1.
     def exitLog_op1(self, ctx: mathGrammerParser.Log_op1Context):
-        # print(ctx)
-        # print("exitLog_op1")
         pass
 
     # Enter a parse tree produced by mathGrammerParser#log_op2.
     def enterLog_op2(self, ctx: mathGrammerParser.Log_op2Context):
-        # print(ctx)
-        # print("enterLog_op2")
         if ctx.getChildCount() > 1:
             for log in ctx.LOG_AND():
                 ast.createNode( log, "LOG_AND", ctx.getChildCount()-1)
 
-        pass
-
     # Exit a parse tree produced by mathGrammerParser#log_op2.
     def exitLog_op2(self, ctx: mathGrammerParser.Log_op2Context):
-        # print(ctx)
-        # print("exitLog_op2")
         pass
 
     # Enter a parse tree produced by mathGrammerParser#log_op3.
     def enterLog_op3(self, ctx: mathGrammerParser.Log_op3Context):
-        # print(ctx)
-        # print("enterLog_op3")
         if ctx.getChildCount() > 1:
             ast.createNode( ctx.LOG_NOT(), "LOG_NOT", ctx.getChildCount()-1)
 
-        pass
-
     # Exit a parse tree produced by mathGrammerParser#log_op3.
     def exitLog_op3(self, ctx: mathGrammerParser.Log_op3Context):
-        # print(ctx)
-        # print("exitLog_op3")
         pass
 
     # Enter a parse tree produced by mathGrammerParser#var.
@@ -270,16 +216,75 @@ class ASTprinter(mathGrammerListener):
         if ctx.INT() is None: # speciale regel => zie grammar
             return
         if ctx.getChildCount() == 1:
-            # print(ctx.INT())
             ast.createNode( ctx.INT(), "INT", 0)
-            # print("var heeft 1 child")
-        else: # if there are 3 children
-            # print(ctx.INT())
-            pass
-            # print("var heeft 3 children")
 
-        # Exit a parse tree produced by mathGrammerParser#var.
+    # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
-        # # print(ctx)
-        # print("exitVar")
         pass
+
+
+def createGraph(ast):
+    f = open("graph.gv", "w")
+
+    f.write("strict digraph G{\n")
+
+    tempLabel = "l1"
+    tempLabel2 = ""
+    createVerticesAndEdges(tempLabel2, ast, f, tempLabel)
+
+    f.write("}\n")
+
+    f.close()
+    os.system("dot -Tpng graph.gv -o ast.png")
+
+def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
+
+    if ast.root is None:
+        return None
+
+    elif node is None: # we zitten in de root root
+        if len(ast.root.children) > 0:
+
+            tempLabels = []
+            for child in ast.root.children:
+                tempLabel = tempLabel + "1"
+
+                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")
+                tempLabels.append(tempLabel)
+
+            for child in range(len(ast.root.children)):
+
+                graphFile.write("\"" + str(ast.root.value) + "\"" + "->")
+                if len(ast.root.children[child].children) > 0:
+                    graphFile.write("\"" + tempLabels[child] + "\"" + "\n")
+                else:
+                    graphFile.write(tempLabels[child] + "\n")
+                tempLabel = tempLabel + "3"
+                createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, ast.root.children[child])
+    else: # we zitten in een node
+        if len(node.children) > 0:
+
+            a = False
+            if (tempLabel2 != ""):
+                a = True
+
+            tempLabels = []
+            for child in node.children:
+                tempLabel = tempLabel + "1"
+
+                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")
+                tempLabels.append(tempLabel)
+
+            for child in range(len(node.children)):
+
+                if (not a):
+                    graphFile.write("\"" + str(node.value) + "\"" + "->")
+                else:
+                    graphFile.write("\"" + tempLabel2 + "\"" + "->")  # str(node.value)
+
+                if len(node.children[child].children) > 0:
+                    graphFile.write("\"" + tempLabels[child] + "\"" + "\n")
+                else:
+                    graphFile.write(tempLabels[child] + "\n")
+                tempLabel = tempLabel + "3"
+                createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, node.children[child])
