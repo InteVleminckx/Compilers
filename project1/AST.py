@@ -296,3 +296,13 @@ def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
                     graphFile.write(tempLabels[child] + "\n")
                 tempLabel = tempLabel + "3" # zodat er onder siblings geen zelfde labels ontstaan.
                 createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, node.children[child])
+
+
+def optimizationVisitor():
+
+    # replaces every binary operation node that has
+    # two literal nodes as children with a literal node containing the result of the operation.
+    # Similarly, it also replaces every unary operation node that has a literal node as its
+    # child with a literal node containing the result of the operation.
+
+    pass
