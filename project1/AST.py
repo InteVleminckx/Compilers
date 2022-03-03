@@ -2,7 +2,6 @@ from mathGrammerListener import mathGrammerListener
 from mathGrammerParser import mathGrammerParser
 import os
 
-
 def createNodeItem(token, value, parent):
     node = Node(token, value, parent)
     return node
@@ -223,8 +222,10 @@ class ASTprinter(mathGrammerListener):
         pass
 
 
-def createGraph(ast):
-    f = open("graph.gv", "w")
+def createGraph(ast, number=0):
+    graphname = "graph" + str(number) + ".gv"
+    astname = "ast" + str(number) + ".png"
+    f = open(graphname, "w")
 
     f.write("strict digraph G{\n") # we gebruiken een directed graph met max. één edge tussen twee vertices
 
@@ -235,7 +236,7 @@ def createGraph(ast):
     f.write("}\n")
 
     f.close()
-    os.system("dot -Tpng graph.gv -o ast.png") # "run" command voor graphviz, "ast.png" bevat het schema van de AST.
+    os.system("dot -Tpng " + graphname + " -o " + astname) # "run" command voor graphviz, "ast#.png" bevat het schema van de AST.
 
 def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
 
@@ -304,7 +305,6 @@ def optimizationVisitor(tree):
     # two literal nodes as children with a literal node containing the result of the operation.
     # Similarly, it also replaces every unary operation node that has a literal node as its
     # child with a literal node containing the result of the operation.
-
 
     newTree = AST()
     newTree.root = createNodeItem("ROOT", "ROOT", None)

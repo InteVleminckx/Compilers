@@ -47,8 +47,9 @@ def main(argv):
     # a.inorderTraversal(print)
     # print("-------------------------------------------------")
 
-    opti = optimizationVisitor(a)
-    createGraph(opti)
+    createGraph(a, 0)
+    optimizationVisitor(a)
+    createGraph(a, 1)
 
 
 
