@@ -298,11 +298,87 @@ def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
                 createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, node.children[child])
 
 
-def optimizationVisitor():
+def optimizationVisitor(tree):
 
     # replaces every binary operation node that has
     # two literal nodes as children with a literal node containing the result of the operation.
     # Similarly, it also replaces every unary operation node that has a literal node as its
     # child with a literal node containing the result of the operation.
 
-    pass
+
+    newTree = AST()
+    newTree.root = createNodeItem("ROOT", "ROOT", None)
+    childnumber = 0
+    for actAST in tree.root.children:
+
+        if len(actAST.children) > 0:
+            optimized = True
+            while optimized:
+                # Geen optimalization nodig
+                if actAST.token == "INT" or actAST.token == "ROOT":
+                    optimized = False
+
+                # We moeten gaan optimaliseren
+                else:
+                    actAST = optimize(actAST)
+
+            newTree.root.children.append(actAST.children[childnumber])
+
+        else:
+            newTree.root.children.append(actAST)
+
+        childnumber += 1
+
+    return newTree
+
+
+def optimize(tree):
+
+
+    # Eerst kijken we of de kinderen enkel integers zijn of niet
+
+    onlyInt = True
+    placeOp = 0
+
+    for child in tree.children:
+        if child.token != "INT":
+            onlyInt = False
+            break
+        placeOp += 1
+
+    # We hebben enkel integers als kinderen dus we kunnen deze optellen
+    if onlyInt:
+        if tree.token == "BIN_OP1" or tree.token == "BIN_OP2":
+            value = 0
+            if str(tree.value) == "+":
+                value = float(str(tree.children[0].value)) + float(str(tree.children[1].value))
+            elif str(tree.value) == "-":
+                value = float(str(tree.children[0].value)) - float(str(tree.children[1].value))
+            elif str(tree.value) == "*":
+                value = float(str(tree.children[0].value)) * float(str(tree.children[1].value))
+            elif str(tree.value) == "/":
+                value = float(str(tree.children[0].value)) / float(str(tree.children[1].value))
+            elif str(tree.value) == "%":
+                value = float(str(tree.children[0].value)) % float(str(tree.children[1].value))
+
+            tree.value = str(value)
+            tree.children = []
+            tree.token = "INT"
+
+            return tree.parent
+
+        else:
+            pass
+
+    else:
+
+        return optimize(tree.children[placeOp])
+
+
+
+
+
+
+
+
+
