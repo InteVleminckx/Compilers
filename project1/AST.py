@@ -348,8 +348,9 @@ def optimize(tree):
 
     # We hebben enkel integers als kinderen dus we kunnen deze optellen
     if onlyInt:
+        value = 0
         if tree.token == "BIN_OP1" or tree.token == "BIN_OP2":
-            value = 0
+
             if str(tree.value) == "+":
                 value = float(str(tree.children[0].value)) + float(str(tree.children[1].value))
             elif str(tree.value) == "-":
@@ -361,14 +362,66 @@ def optimize(tree):
             elif str(tree.value) == "%":
                 value = float(str(tree.children[0].value)) % float(str(tree.children[1].value))
 
-            tree.value = str(value)
-            tree.children = []
-            tree.token = "INT"
+        elif tree.token == "LOG_OR" or tree.token == "LOG_AND" or tree.token == "LOG_NOT":
+            if str(tree.value) == "||":
+                if float(str(tree.children[0].value)) == 0 and float(str(tree.children[1].value)) == 0:
+                    value = 0
+                else:
+                    value = 1
+            elif str(tree.value) == "&&":
+                if float(str(tree.children[0].value)) == 0 or float(str(tree.children[1].value)) == 0:
+                    value = 0
+                else:
+                    value = 1
+            elif str(tree.value) == "!": # klopt nog niet
+                if float(str(tree.children[1].value)) == 0:
+                    value = 1
+                else:
+                    value = 0
 
-            return tree.parent
+        elif tree.token == "COMP_OP" or tree.token == "EQ_OP":
+            if str(tree.value) == ">":
+                if float(str(tree.children[0].value)) > float(str(tree.children[1].value)):
+                    value = 1
+                else:
+                    value = 0
+            elif str(tree.value) == "<":
+                if float(str(tree.children[0].value)) < float(str(tree.children[1].value)):
+                    value = 1
+                else:
+                    value = 0
+            elif str(tree.value) == "<=":
+                if float(str(tree.children[0].value)) <= float(str(tree.children[1].value)):
+                    value = 1
+                else:
+                    value = 0
+            elif str(tree.value) == ">=":
+                if float(str(tree.children[0].value)) >= float(str(tree.children[1].value)):
+                    value = 1
+                else:
+                    value = 0
+            elif str(tree.value) == "==":
+                if float(str(tree.children[0].value)) == float(str(tree.children[1].value)):
+                    value = 1
+                else:
+                    value = 0
+            elif str(tree.value) == "!=":
+                if float(str(tree.children[0].value)) != float(str(tree.children[1].value)):
+                    value = 1
+                else:
+                    value = 0
 
-        else:
-            pass
+        elif tree.token == "UN_OP":
+            if str(tree.value) == "+":
+                pass
+            elif str(tree.value) == "-":
+                pass
+
+        tree.value = str(value)
+        tree.children = []
+        tree.token = "INT"
+
+        return tree.parent
 
     else:
 
