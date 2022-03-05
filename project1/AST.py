@@ -27,8 +27,9 @@ class AST:
     def __init__(self, root=None):
         self.root = root
         self.parentsList = []
+        self.unaries = []
 
-    def createNode(self, value, token, numberOfChilds):
+    def createNode(self, value, token, numberOfChilds, unaryParenth=False):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
         for parent in self.parentsList:
             hasUnfilledChildren = False
@@ -60,6 +61,9 @@ class AST:
                         curParent.children[i] = node
                         break
 
+            elif token == "LOG_NOT" and not unaryParenth:
+                self.unaries.append((token, value))
+
             else:
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
                 node = createNodeItem(token, value, curParent)
@@ -70,6 +74,21 @@ class AST:
                         curParent.children[i] = node
                         break
                 self.parentsList.append(node)
+
+                if len(self.unaries) != 0:
+                    for unary in self.unaries:
+                        curParent = self.parentsList[len(self.parentsList) - 1]
+
+                        node = createNodeItem(unary[0], unary[1], curParent)
+                        node.children.append(None)
+                        for i in range(len(curParent.children)):
+                            if curParent.children[i] is None:
+                                curParent.children[i] = node
+                                break
+                        self.parentsList.append(node)
+
+                    self.unaries = []
+
 
     def inorderTraversal(self,visit,node=None):
 
@@ -194,21 +213,51 @@ class ASTprinter(mathGrammerListener):
         pass
 
     # Enter a parse tree produced by mathGrammerParser#log_op1.
-    def enterLog_op1(self, ctx: mathGrammerParser.Log_op1Context):
+    def enterLog_op1(self, ctx:mathGrammerParser.Log_op1Context):
         print("enterLog_op1")
 
-        if ctx.getChildCount() > 1:
+        #Geen OR operation
+        if ctx.getChildCount() == 1:
+            #Dit is niet speciaal moet niets gebeuren we gaan gewoon verder door de parse tree
+            pass
+        #Een enkele OR operation
+        elif ctx.getChildCount() == 3:
+            #Hier bij hebben we een standaard geval
+            #We kunnen hier al een parent aanmaken waarbij de value == ||
+            #De 2 volgende waardes die we dan tegenkomen worden de kinderen van deze node
             ast.createNode("||", "LOG_OR", 2)
 
+        #multiple OR operations
+        else:
+            #We maken al het aantal ORs die we hebben, de eerste OR wordt dan een child van de laatst aangemaakt parent
+            #En Elke OR heeft dan nog 2 kinderen, waarbij telkens dan het eerste kind een nieuwe OR wordt
+            numberOfORs = int((ctx.getChildCount()-1)/2)
+            for x in range(numberOfORs):
+                ast.createNode("||", "LOG_OR", 2)
+
+
     # Exit a parse tree produced by mathGrammerParser#log_op1.
-    def exitLog_op1(self, ctx: mathGrammerParser.Log_op1Context):
-        pass
+    def exitLog_op1(self, ctx:mathGrammerParser.Log_op1Context):
+        print("exitLog_op1")
+
 
     # Enter a parse tree produced by mathGrammerParser#log_op2.
-    def enterLog_op2(self, ctx: mathGrammerParser.Log_op2Context):
+    def enterLog_op2(self, ctx:mathGrammerParser.Log_op2Context):
         print("enterLog_op2")
-        if ctx.getChildCount() > 1:
-            ast.createNode("&&", "LOG_AND", 2)
+
+        # Geen AND operation
+        if ctx.getChildCount() == 1:
+            #Dit is niet speciaal moet niets gebeuren we gaan gewoon verder door de parse tree
+            pass
+        # Een enkele AND operation
+        elif ctx.getChildCount() == 3:
+            ast.createNode("&&", "LOG_OR", 2)
+
+        # multiple AND operations
+        else:
+            numberOfANDs = int((ctx.getChildCount() - 1) / 2)
+            for x in range(numberOfANDs):
+                ast.createNode("&&", "LOG_AND", 2)
 
     # Exit a parse tree produced by mathGrammerParser#log_op2.
     def exitLog_op2(self, ctx: mathGrammerParser.Log_op2Context):
@@ -218,8 +267,16 @@ class ASTprinter(mathGrammerListener):
     def enterLog_op3(self, ctx: mathGrammerParser.Log_op3Context):
         print("enterLog_op3")
 
-        if ctx.getChildCount() > 1:
-            ast.createNode(ctx.LOG_NOT(), "LOG_NOT", 1)
+        #Als we 1 kind hebben, is er niets speciaals
+        if ctx.getChildCount() == 1:
+            pass
+
+        #Anders hebben we 2 kinderen
+        elif ctx.getChildCount() == 2:
+            if ctx.getChild(1).start.text == "(":
+                ast.createNode("!", "LOG_NOT", 1, True)
+            else:
+                ast.createNode("!", "LOG_NOT", 1)
 
     # Exit a parse tree produced by mathGrammerParser#log_op3.
     def exitLog_op3(self, ctx: mathGrammerParser.Log_op3Context):
@@ -443,12 +500,3 @@ def optimize(tree):
     else:
 
         return optimize(tree.children[placeOp])
-
-
-
-
-
-
-
-
-

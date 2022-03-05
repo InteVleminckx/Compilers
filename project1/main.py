@@ -42,14 +42,14 @@ def main(argv):
     walker.walk(printer, tree)
 
     a = ast
-    # print("-------------------------------------------------")
-    # printA(a,True)
-    # a.inorderTraversal(print)
-    # print("-------------------------------------------------")
-
+    # # print("-------------------------------------------------")
+    printA(a,True)
+    # # a.inorderTraversal(print)
+    # # print("-------------------------------------------------")
+    #
     createGraph(a, 0)
-    optimizationVisitor(a)
-    createGraph(a, 1)
+    # optimizationVisitor(a)
+    # createGraph(a, 1)
 
 
 

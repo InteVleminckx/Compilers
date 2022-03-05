@@ -733,8 +733,6 @@ class mathGrammerParser ( Parser ):
                 return visitor.visitChildren(self)
 
 
-
-
     def log_op3(self):
 
         localctx = mathGrammerParser.Log_op3Context(self, self._ctx, self.state)
