@@ -487,9 +487,9 @@ def optimize(tree):
 
         elif tree.token == "UN_OP":
             if str(tree.value) == "+":
-                pass
+                value = float(str(tree.children[0].value))
             elif str(tree.value) == "-":
-                pass
+                value = -float(str(tree.children[0].value))
 
         tree.value = str(value)
         tree.children = []
