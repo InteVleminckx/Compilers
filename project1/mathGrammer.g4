@@ -18,8 +18,7 @@ expr		: expr BIN_OP1 factor
 factor		: factor BIN_OP2 term
 			| term
 			;
-term		: UN_OP term
-			| var
+term		: BIN_OP1? var
 			;
 
 log_op1 	: log_op2 (LOG_OR log_op2)*

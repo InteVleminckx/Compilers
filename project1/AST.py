@@ -54,14 +54,14 @@ class AST:
             curParent = self.parentsList[len(self.parentsList) - 1]
 
             if token == "INT":
-                # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinder aan toevoegen.
+                # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
                 node = createNodeItem(token, value, curParent)
                 for i in range(len(curParent.children)):
                     if curParent.children[i] is None:
                         curParent.children[i] = node
                         break
 
-            elif token == "LOG_NOT" and not unaryParenth:
+            elif (token == "LOG_NOT" or token == "UN_OP") and not unaryParenth:
                 self.unaries.append((token, value))
 
             else:
@@ -206,7 +206,13 @@ class ASTprinter(mathGrammerListener):
         print("enterTerm")
 
         if ctx.getChildCount() == 2:
-            ast.createNode( ctx.UN_OP(), "UN_OP", 1)
+            print(ctx.getChild(1).start.text)
+            print(ctx.getChild(1).stop.text)
+            print("aaaaaaaaaaa\naaaaaaaaaa")
+            if ctx.getChild(1).start.text == "(" or ctx.getChild(1).start.text == ctx.getChild(1).stop.text:
+                ast.createNode(ctx.BIN_OP1(), "BIN_OP1", 1, True)
+            else:
+                ast.createNode(ctx.BIN_OP1(), "BIN_OP1", 1)
 
     # Exit a parse tree produced by mathGrammerParser#term.
     def exitTerm(self, ctx: mathGrammerParser.TermContext):
@@ -268,12 +274,12 @@ class ASTprinter(mathGrammerListener):
         print("enterLog_op3")
 
         #Als we 1 kind hebben, is er niets speciaals
-        if ctx.getChildCount() == 1:
-            pass
+        # if ctx.getChildCount() == 1:
+        #     pass
 
         #Anders hebben we 2 kinderen
-        elif ctx.getChildCount() == 2:
-            if ctx.getChild(1).start.text == "(":
+        if ctx.getChildCount() == 2:
+            if ctx.getChild(1).start.text == "(" or ctx.getChild(1).start.text == ctx.getChild(1).stop.text:
                 ast.createNode("!", "LOG_NOT", 1, True)
             else:
                 ast.createNode("!", "LOG_NOT", 1)
