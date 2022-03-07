@@ -48,8 +48,8 @@ def main(argv):
     # # print("-------------------------------------------------")
     #
     createGraph(a, 0)
-    # optimizationVisitor(a)
-    # createGraph(a, 1)
+    optimizationVisitor(a)
+    createGraph(a, 1)
 
 
 

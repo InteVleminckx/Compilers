@@ -184,7 +184,7 @@ class ASTprinter(mathGrammerListener):
         print("enterExpr")
 
         if ctx.getChildCount() == 3:
-            ast.createNode(ctx.BIN_OP1(), "BIN_OP1", 2)
+            ast.createNode(ctx.getChild(1), "BIN_OP1", 2)
 
     # Exit a parse tree produced by mathGrammerParser#expr.
     def exitExpr(self, ctx: mathGrammerParser.ExprContext):
@@ -300,6 +300,8 @@ class ASTprinter(mathGrammerListener):
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
         pass
+
+
 
 
 def createGraph(ast, number=0):
