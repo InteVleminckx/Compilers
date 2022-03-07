@@ -12,13 +12,13 @@ comp_expr1 	: expr COMP_OP expr
             | expr
 			;
 
-expr		: expr BIN_OP1 factor
+expr		: expr bin_op1 factor
 			| factor
 			;
 factor		: factor BIN_OP2 term
 			| term
 			;
-term		: UN_OP term
+term		: un_op term
 			| var
 			;
 
@@ -34,13 +34,16 @@ var			: INT
 			| '(' log_op1 ')'
 			;
 
-BIN_OP1 	: '+'
-			| '-'
+bin_op1 	: PLUS
+			| MIN
 			;
 BIN_OP2 	: '*'
 			| '/'
 			| '%'
 			;
+
+PLUS	: '+';
+MIN	: '-';
 
 LOG_OR      : '||'
             ;
@@ -61,8 +64,8 @@ EQ_OP		: '=='
 			| '!='
 			;
 
-UN_OP		: '+'
-			| '-'
+un_op		: PLUS
+			| MIN
 			;
 
 INT			: [0-9]+
