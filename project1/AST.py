@@ -205,14 +205,13 @@ class ASTprinter(mathGrammerListener):
     def enterTerm(self, ctx: mathGrammerParser.TermContext):
         print("enterTerm")
 
-        if ctx.getChildCount() == 2:
-            print(ctx.getChild(1).start.text)
-            print(ctx.getChild(1).stop.text)
-            print("aaaaaaaaaaa\naaaaaaaaaa")
-            if ctx.getChild(1).start.text == "(" or ctx.getChild(1).start.text == ctx.getChild(1).stop.text:
-                ast.createNode(ctx.BIN_OP1(), "BIN_OP1", 1, True)
-            else:
-                ast.createNode(ctx.BIN_OP1(), "BIN_OP1", 1)
+        if ctx.getChildCount() > 1:
+
+            for x in range(ctx.getChildCount()-1):
+                if ctx.getChild(ctx.getChildCount()-1).start.text == "(" or ctx.getChild(ctx.getChildCount()-1).start.text == ctx.getChild(ctx.getChildCount()-1).stop.text:
+                    ast.createNode(ctx.getChild(x), "UN_OP", 1, True)
+                else:
+                    ast.createNode(ctx.getChild(x), "UN_OP", 1)
 
     # Exit a parse tree produced by mathGrammerParser#term.
     def exitTerm(self, ctx: mathGrammerParser.TermContext):
