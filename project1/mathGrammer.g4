@@ -1,8 +1,33 @@
 grammar mathGrammer;
 
 math		: log_op1 ';' math
+            | extern_decl
             | EOF
 			;
+
+vardecl     :  TYPE
+            ;
+
+TYPE        : 'char'
+            | 'float'
+            | 'int'
+            ;
+
+CONST       : 'const'
+            ;
+
+pointer     : POINTERSIGN
+	        | POINTERSIGN type_qualifier_list
+	        | POINTERSIGN pointer
+	        | POINTERSIGN type_qualifier_list pointer
+	        ;
+
+POINTERSIGN : '*'
+            ;
+
+type_qualifier_list : CONST
+	                | type_qualifier_list CONST
+	                ;
 
 
 comp_expr	: comp_expr1 EQ_OP comp_expr
