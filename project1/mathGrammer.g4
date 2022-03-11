@@ -4,27 +4,27 @@ math
         : log_op1 ';' math
         | extern_decl
         | extern_decl math
+        | comment math
         | EOF
         ;
-
 extern_decl
         : function_def
         | declaration
-        | comment
         ;
 
 comment
         : single_comment
-        | multi_comment
+//        | multi_comment
         ;
 
 single_comment
-        : SINGLE_COMMENT ALLCHARS '\n'
+        : SINGLE_COMMENT TEXT '\n'?
         ;
 
-multi_comment
-        : BLOCK_COMMENT1 .* BLOCK_COMMENT2
-        ;
+//
+//multi_comment
+//        : BLOCK_COMMENT1 .* BLOCK_COMMENT2
+//        ;
 
 
 
@@ -142,6 +142,9 @@ bin_op2
 		| MOD_SIGN
 		;
 
+TEXT
+        : [a-zA-Z0-9_]*
+        ;
 
 SINGLE_COMMENT
         : '//'
@@ -239,10 +242,10 @@ EQ_OP
         : '=='
         | '!='
         ;
-
-ALLCHARS
-        : [^\/\/].*
-        ;
+//
+//ALLCHARS
+//        : .*
+//        ;
 
 IDENTIFIER
         : [_a-zA-Z][_a-zA-Z0-9]*
