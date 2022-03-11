@@ -10,7 +10,23 @@ math
 extern_decl
         : function_def
         | declaration
+        | comment
         ;
+
+comment
+        : single_comment
+        | multi_comment
+        ;
+
+single_comment
+        : SINGLE_COMMENT ALLCHARS '\n'
+        ;
+
+multi_comment
+        : BLOCK_COMMENT1 .* BLOCK_COMMENT2
+        ;
+
+
 
 function_def
         : ';' // nog niet geïmplementeerd
@@ -27,7 +43,6 @@ decl_spec
         | CONST
         | CONST decl_spec
         ;
-
 
 init_decl_list
         : init_declarator
@@ -52,29 +67,105 @@ direct_declarator
         : IDENTIFIER
         ;
 
-IDENTIFIER
-        : [_a-zA-Z][_a-zA-Z0-9]*
+type
+        : CHAR_KEY
+        | INT_KEY
+        | FLOAT_KEY
         ;
 
+pointer
+        : pointersign
+        | pointersign type_qualifier_list
+        | pointersign pointer
+        | pointersign type_qualifier_list pointer
+        ;
+
+
+type_qualifier_list
+        : CONST
+        | type_qualifier_list CONST
+        ;
+
+comp_expr
+        : comp_expr1 EQ_OP comp_expr
+        | comp_expr1
+        ;
+comp_expr1
+        : expr COMP_OP expr
+        | expr
+        ;
+
+expr
+        : expr (PLUS | MIN) factor
+        | factor
+        ;
+
+factor
+        : factor bin_op2 term
+		| term
+		;
+
+term
+        : (PLUS | MIN | pointersign | AMPERSAND)* var
+        | (DOUBLE_PLUS | DOUBLE_MINUS) var
+        | var (DOUBLE_PLUS | DOUBLE_MINUS)
+		;
+
+pointersign
+        : MUL_SIGN
+        ;
+
+log_op1
+        : log_op2 (LOG_OR log_op2)*
+		;
+
+log_op2
+        :log_op3 (LOG_AND log_op3)*
+		;
+
+log_op3
+        : LOG_NOT log_op3
+		| comp_expr
+		;
+
+var
+	    : CHAR
+        | INT
+        | FLOAT
+		| '(' log_op1 ')'
+		| IDENTIFIER
+		;
+
+bin_op2
+	    : MUL_SIGN
+		| DIV_SIGN
+		| MOD_SIGN
+		;
+
+
+SINGLE_COMMENT
+        : '//'
+        ;
+BLOCK_COMMENT1
+        : '/*'
+        ;
+BLOCK_COMMENT2
+        : '*/'
+        ;
 EQ_OP_S
         : '='
         ;
 
-type        : CHAR_KEY
-            | INT_KEY
-            | FLOAT_KEY
-            ;
-
 CHAR_KEY
-        : 'char ' // raar
+        : 'char'
         ;
 
 INT_KEY
-        : 'int '
+        : 'int'
         ;
 
 FLOAT_KEY
-        : 'float '
+        : 'float'
         ;
 
 CHAR
@@ -89,48 +180,16 @@ FLOAT
         : ([0-9]+([.][0-9]*)?|[.][0-9]+)
         ;
 
-
-CONST       : 'const'
-            ;
-
-pointer     : pointersign
-	        | pointersign type_qualifier_list
-	        | pointersign pointer
-	        | pointersign type_qualifier_list pointer
-	        ;
+CONST
+        : 'const'
+        ;
 
 AMPERSAND
         : '&'
         ;
 
-type_qualifier_list : CONST
-	                | type_qualifier_list CONST
-	                ;
-
-comp_expr	: comp_expr1 EQ_OP comp_expr
-            | comp_expr1
-			;
-comp_expr1 	: expr COMP_OP expr
-            | expr
-			;
-
-expr		: expr (PLUS | MIN) factor
-			| factor
-			;
-factor		: factor bin_op2 term
-			| term
-			;
-term		: (PLUS | MIN | pointersign | AMPERSAND)* var
-            | (DOUBLE_PLUS | DOUBLE_MINUS) var
-            | var (DOUBLE_PLUS | DOUBLE_MINUS)
-			;
-
 MUL_SIGN
         : '*'
-        ;
-
-pointersign
-        : MUL_SIGN
         ;
 
 DIV_SIGN
@@ -149,47 +208,46 @@ DOUBLE_MINUS
         : '--'
         ;
 
-log_op1 	: log_op2 (LOG_OR log_op2)*
-			;
-log_op2		: log_op3 (LOG_AND log_op3)*
-			;
-log_op3		: LOG_NOT log_op3
-			| comp_expr
-			;
+PLUS
+        : '+'
+        ;
 
-var			: CHAR
-            | INT
-            | FLOAT
-			| '(' log_op1 ')'
-			| IDENTIFIER
-			;
+MIN
+        : '-'
+        ;
 
-bin_op2 	: MUL_SIGN
-			| DIV_SIGN
-			| MOD_SIGN
-			;
+LOG_OR
+        : '||'
+        ;
 
-PLUS	    : '+';
-MIN	        : '-';
+LOG_AND
+        : '&&'
+        ;
 
-LOG_OR      : '||'
-            ;
+LOG_NOT
+        : '!'
+        ;
 
-LOG_AND     : '&&'
-            ;
+COMP_OP
+        : '>'
+        | '<'
+        | '<='
+        | '>='
+        ;
 
-LOG_NOT     : '!'
-            ;
+EQ_OP
+        : '=='
+        | '!='
+        ;
 
+ALLCHARS
+        : [^\/\/].*
+        ;
 
-COMP_OP 	: '>'
-			| '<'
-			| '<='
-			| '>='
-			;
-EQ_OP		: '=='
-			| '!='
-			;
+IDENTIFIER
+        : [_a-zA-Z][_a-zA-Z0-9]*
+        ;
 
-WS          : [ \n\t\r]+ -> skip
-            ;
+WS
+        : [ \n\t\r]+ -> skip
+        ;
