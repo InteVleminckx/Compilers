@@ -14,24 +14,23 @@ extern_decl
 
 comment
         : single_comment
-//        | multi_comment
+        | multi_comment
         ;
 
 single_comment
-        : SINGLE_COMMENT TEXT? '\n'?
+        : SINGLE_COMMENT
         ;
 
-//
-//multi_comment
-//        : BLOCK_COMMENT1 .* BLOCK_COMMENT2
-//        ;
+multi_comment
+        : '/*' MULTI_COMMENT
+        ;
 
-//print_stmt
-//        : 'printf' '(' (var | literal) ')'
-//        ;
+print_stmt
+        : 'printf' '(' log_op1 ')'
+        ;
 
 function_def
-        : ';' // nog niet geïmplementeerd
+        : print_stmt
         ;
 
 declaration
@@ -144,19 +143,6 @@ bin_op2
 		| MOD_SIGN
 		;
 
-TEXT
-        : [a-zA-Z0-9_]*
-        ;
-
-SINGLE_COMMENT
-        : '//'
-        ;
-BLOCK_COMMENT1
-        : '/*'
-        ;
-BLOCK_COMMENT2
-        : '*/'
-        ;
 EQ_OP_S
         : '='
         ;
@@ -244,10 +230,18 @@ EQ_OP
         : '=='
         | '!='
         ;
-//
-//ALLCHARS
-//        : .*
-//        ;
+
+
+SINGLE_COMMENT
+        :  [/][/][ a-zA-Z0-9_/]*[\n]
+        ;
+
+MULTI_COMMENT
+//        :  ['/*'][ -~]*['*/']
+        : [ a-zA-Z0-9_/]*[\n]*[*][/]
+//        | [\n]([ *][ a-zA-Z0-9_/]*[\n])*[*][/]
+        ;
+
 
 IDENTIFIER
         : [_a-zA-Z][_a-zA-Z0-9]*
