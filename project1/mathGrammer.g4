@@ -18,7 +18,7 @@ comment
         ;
 
 single_comment
-        : SINGLE_COMMENT TEXT '\n'?
+        : SINGLE_COMMENT TEXT? '\n'?
         ;
 
 //
@@ -26,7 +26,9 @@ single_comment
 //        : BLOCK_COMMENT1 .* BLOCK_COMMENT2
 //        ;
 
-
+//print_stmt
+//        : 'printf' '(' (var | literal) ')'
+//        ;
 
 function_def
         : ';' // nog niet geïmplementeerd
