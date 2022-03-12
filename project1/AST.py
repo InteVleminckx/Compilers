@@ -2,6 +2,8 @@ from mathGrammerListener import mathGrammerListener
 from mathGrammerParser import mathGrammerParser
 import os
 
+var_list = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
+
 def createNodeItem(token, value, parent):
     node = Node(token, value, parent)
     return node
@@ -47,13 +49,13 @@ class AST:
             for i in range(numberOfChilds):
                 node.children.append(None)
             self.root = node
-            if token != "INT":
+            if not var_list.count(token):
                 self.parentsList.append(node)
 
         else:
             curParent = self.parentsList[len(self.parentsList) - 1]
 
-            if token == "INT":
+            if var_list.count(token):
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
                 node = createNodeItem(token, value, curParent)
                 for i in range(len(curParent.children)):
@@ -173,7 +175,7 @@ class ASTprinter(mathGrammerListener):
         print("enterComp_expr1")
 
         if ctx.getChildCount() == 3:
-            ast.createNode( ctx.COMP_OP(), "COMP_OP", 2)
+            ast.createNode(ctx.COMP_OP(), "COMP_OP", 2)
 
     # Exit a parse tree produced by mathGrammerParser#comp_expr1.
     def exitComp_expr1(self, ctx: mathGrammerParser.Comp_expr1Context):
@@ -207,7 +209,7 @@ class ASTprinter(mathGrammerListener):
 
         if ctx.getChildCount() > 1:
 
-            for x in range(ctx.getChildCount()-1):
+            for x in range(ctx.getChildCount()-1): #TODO nog aanpassen
                 if ctx.getChild(ctx.getChildCount()-1).start.text == "(" or ctx.getChild(ctx.getChildCount()-1).start.text == ctx.getChild(ctx.getChildCount()-1).stop.text:
                     ast.createNode(ctx.getChild(x), "UN_OP", 1, True)
                 else:
@@ -291,10 +293,14 @@ class ASTprinter(mathGrammerListener):
     def enterVar(self, ctx: mathGrammerParser.VarContext):
         print("enterVar")
 
-        if ctx.INT() is None: # speciale regel => zie grammar
-            return
-        if ctx.getChildCount() == 1:
-            ast.createNode( ctx.INT(), "INT", 0)
+        if ctx.INT() and ctx.getChildCount() == 1:
+            ast.createNode(ctx.INT(), "INT", 0)
+        elif ctx.CHAR() and ctx.getChildCount() == 1:
+            ast.createNode(ctx.CHAR(), "CHAR", 0)
+        elif ctx.FLOAT() and ctx.getChildCount() == 1:
+            ast.createNode(ctx.FLOAT(), "FLOAT", 0)
+        elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
+            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0)
 
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
@@ -313,34 +319,34 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#comment.
     def enterComment(self, ctx:mathGrammerParser.CommentContext):
-        pass
+        pass #
 
     # Exit a parse tree produced by mathGrammerParser#comment.
     def exitComment(self, ctx:mathGrammerParser.CommentContext):
-        pass
+        pass #
 
 
     # Enter a parse tree produced by mathGrammerParser#single_comment.
     def enterSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
-        pass
+        pass #
 
     # Exit a parse tree produced by mathGrammerParser#single_comment.
     def exitSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
-        pass
+        pass #
 
 
     # Enter a parse tree produced by mathGrammerParser#multi_comment.
     def enterMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
-        pass
+        pass #
 
     # Exit a parse tree produced by mathGrammerParser#multi_comment.
     def exitMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
-        pass
+        pass #
 
 
     # Enter a parse tree produced by mathGrammerParser#print_stmt.
     def enterPrint_stmt(self, ctx:mathGrammerParser.Print_stmtContext):
-        pass
+        ast.createNode(ctx.getChild(0), "PRINTF", 1)
 
     # Exit a parse tree produced by mathGrammerParser#print_stmt.
     def exitPrint_stmt(self, ctx:mathGrammerParser.Print_stmtContext):
@@ -382,10 +388,11 @@ class ASTprinter(mathGrammerListener):
     def exitInit_decl_list(self, ctx:mathGrammerParser.Init_decl_listContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#init_declarator.
     def enterInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
-        pass
+
+        if ctx.getChildCount() == 3:
+            ast.createNode(ctx.getChild(1), "=", 2)
 
     # Exit a parse tree produced by mathGrammerParser#init_declarator.
     def exitInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
@@ -412,7 +419,9 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#direct_declarator.
     def enterDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):
-        pass
+
+        if ctx.IDENTIFIER() and ctx.getChildCount() == 1:
+            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0)
 
     # Exit a parse tree produced by mathGrammerParser#direct_declarator.
     def exitDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):

@@ -47,7 +47,6 @@ decl_spec
 
 init_decl_list
         : init_declarator
-        | init_decl_list ',' init_declarator
         ;
 
 init_declarator
