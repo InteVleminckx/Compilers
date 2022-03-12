@@ -40,7 +40,7 @@ declaration
 
 decl_spec
         :
-        | type
+        | ttype
         | CONST
         | CONST decl_spec
         ;
@@ -68,7 +68,7 @@ direct_declarator
         : IDENTIFIER
         ;
 
-type
+ttype
         : CHAR_KEY
         | INT_KEY
         | FLOAT_KEY
@@ -102,7 +102,7 @@ expr
         ;
 
 factor
-        : factor bin_op2 term
+        : factor (MUL_SIGN | DIV_SIGN | MOD_SIGN) term
 		| term
 		;
 
@@ -135,12 +135,6 @@ var
         | FLOAT
 		| '(' log_op1 ')'
 		| IDENTIFIER
-		;
-
-bin_op2
-	    : MUL_SIGN
-		| DIV_SIGN
-		| MOD_SIGN
 		;
 
 EQ_OP_S

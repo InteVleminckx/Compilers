@@ -149,7 +149,7 @@ class ASTprinter(mathGrammerListener):
         #Het is wel zo dat we altijd een extra kind gaan toevoegen als None type en dat is niet de bedoeling
         #We moeten zijn dat dit voorkomen wordt, we kunnen deze verwijderen als de child count == 1
         #Want dan hebben we een EOF
-        if ctx.getChildCount() == 1:
+        if ctx.getChildCount() == 0:
             ast.root.children.pop()
             ast.parentsList = []
 
@@ -195,7 +195,7 @@ class ASTprinter(mathGrammerListener):
         print("enterFactor")
 
         if ctx.getChildCount() == 3:
-            ast.createNode( ctx.BIN_OP2(), "BIN_OP2", 2)
+            ast.createNode(ctx.getChild(1), "BIN_OP2", 2)
 
     # Exit a parse tree produced by mathGrammerParser#factor.
     def exitFactor(self, ctx: mathGrammerParser.FactorContext):
@@ -300,6 +300,160 @@ class ASTprinter(mathGrammerListener):
     def exitVar(self, ctx: mathGrammerParser.VarContext):
         pass
 
+    #------------------------------------------- Start new part--------------------------------------------------#
+
+    # Enter a parse tree produced by mathGrammerParser#extern_decl.
+    def enterExtern_decl(self, ctx:mathGrammerParser.Extern_declContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#extern_decl.
+    def exitExtern_decl(self, ctx:mathGrammerParser.Extern_declContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#comment.
+    def enterComment(self, ctx:mathGrammerParser.CommentContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#comment.
+    def exitComment(self, ctx:mathGrammerParser.CommentContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#single_comment.
+    def enterSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#single_comment.
+    def exitSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#multi_comment.
+    def enterMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#multi_comment.
+    def exitMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#print_stmt.
+    def enterPrint_stmt(self, ctx:mathGrammerParser.Print_stmtContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#print_stmt.
+    def exitPrint_stmt(self, ctx:mathGrammerParser.Print_stmtContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#function_def.
+    def enterFunction_def(self, ctx:mathGrammerParser.Function_defContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#function_def.
+    def exitFunction_def(self, ctx:mathGrammerParser.Function_defContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#declaration.
+    def enterDeclaration(self, ctx:mathGrammerParser.DeclarationContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#declaration.
+    def exitDeclaration(self, ctx:mathGrammerParser.DeclarationContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#decl_spec.
+    def enterDecl_spec(self, ctx:mathGrammerParser.Decl_specContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#decl_spec.
+    def exitDecl_spec(self, ctx:mathGrammerParser.Decl_specContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#init_decl_list.
+    def enterInit_decl_list(self, ctx:mathGrammerParser.Init_decl_listContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#init_decl_list.
+    def exitInit_decl_list(self, ctx:mathGrammerParser.Init_decl_listContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#init_declarator.
+    def enterInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#init_declarator.
+    def exitInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#declarator.
+    def enterDeclarator(self, ctx:mathGrammerParser.DeclaratorContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#declarator.
+    def exitDeclarator(self, ctx:mathGrammerParser.DeclaratorContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#initializer.
+    def enterInitializer(self, ctx:mathGrammerParser.InitializerContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#initializer.
+    def exitInitializer(self, ctx:mathGrammerParser.InitializerContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#direct_declarator.
+    def enterDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#direct_declarator.
+    def exitDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#ttype.
+    def enterTtype(self, ctx:mathGrammerParser.TtypeContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#ttype.
+    def exitTtype(self, ctx:mathGrammerParser.TtypeContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#pointer.
+    def enterPointer(self, ctx:mathGrammerParser.PointerContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#pointer.
+    def exitPointer(self, ctx:mathGrammerParser.PointerContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#type_qualifier_list.
+    def enterType_qualifier_list(self, ctx:mathGrammerParser.Type_qualifier_listContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#type_qualifier_list.
+    def exitType_qualifier_list(self, ctx:mathGrammerParser.Type_qualifier_listContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#pointersign.
+    def enterPointersign(self, ctx:mathGrammerParser.PointersignContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#pointersign.
+    def exitPointersign(self, ctx:mathGrammerParser.PointersignContext):
+        pass
+
+    #------------------------------------------- End new part --------------------------------------------------#
 
 
 
