@@ -30,7 +30,7 @@ print_stmt
         ;
 
 function_def
-        : print_stmt
+        : print_stmt ';'
         ;
 
 declaration
