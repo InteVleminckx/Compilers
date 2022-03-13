@@ -542,6 +542,7 @@ def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
                 tempLabel = tempLabel + "3" # zodat er onder siblings geen zelfde labels ontstaan.
                 createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, node.children[child])
 
+int_node = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
 
 def optimizationVisitor(tree):
 
@@ -559,7 +560,7 @@ def optimizationVisitor(tree):
             optimized = True
             while optimized:
                 # Geen optimalization nodig
-                if actAST.token == "INT" or actAST.token == "ROOT":
+                if int_node[1:len(int_node)-1].count(actAST.token) or actAST.token == "ROOT":
                     optimized = False
 
                 # We moeten gaan optimaliseren
@@ -585,7 +586,7 @@ def optimize(tree):
     placeOp = 0
 
     for child in tree.children:
-        if child.token != "INT":
+        if not int_node.count(child.token):
             onlyInt = False
             break
         placeOp += 1
@@ -618,10 +619,13 @@ def optimize(tree):
                 else:
                     value = 1
             elif str(tree.value) == "!":
-                if float(str(tree.children[0].value)) == 0:
-                    value = 1
+                if tree.children[0].token == "IDENTIFIER":
+                    pass
                 else:
-                    value = 0
+                    if float(str(tree.children[0].value)) == 0:
+                        value = 1
+                    else:
+                        value = 0
 
         elif tree.token == "COMP_OP" or tree.token == "EQ_OP":
             if str(tree.value) == ">":
@@ -670,3 +674,10 @@ def optimize(tree):
     else:
 
         return optimize(tree.children[placeOp])
+
+def codeGenerationVisitor():
+    f = open("llvmCode", "w")
+
+    f.write("")
+
+    f.close()
