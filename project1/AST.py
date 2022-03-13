@@ -1,6 +1,7 @@
 from mathGrammerListener import mathGrammerListener
 from mathGrammerParser import mathGrammerParser
 import os
+import re
 
 var_list = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
 
@@ -468,6 +469,9 @@ class ASTprinter(mathGrammerListener):
 
 def createGraph(ast, inputfile, number=0):
     path = "./ast_files/"
+    afterSlash = re.search("[^/]+$", inputfile)
+    pos = afterSlash.start()
+    inputfile = inputfile[pos:]
     graphname = str(inputfile[:len(inputfile)-2]) + "_graph" + str(number) + ".gv"
     astname = str(inputfile[:len(inputfile)-2]) + "_ast" + str(number) + ".png"
 

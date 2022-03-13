@@ -2,15 +2,13 @@
 
 # This script runs the testfiles
 
-cd ./testfiles
-
-FILES="./*.c"
+FILES="./testfiles/*.c"
 for f in $FILES
 do
 # Check if "$f" FILE exists and is a regular file and then only copy it #
   if [ -f "$f" ]
   then
-    python3 $f
+    python3 "main.py" $f
     exit_status=$?
     if [ "${exit_status}" -ne 0 ];
     then
