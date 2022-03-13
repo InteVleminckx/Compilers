@@ -466,10 +466,14 @@ class ASTprinter(mathGrammerListener):
 
 
 
-def createGraph(ast, number=0):
-    graphname = "graph" + str(number) + ".gv"
-    astname = "ast" + str(number) + ".png"
-    f = open(graphname, "w")
+def createGraph(ast, inputfile, number=0):
+    path = "./ast_files/"
+    graphname = str(inputfile[:len(inputfile)-2]) + "_graph" + str(number) + ".gv"
+    astname = str(inputfile[:len(inputfile)-2]) + "_ast" + str(number) + ".png"
+
+    graph_path = path + graphname
+
+    f = open(graph_path, "w")
 
     f.write("strict digraph G{\n") # we gebruiken een directed graph met max. één edge tussen twee vertices
 
@@ -480,7 +484,12 @@ def createGraph(ast, number=0):
     f.write("}\n")
 
     f.close()
+
+    os.chdir('./ast_files/')
+
     os.system("dot -Tpng " + graphname + " -o " + astname) # "run" command voor graphviz, "ast#.png" bevat het schema van de AST.
+
+    os.chdir('../')
 
 def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
 

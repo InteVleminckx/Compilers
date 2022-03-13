@@ -47,11 +47,9 @@ def main(argv):
     # # a.inorderTraversal(print)
     # # print("-------------------------------------------------")
     #
-    createGraph(a, 0)
+    createGraph(a, argv[1], 0)
     optimizationVisitor(a)
-    createGraph(a, 1)
-
-
+    createGraph(a, argv[1], 1)
 
 if __name__ == '__main__':
     main(sys.argv)
