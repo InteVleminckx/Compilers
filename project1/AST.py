@@ -137,7 +137,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#math.
     def enterMath(self, ctx: mathGrammerParser.MathContext):
-        print("enterMath")
+        # print("enterMath")
 
 
         #Elke keer als we een nieuwe lijn tegen komen betekent dat de parent een extra child gaat krijgen
@@ -162,7 +162,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#comp_expr.
     def enterComp_expr(self, ctx: mathGrammerParser.Comp_exprContext):
-        print("enterComp_expr")
+        # print("enterComp_expr")
 
         if ctx.getChildCount() == 3:
             ast.createNode(ctx.EQ_OP(), "EQ_OP", 2)
@@ -173,7 +173,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#comp_expr1.
     def enterComp_expr1(self, ctx: mathGrammerParser.Comp_expr1Context):
-        print("enterComp_expr1")
+        # print("enterComp_expr1")
 
         if ctx.getChildCount() == 3:
             ast.createNode(ctx.COMP_OP(), "COMP_OP", 2)
@@ -184,7 +184,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#expr.
     def enterExpr(self, ctx: mathGrammerParser.ExprContext):
-        print("enterExpr")
+        # print("enterExpr")
 
         if ctx.getChildCount() == 3:
             ast.createNode(ctx.getChild(1), "BIN_OP1", 2)
@@ -195,7 +195,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#factor.
     def enterFactor(self, ctx: mathGrammerParser.FactorContext):
-        print("enterFactor")
+        # print("enterFactor")
 
         if ctx.getChildCount() == 3:
             ast.createNode(ctx.getChild(1), "BIN_OP2", 2)
@@ -206,7 +206,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#term.
     def enterTerm(self, ctx: mathGrammerParser.TermContext):
-        print("enterTerm")
+        # print("enterTerm")
 
         if ctx.getChildCount() > 1:
 
@@ -222,7 +222,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#log_op1.
     def enterLog_op1(self, ctx:mathGrammerParser.Log_op1Context):
-        print("enterLog_op1")
+        # print("enterLog_op1")
 
         #Geen OR operation
         if ctx.getChildCount() == 1:
@@ -246,12 +246,13 @@ class ASTprinter(mathGrammerListener):
 
     # Exit a parse tree produced by mathGrammerParser#log_op1.
     def exitLog_op1(self, ctx:mathGrammerParser.Log_op1Context):
-        print("exitLog_op1")
+        # print("exitLog_op1")
+        pass
 
 
     # Enter a parse tree produced by mathGrammerParser#log_op2.
     def enterLog_op2(self, ctx:mathGrammerParser.Log_op2Context):
-        print("enterLog_op2")
+        # print("enterLog_op2")
 
         # Geen AND operation
         if ctx.getChildCount() == 1:
@@ -273,7 +274,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#log_op3.
     def enterLog_op3(self, ctx: mathGrammerParser.Log_op3Context):
-        print("enterLog_op3")
+        # print("enterLog_op3")
 
         #Als we 1 kind hebben, is er niets speciaals
         # if ctx.getChildCount() == 1:
@@ -292,7 +293,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#var.
     def enterVar(self, ctx: mathGrammerParser.VarContext):
-        print("enterVar")
+        # print("enterVar")
 
         if ctx.INT() and ctx.getChildCount() == 1:
             ast.createNode(ctx.INT(), "INT", 0)
@@ -469,7 +470,7 @@ class ASTprinter(mathGrammerListener):
 
 def createGraph(ast, inputfile, number=0):
     path = "./ast_files/"
-    afterSlash = re.search("[^/]+$", inputfile)
+    afterSlash = re.search("[^/]+$", inputfile) # build folder changes inputfile path
     pos = afterSlash.start()
     inputfile = inputfile[pos:]
     graphname = str(inputfile[:len(inputfile)-2]) + "_graph" + str(number) + ".gv"

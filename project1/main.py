@@ -42,14 +42,14 @@ def main(argv):
     walker.walk(printer, tree)
 
     a = ast
-    # # print("-------------------------------------------------")
-    printA(a,True)
-    # # a.inorderTraversal(print)
-    # # print("-------------------------------------------------")
-    #
+
+    # printA(a,True)
+
     createGraph(a, argv[1], 0)
     optimizationVisitor(a)
     createGraph(a, argv[1], 1)
+
+    codeGenerationVisitor()
 
 if __name__ == '__main__':
     main(sys.argv)
