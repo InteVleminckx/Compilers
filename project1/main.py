@@ -46,10 +46,10 @@ def main(argv):
     # printA(a,True)
 
     createGraph(a, argv[1], 0)
-    optimizationVisitor(a)
-    createGraph(a, argv[1], 1)
+    # optimizationVisitor(a)
+    # createGraph(a, argv[1], 1)
 
-    codeGenerationVisitor()
+    # codeGenerationVisitor()
 
 if __name__ == '__main__':
     main(sys.argv)

@@ -2,26 +2,26 @@
 
 # This script runs the testfiles
 
-FILES="./testfiles/A*.c"
+FILES="./testfiles/A*2.c"
 for f in $FILES
 do
 # Check if "$f" FILE exists and is a regular file and then only copy it #
   if [ -f "$f" ]
   then
 
-    filename = "complete_$f"
-    echo "#include <stdio.h>\n" >> filename
-    echo "int main() {\n" >> filename
+#    filename="$f"
+    echo "#include <stdio.h>" > filename.c
+    echo "int main() {" >> filename.c
 
     input="$f"
     while read -r line
       do
-        echo "$line" >> filename
+        echo "$line" >> filename.c
       done < "$input"
 
-    echo "return 0;}" >> filename
+    echo "return 0;}" >> filename.c
 
-    clang -S -emit-llvm filename
+    clang -S -emit-llvm filename.c
     # clang -cc1 foo.c -emit-llvm
     # -ast-print
 
