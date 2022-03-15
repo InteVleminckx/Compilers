@@ -140,18 +140,27 @@ class ASTprinter(mathGrammerListener):
         # print("enterMath")
 
 
-        #Elke keer als we een nieuwe lijn tegen komen betekent dat de parent een extra child gaat krijgen
-        #We voegen dus een placeholder toe aan de root zijn children
-        ast.root.children.append(None)
+        # #Elke keer als we een nieuwe lijn tegen komen betekent dat de parent een extra child gaat krijgen
+        # #We voegen dus een placeholder toe aan de root zijn children
+        # ast.root.children.append(None)
+        #
+        # #bij het enteren van een math beginnen we aan een nieuwe expressie/lijn code
+        # #We resetten hier eigen dan de self.prevParents want we beginnen dan aan een nieuwe ast.
+        # #Waarbij de eerste parent direct de root gewoon gaat zijn, dus deze voegen we al toe aan de lijst
+        # ast.parentsList = [ast.root]
+        #
+        # #Het is wel zo dat we altijd een extra kind gaan toevoegen als None type en dat is niet de bedoeling
+        # #We moeten zijn dat dit voorkomen wordt, we kunnen deze verwijderen als de child count == 1
+        # #Want dan hebben we een EOF
+        # if ctx.getChildCount() == 0:
+        #     ast.root.children.pop()
+        #     ast.parentsList = []
 
-        #bij het enteren van een math beginnen we aan een nieuwe expressie/lijn code
-        #We resetten hier eigen dan de self.prevParents want we beginnen dan aan een nieuwe ast.
-        #Waarbij de eerste parent direct de root gewoon gaat zijn, dus deze voegen we al toe aan de lijst
+        for i in range(ctx.getChildCount()-1):
+            ast.root.children.append(None)
+
         ast.parentsList = [ast.root]
 
-        #Het is wel zo dat we altijd een extra kind gaan toevoegen als None type en dat is niet de bedoeling
-        #We moeten zijn dat dit voorkomen wordt, we kunnen deze verwijderen als de child count == 1
-        #Want dan hebben we een EOF
         if ctx.getChildCount() == 0:
             ast.root.children.pop()
             ast.parentsList = []
@@ -310,6 +319,14 @@ class ASTprinter(mathGrammerListener):
 
     #------------------------------------------- Start new part--------------------------------------------------#
 
+    # Enter a parse tree produced by mathGrammerParser#statement.
+    def enterStatement(self, ctx: mathGrammerParser.StatementContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#statement.
+    def exitStatement(self, ctx: mathGrammerParser.StatementContext):
+        pass
+
     # Enter a parse tree produced by mathGrammerParser#extern_decl.
     def enterExtern_decl(self, ctx:mathGrammerParser.Extern_declContext):
         pass
@@ -319,31 +336,31 @@ class ASTprinter(mathGrammerListener):
         pass
 
 
-    # Enter a parse tree produced by mathGrammerParser#comment.
-    def enterComment(self, ctx:mathGrammerParser.CommentContext):
-        pass #
-
-    # Exit a parse tree produced by mathGrammerParser#comment.
-    def exitComment(self, ctx:mathGrammerParser.CommentContext):
-        pass #
-
-
-    # Enter a parse tree produced by mathGrammerParser#single_comment.
-    def enterSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
-        pass #
-
-    # Exit a parse tree produced by mathGrammerParser#single_comment.
-    def exitSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
-        pass #
-
-
-    # Enter a parse tree produced by mathGrammerParser#multi_comment.
-    def enterMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
-        pass #
-
-    # Exit a parse tree produced by mathGrammerParser#multi_comment.
-    def exitMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
-        pass #
+    # # Enter a parse tree produced by mathGrammerParser#comment.
+    # def enterComment(self, ctx:mathGrammerParser.CommentContext):
+    #     pass #
+    #
+    # # Exit a parse tree produced by mathGrammerParser#comment.
+    # def exitComment(self, ctx:mathGrammerParser.CommentContext):
+    #     pass #
+    #
+    #
+    # # Enter a parse tree produced by mathGrammerParser#single_comment.
+    # def enterSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
+    #     pass #
+    #
+    # # Exit a parse tree produced by mathGrammerParser#single_comment.
+    # def exitSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
+    #     pass #
+    #
+    #
+    # # Enter a parse tree produced by mathGrammerParser#multi_comment.
+    # def enterMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
+    #     pass #
+    #
+    # # Exit a parse tree produced by mathGrammerParser#multi_comment.
+    # def exitMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
+    #     pass #
 
 
     # Enter a parse tree produced by mathGrammerParser#print_stmt.
@@ -690,7 +707,7 @@ def optimize(tree):
         return optimize(tree.children[placeOp])
 
 def codeGenerationVisitor():
-    f = open("llvmCode", "w")
+    f = open("generatedLLVMIR_files/llvmCode", "w")
 
     f.write("")
 

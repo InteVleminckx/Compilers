@@ -1,29 +1,32 @@
 grammar mathGrammer;
 
 math
-        : log_op1 ';' math
-        | extern_decl
-        | extern_decl math
-        | comment math
-        | EOF
+        : statement* EOF
         ;
+
+statement
+        : log_op1 ';'
+        | extern_decl
+//        | comment
+        ;
+
 extern_decl
         : function_def
         | declaration
         ;
 
-comment
-        : single_comment
-        | multi_comment
-        ;
-
-single_comment
-        : SINGLE_COMMENT
-        ;
-
-multi_comment
-        : '/*' MULTI_COMMENT
-        ;
+//comment
+//        : single_comment
+//        | multi_comment
+//        ;
+//
+//single_comment
+//        : SINGLE_COMMENT
+//        ;
+//
+//multi_comment
+//        : MULTI_COMMENT
+//        ;
 
 print_stmt
         : 'printf' '(' log_op1 ')'
@@ -226,12 +229,13 @@ EQ_OP
 
 
 SINGLE_COMMENT
-        :  [/][/][ a-zA-Z0-9_/]*[\n]
+        : '//' ~[\r\n]* -> skip
+//        :  [/][/][ a-zA-Z0-9_/]*[\n]
         ;
 
 MULTI_COMMENT
 //        :  ['/*'][ -~]*['*/']
-        : [ a-zA-Z0-9_/]*[\n]*[*][/]
+        : '/*' .*? '*/' -> skip
 //        | [\n]([ *][ a-zA-Z0-9_/]*[\n])*[*][/]
         ;
 

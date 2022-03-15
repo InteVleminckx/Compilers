@@ -17,39 +17,21 @@ class mathGrammerListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by mathGrammerParser#statement.
+    def enterStatement(self, ctx:mathGrammerParser.StatementContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#statement.
+    def exitStatement(self, ctx:mathGrammerParser.StatementContext):
+        pass
+
+
     # Enter a parse tree produced by mathGrammerParser#extern_decl.
     def enterExtern_decl(self, ctx:mathGrammerParser.Extern_declContext):
         pass
 
     # Exit a parse tree produced by mathGrammerParser#extern_decl.
     def exitExtern_decl(self, ctx:mathGrammerParser.Extern_declContext):
-        pass
-
-
-    # Enter a parse tree produced by mathGrammerParser#comment.
-    def enterComment(self, ctx:mathGrammerParser.CommentContext):
-        pass
-
-    # Exit a parse tree produced by mathGrammerParser#comment.
-    def exitComment(self, ctx:mathGrammerParser.CommentContext):
-        pass
-
-
-    # Enter a parse tree produced by mathGrammerParser#single_comment.
-    def enterSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
-        pass
-
-    # Exit a parse tree produced by mathGrammerParser#single_comment.
-    def exitSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
-        pass
-
-
-    # Enter a parse tree produced by mathGrammerParser#multi_comment.
-    def enterMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
-        pass
-
-    # Exit a parse tree produced by mathGrammerParser#multi_comment.
-    def exitMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
         pass
 
 

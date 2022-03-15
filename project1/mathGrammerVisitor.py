@@ -14,23 +14,13 @@ class mathGrammerVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by mathGrammerParser#statement.
+    def visitStatement(self, ctx:mathGrammerParser.StatementContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by mathGrammerParser#extern_decl.
     def visitExtern_decl(self, ctx:mathGrammerParser.Extern_declContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by mathGrammerParser#comment.
-    def visitComment(self, ctx:mathGrammerParser.CommentContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by mathGrammerParser#single_comment.
-    def visitSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by mathGrammerParser#multi_comment.
-    def visitMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
         return self.visitChildren(ctx)
 
 
