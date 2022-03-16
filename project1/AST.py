@@ -19,6 +19,9 @@ class Node:
         self.token = token
         self.parent = parent
         self.children = []
+        self.type = type
+        self.isConst = isConst
+        self.isOverwritten = isOverwritten
 
     def getValue(self):
         return self.value
@@ -33,6 +36,9 @@ class AST:
         self.root = root
         self.parentsList = []
         self.unaries = []
+
+        self.nextConst = False
+        self.nextType = ""
 
     def createNode(self, value, token, numberOfChilds, type="", isConst=False, unaryParenth=False):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
@@ -396,7 +402,13 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#decl_spec.
     def enterDecl_spec(self, ctx:mathGrammerParser.Decl_specContext):
-        pass
+        if ctx.getChildCount() == 2:
+            ast.nextConst = True
+        else:
+            if ctx.CONST():
+                ast.nextConst = True
+            # elif ctx.ttype():
+            #     pass
 
     # Exit a parse tree produced by mathGrammerParser#decl_spec.
     def exitDecl_spec(self, ctx:mathGrammerParser.Decl_specContext):
@@ -455,7 +467,12 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#ttype.
     def enterTtype(self, ctx:mathGrammerParser.TtypeContext):
-        pass
+        if ctx.CHAR_KEY():
+            ast.nextType = "CHAR"
+        elif ctx.INT_KEY():
+            ast.nextType = "INT"
+        elif ctx.FLOAT_KEY():
+            ast.nextType = "FLOAT"
 
     # Exit a parse tree produced by mathGrammerParser#ttype.
     def exitTtype(self, ctx:mathGrammerParser.TtypeContext):
@@ -473,7 +490,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#type_qualifier_list.
     def enterType_qualifier_list(self, ctx:mathGrammerParser.Type_qualifier_listContext):
-        pass
+        ast.nextConst = True
 
     # Exit a parse tree produced by mathGrammerParser#type_qualifier_list.
     def exitType_qualifier_list(self, ctx:mathGrammerParser.Type_qualifier_listContext):
@@ -646,9 +663,20 @@ def optimize(tree):
             break
         placeOp += 1
 
+    if onlyInt:
+        if len(tree.children) > 1:
+            #binary
+            if tree.children[0].token == "IDENTIFIER" or tree.children[1].token == "IDENTIFIER":
+                pass
+        else:
+            #unary
+            if tree.children[0].token == "IDENTIFIER":
+                pass
+
     # We hebben enkel integers als kinderen dus we kunnen deze optellen
     if onlyInt:
         value = 0
+        type_ = None
         if tree.token == "BIN_OP1" or tree.token == "BIN_OP2":
 
             if (tree.children[0].token == "FLOAT" or tree.children[1].token == "FLOAT"):
@@ -657,7 +685,7 @@ def optimize(tree):
                 type_ = int,"INT"
 
             if str(tree.value) == "+":
-                value = float(str(tree.children[0].value)) + float(str(tree.children[1].value))
+                value = type_[0](str(tree.children[0].value)) + type_[0](str(tree.children[1].value))
             elif str(tree.value) == "-":
                 value = float(str(tree.children[0].value)) - float(str(tree.children[1].value))
             elif str(tree.value) == "*":
@@ -668,6 +696,8 @@ def optimize(tree):
                 value = float(str(tree.children[0].value)) % float(str(tree.children[1].value))
 
         elif tree.token == "LOG_OR" or tree.token == "LOG_AND" or tree.token == "LOG_NOT":
+            type_ = "INT"
+
             if str(tree.value) == "||":
                 if float(str(tree.children[0].value)) == 0 and float(str(tree.children[1].value)) == 0:
                     value = 0
@@ -688,6 +718,8 @@ def optimize(tree):
                         value = 0
 
         elif tree.token == "COMP_OP" or tree.token == "EQ_OP":
+            type_ = "INT"
+
             if str(tree.value) == ">":
                 if float(str(tree.children[0].value)) > float(str(tree.children[1].value)):
                     value = 1
@@ -720,16 +752,22 @@ def optimize(tree):
                     value = 0
 
         elif tree.token == "UN_OP":
+            if (tree.children[0].token == "FLOAT"):
+                type_ = float, "FLOAT"
+            else:
+                type_ = int,"INT"
+
             if str(tree.value) == "+":
-                value = float(str(tree.children[0].value))
+                value = type_[0](str(tree.children[0].value))
             elif str(tree.value) == "-":
-                value = -float(str(tree.children[0].value))
+                value = -type_[0](str(tree.children[0].value))
 
         tree.value = str(value)
         tree.children = []
-        tree.token = "INT"
+        tree.token = type_[1]
 
         return tree.parent
+
 
     else:
 
@@ -737,6 +775,40 @@ def optimize(tree):
 
 #----------------------------------------------------------------------------------------------------------------------#
 
+def setupSymbolTables(ast, node=None):
+
+    if ast.root is None:
+        return None
+
+    elif node is None: #Hebben we de root
+
+        if len(ast.root.children) > 0:
+
+            for child in ast.root.children:
+                ast.traverse(ast, child)
+    else:
+        if node.token == "=":
+
+            value = None
+
+            if len(node.children[1].children) != 0: # optimizen
+                pass
+
+            isConst = False
+            isOverwritten = False
+            tableValue = Value(node.children[0].token, value, isConst, isOverwritten)
+
+            symbolTable = SymbolTable()
+
+        else:
+            for child in node.children:
+                ast.traverse(ast, child)
+
+
+
+
+
+#----------------------------------------------------------------------------------------------------------------------#
 def codeGenerationVisitor():
     f = open("generatedLLVMIR_files/llvmCode", "w")
 
@@ -754,11 +826,11 @@ def traverse(ast, node=None):
         visit(ast.root.value)
 
         if len(ast.root.children) > 0:
-
             pass
             # for child in ast.root.children:
+            #     if child.token == "=":
+            #
             #     ast.traverse(ast, child)
-            #     count+=1
     else:
         visit(node.value)
         if len(node.children) > 0:
