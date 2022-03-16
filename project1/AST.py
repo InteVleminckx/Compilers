@@ -706,9 +706,56 @@ def optimize(tree):
 
         return optimize(tree.children[placeOp])
 
+#----------------------------------------------------------------------------------------------------------------------#
+
 def codeGenerationVisitor():
     f = open("generatedLLVMIR_files/llvmCode", "w")
 
     f.write("")
 
     f.close()
+
+def traverse(ast, node=None):
+
+    if ast.root is None:
+        return None
+
+    elif node is None: #Hebben we de root
+
+        visit(ast.root.value)
+
+        if len(ast.root.children) > 0:
+
+            pass
+            # for child in ast.root.children:
+            #     ast.traverse(ast, child)
+            #     count+=1
+    else:
+        visit(node.value)
+        if len(node.children) > 0:
+            pass
+            # for child in node.children:
+            #     ast.traverse(ast, child)
+
+
+def visit(value):
+
+    if value == "=":
+        pass
+    elif value == "printf":
+        pass
+
+def add(file, var1, var2):
+    pass
+
+def subtract(file, var1, var2): # var1 - var2
+    pass
+
+def multiply(file, var1, var2):
+    pass
+
+def divide(file, var1, var2): # var1 / var2
+    pass
+
+def assign(file, var1, var2):
+    pass
