@@ -1,18 +1,20 @@
 from mathGrammerListener import mathGrammerListener
 from mathGrammerParser import mathGrammerParser
+from SymbolTable import *
 import os
 import re
 
 var_list = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
 
-def createNodeItem(token, value, parent):
-    node = Node(token, value, parent)
+
+def createNodeItem(token, value, parent, type="", isConst=False):
+    node = Node(token, value, parent, type, isConst)
     return node
 
 
 class Node:
 
-    def __init__(self, token, value, parent):
+    def __init__(self, token, value, parent, type, isConst, isOverwritten=None):
         self.value = value
         self.token = token
         self.parent = parent
@@ -32,7 +34,7 @@ class AST:
         self.parentsList = []
         self.unaries = []
 
-    def createNode(self, value, token, numberOfChilds, unaryParenth=False):
+    def createNode(self, value, token, numberOfChilds, type="", isConst=False, unaryParenth=False):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
         for parent in self.parentsList:
             hasUnfilledChildren = False
@@ -46,7 +48,7 @@ class AST:
 
         # We maken een node aan en pre-fillen al de children
         if self.root is None:
-            node = createNodeItem(token, value, None)
+            node = createNodeItem(token, value, None,type, isConst)
             for i in range(numberOfChilds):
                 node.children.append(None)
             self.root = node
@@ -58,7 +60,7 @@ class AST:
 
             if var_list.count(token):
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent)
+                node = createNodeItem(token, value, curParent,type, isConst)
                 for i in range(len(curParent.children)):
                     if curParent.children[i] is None:
                         curParent.children[i] = node
@@ -69,7 +71,7 @@ class AST:
 
             else:
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent)
+                node = createNodeItem(token, value, curParent,type, isConst)
                 for i in range(numberOfChilds):
                     node.children.append(None)
                 for i in range(len(curParent.children)):
@@ -82,7 +84,7 @@ class AST:
                     for unary in self.unaries:
                         curParent = self.parentsList[len(self.parentsList) - 1]
 
-                        node = createNodeItem(unary[0], unary[1], curParent)
+                        node = createNodeItem(unary[0], unary[1], curParent,type, isConst)
                         node.children.append(None)
                         for i in range(len(curParent.children)):
                             if curParent.children[i] is None:
@@ -91,7 +93,6 @@ class AST:
                         self.parentsList.append(node)
 
                     self.unaries = []
-
 
     def inorderTraversal(self,visit,node=None):
 
@@ -219,9 +220,9 @@ class ASTprinter(mathGrammerListener):
 
         if ctx.getChildCount() > 1:
 
-            for x in range(ctx.getChildCount()-1): #TODO nog aanpassen
+            for x in range(ctx.getChildCount()-1):
                 if ctx.getChild(ctx.getChildCount()-1).start.text == "(" or ctx.getChild(ctx.getChildCount()-1).start.text == ctx.getChild(ctx.getChildCount()-1).stop.text:
-                    ast.createNode(ctx.getChild(x), "UN_OP", 1, True)
+                    ast.createNode(ctx.getChild(x), "UN_OP", 1, "",False,True)
                 else:
                     ast.createNode(ctx.getChild(x), "UN_OP", 1)
 
@@ -292,7 +293,7 @@ class ASTprinter(mathGrammerListener):
         #Anders hebben we 2 kinderen
         if ctx.getChildCount() == 2:
             if ctx.getChild(1).start.text == "(" or ctx.getChild(1).start.text == ctx.getChild(1).stop.text:
-                ast.createNode("!", "LOG_NOT", 1, True)
+                ast.createNode("!", "LOG_NOT", 1, "",False,True)
             else:
                 ast.createNode("!", "LOG_NOT", 1)
 
@@ -311,7 +312,10 @@ class ASTprinter(mathGrammerListener):
         elif ctx.FLOAT() and ctx.getChildCount() == 1:
             ast.createNode(ctx.FLOAT(), "FLOAT", 0)
         elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0)
+            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ast.nextType, ast.nextConst)
+            if ast.nextConst:
+                ast.nextConst = False
+
 
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
@@ -440,7 +444,9 @@ class ASTprinter(mathGrammerListener):
     def enterDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):
 
         if ctx.IDENTIFIER() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0)
+            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ast.nextType, ast.nextConst)
+            if ast.nextConst:
+                ast.nextConst = False
 
     # Exit a parse tree produced by mathGrammerParser#direct_declarator.
     def exitDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):
@@ -481,7 +487,7 @@ class ASTprinter(mathGrammerListener):
     def exitPointersign(self, ctx:mathGrammerParser.PointersignContext):
         pass
 
-    #------------------------------------------- End new part --------------------------------------------------#
+#------------------------------------------- End new part --------------------------------------------------#
 
 
 
@@ -573,9 +579,8 @@ def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
                 tempLabel = tempLabel + "3" # zodat er onder siblings geen zelfde labels ontstaan.
                 createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, node.children[child])
 
-int_node = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
 
-def optimizationVisitor(tree):
+def optimizationVisitor(tree, table=False):
 
     # replaces every binary operation node that has
     # two literal nodes as children with a literal node containing the result of the operation.
@@ -584,32 +589,51 @@ def optimizationVisitor(tree):
 
     newTree = AST()
     newTree.root = createNodeItem("ROOT", "ROOT", None)
+    newNode = createNodeItem(tree.token, tree.value, tree.parent)
     childnumber = 0
-    for actAST in tree.root.children:
+
+    loopP = None
+    node = None
+
+    if table:
+        loopP = tree.children
+        node = newNode
+    else:
+        loopP = tree.root.children
+        node = newTree.root
+
+    for actAST in loopP:
 
         if len(actAST.children) > 0:
             optimized = True
             while optimized:
                 # Geen optimalization nodig
-                if int_node[1:len(int_node)-1].count(actAST.token) or actAST.token == "ROOT":
+                if var_list[1:len(var_list)-1].count(actAST.token) or actAST.token == "ROOT":
                     optimized = False
 
                 # We moeten gaan optimaliseren
                 else:
                     actAST = optimize(actAST)
 
-            newTree.root.children.append(actAST.children[childnumber])
+            node.children.append(actAST.children[childnumber])
 
         else:
-            newTree.root.children.append(actAST)
+            node.children.append(actAST)
 
         childnumber += 1
 
     return newTree
 
 
-def optimize(tree):
+def constantFolding():
+    pass
 
+
+def constantPropagation():
+    pass
+
+
+def optimize(tree):
 
     # Eerst kijken we of de kinderen enkel integers zijn of niet
 
@@ -617,7 +641,7 @@ def optimize(tree):
     placeOp = 0
 
     for child in tree.children:
-        if not int_node.count(child.token):
+        if not var_list.count(child.token):
             onlyInt = False
             break
         placeOp += 1
@@ -626,6 +650,11 @@ def optimize(tree):
     if onlyInt:
         value = 0
         if tree.token == "BIN_OP1" or tree.token == "BIN_OP2":
+
+            if (tree.children[0].token == "FLOAT" or tree.children[1].token == "FLOAT"):
+                type_ = float, "FLOAT"
+            else:
+                type_ = int,"INT"
 
             if str(tree.value) == "+":
                 value = float(str(tree.children[0].value)) + float(str(tree.children[1].value))
