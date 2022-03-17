@@ -3,6 +3,7 @@ from antlr4 import *
 from mathGrammerLexer import mathGrammerLexer
 from mathGrammerParser import mathGrammerParser
 from AST import *
+# import ErrorHandeling
 
 #clang -S -emit-llvm -o output.ll -c input.c
 #dos2unix -k -o filename
@@ -39,21 +40,23 @@ def main(argv):
     lexer = mathGrammerLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = mathGrammerParser(stream)
+
+    # errorListener = ErrorHandeling
+    # parser.addErrorListener(errorListener)
+
     tree = parser.math()
+
     printer = ASTprinter()
     walker = ParseTreeWalker()
     walker.walk(printer, tree)
 
     a = ast
-
-    # printA(a,True)
-
-    # createGraph(a, argv[1], 0)
-
     setupSymbolTables(a)
+    createGraph(a, argv[1], 0)
     optimize(a)
+    # print("")
     # optimizationVisitor(a)
-    # createGraph(a, argv[1], 1)
+    createGraph(a, argv[1], 1)
 
     # codeGenerationVisitor()
 

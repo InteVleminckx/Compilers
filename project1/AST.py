@@ -7,17 +7,19 @@ import re
 var_list = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
 
 
-def createNodeItem(token, value, parent, type="", isConst=False):
-    node = Node(token, value, parent, type, isConst)
+def createNodeItem(token, value, parent,line=0,column=0 ,type="", isConst=False):
+    node = Node(token, value, parent, line, column, type, isConst)
     return node
 
 
 class Node:
 
-    def __init__(self, token, value, parent, type, isConst, isOverwritten=None):
+    def __init__(self, token, value, parent,line, column, type, isConst, isOverwritten=None):
         self.value = value
         self.token = token
         self.parent = parent
+        self.line = line
+        self.column = column
         self.children = []
 
         self.type = type
@@ -48,7 +50,7 @@ class AST:
         self.symbolTableList = [globalTable]
         self.symbolTableStack = [globalTable] # herkent dat niet als een stack in een andere functie, top() werkt niet
 
-    def createNode(self, value, token, numberOfChilds, type="", isConst=False, unaryParenth=False):
+    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, unaryParenth=False):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
         for parent in self.parentsList:
             hasUnfilledChildren = False
@@ -62,7 +64,7 @@ class AST:
 
         # We maken een node aan en pre-fillen al de children
         if self.root is None:
-            node = createNodeItem(token, value, None, type, isConst)
+            node = createNodeItem(token, value, None,line,column, type, isConst)
             for i in range(numberOfChilds):
                 node.children.append(None)
             self.root = node
@@ -74,7 +76,7 @@ class AST:
 
             if var_list.count(token):
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent, type, isConst)
+                node = createNodeItem(token, value, curParent,line,column, type, isConst)
                 for i in range(len(curParent.children)):
                     if curParent.children[i] is None:
                         curParent.children[i] = node
@@ -85,7 +87,7 @@ class AST:
 
             else:
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent, type, isConst)
+                node = createNodeItem(token, value, curParent,line,column, type, isConst)
                 for i in range(numberOfChilds):
                     node.children.append(None)
                 for i in range(len(curParent.children)):
@@ -98,7 +100,7 @@ class AST:
                     for unary in self.unaries:
                         curParent = self.parentsList[len(self.parentsList) - 1]
 
-                        node = createNodeItem(unary[0], unary[1], curParent, type, isConst)
+                        node = createNodeItem(unary[0], unary[1], curParent,line,column, type, isConst)
                         node.children.append(None)
                         for i in range(len(curParent.children)):
                             if curParent.children[i] is None:
@@ -188,7 +190,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterComp_expr")
 
         if ctx.getChildCount() == 3:
-            ast.createNode(ctx.EQ_OP(), "EQ_OP", 2)
+            ast.createNode(ctx.EQ_OP(), "EQ_OP", 2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#comp_expr.
     def exitComp_expr(self, ctx: mathGrammerParser.Comp_exprContext):
@@ -199,7 +201,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterComp_expr1")
 
         if ctx.getChildCount() == 3:
-            ast.createNode(ctx.COMP_OP(), "COMP_OP", 2)
+            ast.createNode(ctx.COMP_OP(), "COMP_OP", 2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#comp_expr1.
     def exitComp_expr1(self, ctx: mathGrammerParser.Comp_expr1Context):
@@ -210,7 +212,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterExpr")
 
         if ctx.getChildCount() == 3:
-            ast.createNode(ctx.getChild(1), "BIN_OP1", 2)
+            ast.createNode(ctx.getChild(1), "BIN_OP1", 2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#expr.
     def exitExpr(self, ctx: mathGrammerParser.ExprContext):
@@ -221,7 +223,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterFactor")
 
         if ctx.getChildCount() == 3:
-            ast.createNode(ctx.getChild(1), "BIN_OP2", 2)
+            ast.createNode(ctx.getChild(1), "BIN_OP2", 2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#factor.
     def exitFactor(self, ctx: mathGrammerParser.FactorContext):
@@ -236,9 +238,9 @@ class ASTprinter(mathGrammerListener):
             for x in range(ctx.getChildCount() - 1):
                 if ctx.getChild(ctx.getChildCount() - 1).start.text == "(" or ctx.getChild(
                         ctx.getChildCount() - 1).start.text == ctx.getChild(ctx.getChildCount() - 1).stop.text:
-                    ast.createNode(ctx.getChild(x), "UN_OP", 1, "", False, True)
+                    ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column, "", False, True)
                 else:
-                    ast.createNode(ctx.getChild(x), "UN_OP", 1)
+                    ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#term.
     def exitTerm(self, ctx: mathGrammerParser.TermContext):
@@ -257,7 +259,7 @@ class ASTprinter(mathGrammerListener):
             # Hier bij hebben we een standaard geval
             # We kunnen hier al een parent aanmaken waarbij de value == ||
             # De 2 volgende waardes die we dan tegenkomen worden de kinderen van deze node
-            ast.createNode("||", "LOG_OR", 2)
+            ast.createNode("||", "LOG_OR", 2, ctx.start.line, ctx.start.column)
 
         # multiple OR operations
         else:
@@ -265,7 +267,7 @@ class ASTprinter(mathGrammerListener):
             # En Elke OR heeft dan nog 2 kinderen, waarbij telkens dan het eerste kind een nieuwe OR wordt
             numberOfORs = int((ctx.getChildCount() - 1) / 2)
             for x in range(numberOfORs):
-                ast.createNode("||", "LOG_OR", 2)
+                ast.createNode("||", "LOG_OR", 2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#log_op1.
     def exitLog_op1(self, ctx: mathGrammerParser.Log_op1Context):
@@ -282,13 +284,13 @@ class ASTprinter(mathGrammerListener):
             pass
         # Een enkele AND operation
         elif ctx.getChildCount() == 3:
-            ast.createNode("&&", "LOG_OR", 2)
+            ast.createNode("&&", "LOG_OR", 2, ctx.start.line, ctx.start.column)
 
         # multiple AND operations
         else:
             numberOfANDs = int((ctx.getChildCount() - 1) / 2)
             for x in range(numberOfANDs):
-                ast.createNode("&&", "LOG_AND", 2)
+                ast.createNode("&&", "LOG_AND", 2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#log_op2.
     def exitLog_op2(self, ctx: mathGrammerParser.Log_op2Context):
@@ -305,9 +307,9 @@ class ASTprinter(mathGrammerListener):
         # Anders hebben we 2 kinderen
         if ctx.getChildCount() == 2:
             if ctx.getChild(1).start.text == "(" or ctx.getChild(1).start.text == ctx.getChild(1).stop.text:
-                ast.createNode("!", "LOG_NOT", 1, "", False, True)
+                ast.createNode("!", "LOG_NOT", 1, ctx.start.line, ctx.start.column, "", False, True)
             else:
-                ast.createNode("!", "LOG_NOT", 1)
+                ast.createNode("!", "LOG_NOT", 1, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#log_op3.
     def exitLog_op3(self, ctx: mathGrammerParser.Log_op3Context):
@@ -318,13 +320,13 @@ class ASTprinter(mathGrammerListener):
         # print("enterVar")
 
         if ctx.INT() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.INT(), "INT", 0)
+            ast.createNode(ctx.INT(), "INT", 0, ctx.start.line, ctx.start.column)
         elif ctx.CHAR() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.CHAR(), "CHAR", 0)
+            ast.createNode(ctx.CHAR(), "CHAR", 0, ctx.start.line, ctx.start.column)
         elif ctx.FLOAT() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.FLOAT(), "FLOAT", 0)
+            ast.createNode(ctx.FLOAT(), "FLOAT", 0, ctx.start.line, ctx.start.column)
         elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ast.nextType, ast.nextConst)
+            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst)
             if ast.nextConst:
                 ast.nextConst = False
 
@@ -378,7 +380,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#print_stmt.
     def enterPrint_stmt(self, ctx: mathGrammerParser.Print_stmtContext):
-        ast.createNode(ctx.getChild(0), "PRINTF", 1)
+        ast.createNode(ctx.getChild(0), "PRINTF", 1, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#print_stmt.
     def exitPrint_stmt(self, ctx: mathGrammerParser.Print_stmtContext):
@@ -426,7 +428,7 @@ class ASTprinter(mathGrammerListener):
     def enterInit_declarator(self, ctx: mathGrammerParser.Init_declaratorContext):
 
         if ctx.getChildCount() == 3:
-            ast.createNode(ctx.getChild(1), "=", 2)
+            ast.createNode(ctx.getChild(1), "=", 2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#init_declarator.
     def exitInit_declarator(self, ctx: mathGrammerParser.Init_declaratorContext):
@@ -452,7 +454,7 @@ class ASTprinter(mathGrammerListener):
     def enterDirect_declarator(self, ctx: mathGrammerParser.Direct_declaratorContext):
 
         if ctx.IDENTIFIER() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ast.nextType, ast.nextConst)
+            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst)
             if ast.nextConst:
                 ast.nextConst = False
 
@@ -637,6 +639,20 @@ def optimizationVisitor(tree, table=False):
     return newTree
 
 
+def prepConstanFolding(child):
+
+    if child.token == "=":
+        new = constantFolding(child.children[1])
+        child.children[1].value = new[0]
+        child.children[1].token = new[1]
+        child.children[1].children = []
+    elif child.token == "PRINTF":
+        new = constantFolding(child.children[0])
+        child.children[0].value = new[0]
+        child.children[0].token = new[1]
+        child.children[0].children = []
+
+
 #########################################################################################################################
 # Replaces every binary operation node that has two literal nodes as children with a literal node containing the result #
 # of the operation.                                                                                                     #
@@ -749,6 +765,7 @@ def constantPropagation(tree, node=None):
         if len(tree.root.children) > 0:
             for child in tree.root.children:
                 constantPropagation(tree, child)
+                prepConstanFolding(child)
 
     else:
         if node.token == "=":
@@ -756,17 +773,17 @@ def constantPropagation(tree, node=None):
 
         elif node.token == "IDENTIFIER":
             table = tableLookup(node)
+            symbol_lookup = symbolLookup(node.value, table)
+            if symbol_lookup[0] is True:
+                s_list = symbol_lookup[1]
+                if s_list.isConst or (symbol_lookup[2] and not s_list.isOverwritten):
 
-            if symbolLookup(node.value, table)[0] is True:
-                s_list = symbolLookup(node.value, table)[1]
-                if s_list.isConst or (symbolLookup(node.value, table)[2] and not s_list.isOverwritten):
+                    # parent = node.parent
+                    node.value = s_list.value.value
+                    node.token = s_list.value.token
 
-                    parent = node.parent
-                    node = s_list.value
-                    node.parent = parent
-
-                    node.token = s_list.type
-                    s_list.value = node
+                    # node.token = s_list.type
+                    # s_list.value = node
             else:
                 pass
         else:
@@ -779,13 +796,10 @@ def constantPropagation(tree, node=None):
 def optimize(tree):
 
     constantPropagation(tree)
-
-    for child in tree.root.children: # ToDo: Dit klopt niet helemaal het is niet perse het kind van de root dat moet meegeven worden aan de functie
-                                     # Het is gewoon de node vanaf waar de optimalization moet plaatsvinden die meegeven moet worden.
-        new = constantFolding(child)
-        child.value = new[0]
-        child.token = new[1]
-        child.children = []
+    #
+    # for child in tree.root.children: # ToDo: Dit klopt niet helemaal het is niet perse het kind van de root dat moet meegeven worden aan de functie
+    #                                  # Het is gewoon de node vanaf waar de optimalization moet plaatsvinden die meegeven moet worden.
+    #     prepConstanFolding(child)
 
 
 # ----------------------------------------------------------------------------------------------------------------------#
@@ -819,7 +833,7 @@ def symbolLookup(varName, symbolTable, sameScope=True): # zoekt in de symbol tab
     """
 
     if str(varName) in symbolTable.dict:
-        return True, symbolTable[varName], sameScope
+        return True, symbolTable.dict[str(varName)], sameScope
     else:
         if symbolTable.enclosingSTable is not None:
             return symbolLookup(varName, symbolTable.enclosingSTable, False)
@@ -847,7 +861,7 @@ def setupSymbolTables(ast, node=None):
         ## geval 2: we openen geen nieuw block
         if node.token == "=":
 
-            value = node.children[0]
+            value = node.children[1]
 
             # if len(node.children[1].children) != 0:  # optimizen
             #     pass

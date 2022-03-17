@@ -14,3 +14,5 @@
 int a = 5;
 int b = a;
 int c = a + b;
+printf(a+b);
+int d = 5 + 10 + a + c + 25;
