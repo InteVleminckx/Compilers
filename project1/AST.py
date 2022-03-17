@@ -878,6 +878,60 @@ def setupSymbolTables(ast, node=None):
         #     for child in node.children:
         #         ast.setupSymbolTables(ast, child)
 
+# ----------------------------------------------------------------------------------------------------------------------#
+
+def semanticAnalysisVisitor(tree, node=None):
+
+    """
+    Semantic errors:
+    • Use of an undefined or uninitialized variable.
+    • Redeclaration or redefinition of an existing variable.
+    • Operations or assignments of incompatible types.
+    • Assignment to an rvalue.
+    • Assignment to a const variable.
+
+     For example, for usage of a variable of the wrong type, you might output:
+    “[ Error ] line 54, position 13: variable x has type y while it should be z”.
+
+    :param tree: AST
+    :param node: aiding parameter
+    :return:
+    """
+
+    # Undefined or uninitialized reference.
+    print("[ Error ] Undefined Reference")
+
+    # Redeclaration or redefinition of an existing variable.
+    print("[ Error ] Duplicate declaration")
+
+    # Operation or assignment of incompatible types.
+    print("[ Error ] Operation of incompatible types")
+
+    # Assignment to an rvalue.
+    print("[ Error ] Assignment to an rvalue")
+
+    # Assignment to a const variable.
+    print("[ Error ] Assignment to a const variable")
+
+    if node is None:  # Hebben we de root
+        if len(tree.root.children) > 0:
+            for child in tree.root.children:
+                semanticAnalysisVisitor(tree, child)
+
+        # else:
+        #     # Heeft geen kinderen dus er is enkel een root
+        #     visit(tree.root.value)
+
+    else:
+        if node.token == "=":
+            pass
+        if len(node.children) > 0:
+            for child in node.children:
+                semanticAnalysisVisitor(tree, child)
+
+        # else:
+        #     # Heeft geen kinderen dus er is enkel een root
+        #     visit(node.value)
 
 # ----------------------------------------------------------------------------------------------------------------------#
 def codeGenerationVisitor():
