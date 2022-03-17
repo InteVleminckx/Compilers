@@ -329,6 +329,7 @@ class ASTprinter(mathGrammerListener):
             ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst)
             if ast.nextConst:
                 ast.nextConst = False
+            ast.nextType = ""
 
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
