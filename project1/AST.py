@@ -738,7 +738,7 @@ def constantFolding(tree):
 # Replaces indentifiers in expressions with their value, if it is know at compile-time, before performing costant       #
 # folding.                                                                                                              #
 #########################################################################################################################
-def constantPropagation(tree):
+def constantPropagation(tree, node=None):
     """
     :param tree: The AST where constant propagation needs to be applied on.
     :return: A reconstructed AST, constructed by applying constant propagation on the input AST.
@@ -777,6 +777,7 @@ def constantPropagation(tree):
                 return
 
 def optimize(tree):
+
     constantPropagation(tree)
 
     for child in tree.root.children: # ToDo: Dit klopt niet helemaal het is niet perse het kind van de root dat moet meegeven worden aan de functie
@@ -789,7 +790,25 @@ def optimize(tree):
 
 # ----------------------------------------------------------------------------------------------------------------------#
 
-def symbolLookup(varName, symbolTable):
+#########################################################################################################################
+# Looks for the symbol table that is connected to the current node, if the node hasn't a symbol table we look in        #
+# the parent of this node. And so go on until we find the symbol table that belongs to the scope of this node.          #
+#########################################################################################################################
+def tableLookup(node):
+    """
+    :param node: The node where we are searching in for the symbol table
+    :return: The symbol table that is connected to the node.
+    """
+
+    # First we check if the node has a pointer to a symbol table
+    if node.symbolTablePointer is not None:
+        return node.symbolTablePointer
+
+    # The node doesn't have an pointer to a table so we look in the parents his node.
+    return tableLookup(node.parent)
+
+
+def symbolLookup(varName, symbolTable, sameScope=True): # zoekt in de symbol tables naar de variabele
     """
 
     :param varName: identifier (var) name
@@ -799,13 +818,13 @@ def symbolLookup(varName, symbolTable):
     :return: value of the symbol table entry (with key = varName) (which is a list)
     """
 
-    if varName in symbolTable:
-        return True, symbolTable[varName]
+    if str(varName) in symbolTable.dict:
+        return True, symbolTable[varName], sameScope
     else:
         if symbolTable.enclosingSTable is not None:
-            return symbolLookup(varName, symbolTable.enclosingSTable)
+            return symbolLookup(varName, symbolTable.enclosingSTable, False)
         else:
-            return False, None
+            return False, None, None
 
 
 def setupSymbolTables(ast, node=None):
@@ -828,13 +847,15 @@ def setupSymbolTables(ast, node=None):
         ## geval 2: we openen geen nieuw block
         if node.token == "=":
 
-            value = None
+            value = node.children[0]
 
             # if len(node.children[1].children) != 0:  # optimizen
             #     pass
-
+            if node.children[0].value in ast.symbolTableStack[0].dict:
+                isOverwritten = True
+            else:
+                isOverwritten = False
             isConst = node.children[0].isConst
-            isOverwritten = False
             tableValue = Value(node.children[0].type, value, isConst, isOverwritten)
             ast.symbolTableStack[0].addVar(str(node.children[0].value), tableValue)
 
