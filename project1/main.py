@@ -49,6 +49,8 @@ def main(argv):
     # printA(a,True)
 
     createGraph(a, argv[1], 0)
+
+    setupSymbolTables(a)
     # optimizationVisitor(a)
     # createGraph(a, argv[1], 1)
 

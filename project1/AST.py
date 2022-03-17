@@ -19,9 +19,12 @@ class Node:
         self.token = token
         self.parent = parent
         self.children = []
+
         self.type = type
         self.isConst = isConst
         self.isOverwritten = isOverwritten
+
+        self.symbolTablePointer = None
 
     def getValue(self):
         return self.value
@@ -39,6 +42,11 @@ class AST:
 
         self.nextConst = False
         self.nextType = ""
+
+        globalTable = SymbolTable()
+        self.symbolTableList = [globalTable]
+
+        self.symbolTableStack = [globalTable] # herkent dat niet als een stack in een andere functie, top() werkt niet
 
     def createNode(self, value, token, numberOfChilds, type="", isConst=False, unaryParenth=False):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
@@ -642,18 +650,15 @@ def optimizationVisitor(tree, table=False):
     return newTree
 
 
-def constantFolding():
-    pass
-
-
-def constantPropagation():
-    pass
-
-
-def optimize(tree):
+#########################################################################################################################
+# Replaces every binary operation node that has two literal nodes as children with a literal node containing the result #
+# of the operation.                                                                                                     #
+# Similar for unary operations, it also replace every unary operation node that has a literal node as its               #
+# child with a literal node containing the result of the operation.                                                     #
+#########################################################################################################################
+def constantFolding(tree):
 
     # Eerst kijken we of de kinderen enkel integers zijn of niet
-
     onlyInt = True
     placeOp = 0
 
@@ -664,17 +669,6 @@ def optimize(tree):
         placeOp += 1
 
     if onlyInt:
-        if len(tree.children) > 1:
-            #binary
-            if tree.children[0].token == "IDENTIFIER" or tree.children[1].token == "IDENTIFIER":
-                pass
-        else:
-            #unary
-            if tree.children[0].token == "IDENTIFIER":
-                pass
-
-    # We hebben enkel integers als kinderen dus we kunnen deze optellen
-    if onlyInt:
         value = 0
         type_ = None
         if tree.token == "BIN_OP1" or tree.token == "BIN_OP2":
@@ -682,18 +676,16 @@ def optimize(tree):
             if (tree.children[0].token == "FLOAT" or tree.children[1].token == "FLOAT"):
                 type_ = float, "FLOAT"
             else:
-                type_ = int,"INT"
+                type_ = int, "INT"
 
-            if str(tree.value) == "+":
-                value = type_[0](str(tree.children[0].value)) + type_[0](str(tree.children[1].value))
-            elif str(tree.value) == "-":
-                value = float(str(tree.children[0].value)) - float(str(tree.children[1].value))
-            elif str(tree.value) == "*":
-                value = float(str(tree.children[0].value)) * float(str(tree.children[1].value))
-            elif str(tree.value) == "/":
-                value = float(str(tree.children[0].value)) / float(str(tree.children[1].value))
-            elif str(tree.value) == "%":
-                value = float(str(tree.children[0].value)) % float(str(tree.children[1].value))
+            operations = {
+                "+": type_[0](str(tree.children[0].value)) + type_[0](str(tree.children[1].value)),
+                "-": type_[0](str(tree.children[0].value)) - type_[0](str(tree.children[1].value)),
+                "*": type_[0](str(tree.children[0].value)) * type_[0](str(tree.children[1].value)),
+                "/": type_[0](str(tree.children[0].value)) / type_[0](str(tree.children[1].value)),
+                "%": type_[0](str(tree.children[0].value)) % type_[0](str(tree.children[1].value))
+            }
+            value = operations[str(tree.value)]
 
         elif tree.token == "LOG_OR" or tree.token == "LOG_AND" or tree.token == "LOG_NOT":
             type_ = "INT"
@@ -709,53 +701,29 @@ def optimize(tree):
                 else:
                     value = 1
             elif str(tree.value) == "!":
-                if tree.children[0].token == "IDENTIFIER":
-                    pass
+                if float(str(tree.children[0].value)) == 0:
+                    value = 1
                 else:
-                    if float(str(tree.children[0].value)) == 0:
-                        value = 1
-                    else:
-                        value = 0
+                    value = 0
 
         elif tree.token == "COMP_OP" or tree.token == "EQ_OP":
             type_ = "INT"
 
-            if str(tree.value) == ">":
-                if float(str(tree.children[0].value)) > float(str(tree.children[1].value)):
-                    value = 1
-                else:
-                    value = 0
-            elif str(tree.value) == "<":
-                if float(str(tree.children[0].value)) < float(str(tree.children[1].value)):
-                    value = 1
-                else:
-                    value = 0
-            elif str(tree.value) == "<=":
-                if float(str(tree.children[0].value)) <= float(str(tree.children[1].value)):
-                    value = 1
-                else:
-                    value = 0
-            elif str(tree.value) == ">=":
-                if float(str(tree.children[0].value)) >= float(str(tree.children[1].value)):
-                    value = 1
-                else:
-                    value = 0
-            elif str(tree.value) == "==":
-                if float(str(tree.children[0].value)) == float(str(tree.children[1].value)):
-                    value = 1
-                else:
-                    value = 0
-            elif str(tree.value) == "!=":
-                if float(str(tree.children[0].value)) != float(str(tree.children[1].value)):
-                    value = 1
-                else:
-                    value = 0
+            statements = {
+                ">": float(str(tree.children[0].value)) > float(str(tree.children[1].value)),
+                "<": float(str(tree.children[0].value)) < float(str(tree.children[1].value)),
+                "<=": float(str(tree.children[0].value)) <= float(str(tree.children[1].value)),
+                ">=": float(str(tree.children[0].value)) >= float(str(tree.children[1].value)),
+                "==": float(str(tree.children[0].value)) == float(str(tree.children[1].value)),
+                "!=": float(str(tree.children[0].value)) != float(str(tree.children[1].value)),
+            }
+            value = 1 if statements[str(tree.value)] else 0
 
         elif tree.token == "UN_OP":
             if (tree.children[0].token == "FLOAT"):
                 type_ = float, "FLOAT"
             else:
-                type_ = int,"INT"
+                type_ = int, "INT"
 
             if str(tree.value) == "+":
                 value = type_[0](str(tree.children[0].value))
@@ -768,12 +736,38 @@ def optimize(tree):
 
         return tree.parent
 
-
     else:
 
-        return optimize(tree.children[placeOp])
+        return constantFolding(tree.children[placeOp])
+
+
+
+def constantPropagation():
+    pass
+
+
+def optimize(tree):
+    constantPropagation(tree)
+    constantFolding(tree)
 
 #----------------------------------------------------------------------------------------------------------------------#
+
+def symbolLookup(varName, symbolTable):
+    """
+
+    :param varName: identifier (var) name
+    :param symbolTable: current symbol table (current scope)
+    :return: value of the symbol table entry (with key = varName) (which is a list)
+    """
+
+    if varName in symbolTable:
+        return True, symbolTable[varName]
+    else:
+        if symbolTable.enclosingSTable is not None:
+            return symbolLookup(varName, symbolTable.enclosingSTable)
+        else:
+            return False, None
+
 
 def setupSymbolTables(ast, node=None):
 
@@ -785,8 +779,13 @@ def setupSymbolTables(ast, node=None):
         if len(ast.root.children) > 0:
 
             for child in ast.root.children:
-                ast.traverse(ast, child)
+                setupSymbolTables(ast, child)
     else:
+        ## geval 1: we openen een nieuw block
+
+        # symbolTable = SymbolTable()
+
+        ## geval 2: we openen geen nieuw block
         if node.token == "=":
 
             value = None
@@ -794,15 +793,14 @@ def setupSymbolTables(ast, node=None):
             if len(node.children[1].children) != 0: # optimizen
                 pass
 
-            isConst = False
+            isConst = node.children[0].isConst
             isOverwritten = False
-            tableValue = Value(node.children[0].token, value, isConst, isOverwritten)
+            tableValue = Value(node.children[0].type, value, isConst, isOverwritten)
+            ast.symbolTableStack[0].addVar(node.children[0].value, tableValue)
 
-            symbolTable = SymbolTable()
-
-        else:
-            for child in node.children:
-                ast.traverse(ast, child)
+        # else:
+        #     for child in node.children:
+        #         ast.setupSymbolTables(ast, child)
 
 
 
