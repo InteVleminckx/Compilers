@@ -458,6 +458,7 @@ class ASTprinter(mathGrammerListener):
             ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst)
             if ast.nextConst:
                 ast.nextConst = False
+            ast.nextType = ""
 
     # Exit a parse tree produced by mathGrammerParser#direct_declarator.
     def exitDirect_declarator(self, ctx: mathGrammerParser.Direct_declaratorContext):
@@ -873,7 +874,7 @@ def setupSymbolTables(ast, node=None):
             else:
                 isOverwritten = False
             isConst = node.children[0].isConst
-            tableValue = Value(node.children[0].type, value, isConst, isOverwritten)
+            tableValue = Value(type, value, isConst, isOverwritten)
             ast.symbolTableStack[0].addVar(str(node.children[0].value), tableValue)
 
 
@@ -901,8 +902,7 @@ def semanticAnalysisVisitor(tree, node=None):
     :return:
     """
 
-    # Undefined or uninitialized reference.
-    print("[ Error ] Undefined Reference")
+
 
     # Redeclaration or redefinition of an existing variable.
     print("[ Error ] Duplicate declaration")
@@ -927,7 +927,14 @@ def semanticAnalysisVisitor(tree, node=None):
 
     else:
         if node.token == "=":
-            pass
+            # check for undefined reference
+            table = tableLookup(node.children[0])
+            symbol_lookup = symbolLookup(node.children[0].value, table)
+            if symbol_lookup[0] is False and :
+                # Undefined or uninitialized reference.
+                print("[ Error ] line " + node.children[0].line + ", postition " + node.children[0].column + " : "+ "Undefined Reference.")
+                exit()
+
         if len(node.children) > 0:
             for child in node.children:
                 semanticAnalysisVisitor(tree, child)

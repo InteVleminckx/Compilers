@@ -12,6 +12,7 @@
 //*/
 
 int a = 5;
+a = 6;
 int b = a;
 int c = a + b;
 printf(a+b);
