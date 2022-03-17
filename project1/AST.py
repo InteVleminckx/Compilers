@@ -62,7 +62,7 @@ class AST:
 
         # We maken een node aan en pre-fillen al de children
         if self.root is None:
-            node = createNodeItem(token, value, None,type, isConst)
+            node = createNodeItem(token, value, None, type, isConst)
             for i in range(numberOfChilds):
                 node.children.append(None)
             self.root = node
@@ -74,7 +74,7 @@ class AST:
 
             if var_list.count(token):
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent,type, isConst)
+                node = createNodeItem(token, value, curParent, type, isConst)
                 for i in range(len(curParent.children)):
                     if curParent.children[i] is None:
                         curParent.children[i] = node
@@ -85,7 +85,7 @@ class AST:
 
             else:
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent,type, isConst)
+                node = createNodeItem(token, value, curParent, type, isConst)
                 for i in range(numberOfChilds):
                     node.children.append(None)
                 for i in range(len(curParent.children)):
@@ -98,7 +98,7 @@ class AST:
                     for unary in self.unaries:
                         curParent = self.parentsList[len(self.parentsList) - 1]
 
-                        node = createNodeItem(unary[0], unary[1], curParent,type, isConst)
+                        node = createNodeItem(unary[0], unary[1], curParent, type, isConst)
                         node.children.append(None)
                         for i in range(len(curParent.children)):
                             if curParent.children[i] is None:
@@ -108,22 +108,22 @@ class AST:
 
                     self.unaries = []
 
-    def inorderTraversal(self,visit,node=None):
+    def inorderTraversal(self, visit, node=None):
 
         if self.root is None:
             return None
 
-        elif node is None: #Hebben we de root
+        elif node is None:  # Hebben we de root
             count = 0
             if len(self.root.children) > 0:
                 for child in self.root.children:
                     self.inorderTraversal(visit, child)
-                    count+=1
+                    count += 1
                     if count == len(self.root.children) / 2:
                         visit(self.root.value)
 
             else:
-                #Heeft geen kinderen dus er is enkel een root
+                # Heeft geen kinderen dus er is enkel een root
                 visit(self.root.value)
 
         else:
@@ -131,17 +131,17 @@ class AST:
             if len(node.children) > 0:
                 for child in node.children:
                     self.inorderTraversal(visit, child)
-                    count+=1
+                    count += 1
                     if count == len(node.children) / 2:
                         visit(node.value)
             else:
-                #Heeft geen kinderen dus er is enkel een root
+                # Heeft geen kinderen dus er is enkel een root
                 visit(node.value)
 
 
 ast = AST()
 
-#De self.root kan eigenlijk nooit None zijn dan dus we voegen deze gewoon al toe aan het begin van de expressie
+# De self.root kan eigenlijk nooit None zijn dan dus we voegen deze gewoon al toe aan het begin van de expressie
 ast.root = createNodeItem("ROOT", "ROOT", None)
 
 
@@ -153,7 +153,6 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#math.
     def enterMath(self, ctx: mathGrammerParser.MathContext):
         # print("enterMath")
-
 
         # #Elke keer als we een nieuwe lijn tegen komen betekent dat de parent een extra child gaat krijgen
         # #We voegen dus een placeholder toe aan de root zijn children
@@ -171,7 +170,7 @@ class ASTprinter(mathGrammerListener):
         #     ast.root.children.pop()
         #     ast.parentsList = []
 
-        for i in range(ctx.getChildCount()-1):
+        for i in range(ctx.getChildCount() - 1):
             ast.root.children.append(None)
 
         ast.parentsList = [ast.root]
@@ -234,9 +233,10 @@ class ASTprinter(mathGrammerListener):
 
         if ctx.getChildCount() > 1:
 
-            for x in range(ctx.getChildCount()-1):
-                if ctx.getChild(ctx.getChildCount()-1).start.text == "(" or ctx.getChild(ctx.getChildCount()-1).start.text == ctx.getChild(ctx.getChildCount()-1).stop.text:
-                    ast.createNode(ctx.getChild(x), "UN_OP", 1, "",False,True)
+            for x in range(ctx.getChildCount() - 1):
+                if ctx.getChild(ctx.getChildCount() - 1).start.text == "(" or ctx.getChild(
+                        ctx.getChildCount() - 1).start.text == ctx.getChild(ctx.getChildCount() - 1).stop.text:
+                    ast.createNode(ctx.getChild(x), "UN_OP", 1, "", False, True)
                 else:
                     ast.createNode(ctx.getChild(x), "UN_OP", 1)
 
@@ -245,42 +245,40 @@ class ASTprinter(mathGrammerListener):
         pass
 
     # Enter a parse tree produced by mathGrammerParser#log_op1.
-    def enterLog_op1(self, ctx:mathGrammerParser.Log_op1Context):
+    def enterLog_op1(self, ctx: mathGrammerParser.Log_op1Context):
         # print("enterLog_op1")
 
-        #Geen OR operation
+        # Geen OR operation
         if ctx.getChildCount() == 1:
-            #Dit is niet speciaal moet niets gebeuren we gaan gewoon verder door de parse tree
+            # Dit is niet speciaal moet niets gebeuren we gaan gewoon verder door de parse tree
             pass
-        #Een enkele OR operation
+        # Een enkele OR operation
         elif ctx.getChildCount() == 3:
-            #Hier bij hebben we een standaard geval
-            #We kunnen hier al een parent aanmaken waarbij de value == ||
-            #De 2 volgende waardes die we dan tegenkomen worden de kinderen van deze node
+            # Hier bij hebben we een standaard geval
+            # We kunnen hier al een parent aanmaken waarbij de value == ||
+            # De 2 volgende waardes die we dan tegenkomen worden de kinderen van deze node
             ast.createNode("||", "LOG_OR", 2)
 
-        #multiple OR operations
+        # multiple OR operations
         else:
-            #We maken al het aantal ORs die we hebben, de eerste OR wordt dan een child van de laatst aangemaakt parent
-            #En Elke OR heeft dan nog 2 kinderen, waarbij telkens dan het eerste kind een nieuwe OR wordt
-            numberOfORs = int((ctx.getChildCount()-1)/2)
+            # We maken al het aantal ORs die we hebben, de eerste OR wordt dan een child van de laatst aangemaakt parent
+            # En Elke OR heeft dan nog 2 kinderen, waarbij telkens dan het eerste kind een nieuwe OR wordt
+            numberOfORs = int((ctx.getChildCount() - 1) / 2)
             for x in range(numberOfORs):
                 ast.createNode("||", "LOG_OR", 2)
 
-
     # Exit a parse tree produced by mathGrammerParser#log_op1.
-    def exitLog_op1(self, ctx:mathGrammerParser.Log_op1Context):
+    def exitLog_op1(self, ctx: mathGrammerParser.Log_op1Context):
         # print("exitLog_op1")
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#log_op2.
-    def enterLog_op2(self, ctx:mathGrammerParser.Log_op2Context):
+    def enterLog_op2(self, ctx: mathGrammerParser.Log_op2Context):
         # print("enterLog_op2")
 
         # Geen AND operation
         if ctx.getChildCount() == 1:
-            #Dit is niet speciaal moet niets gebeuren we gaan gewoon verder door de parse tree
+            # Dit is niet speciaal moet niets gebeuren we gaan gewoon verder door de parse tree
             pass
         # Een enkele AND operation
         elif ctx.getChildCount() == 3:
@@ -300,14 +298,14 @@ class ASTprinter(mathGrammerListener):
     def enterLog_op3(self, ctx: mathGrammerParser.Log_op3Context):
         # print("enterLog_op3")
 
-        #Als we 1 kind hebben, is er niets speciaals
+        # Als we 1 kind hebben, is er niets speciaals
         # if ctx.getChildCount() == 1:
         #     pass
 
-        #Anders hebben we 2 kinderen
+        # Anders hebben we 2 kinderen
         if ctx.getChildCount() == 2:
             if ctx.getChild(1).start.text == "(" or ctx.getChild(1).start.text == ctx.getChild(1).stop.text:
-                ast.createNode("!", "LOG_NOT", 1, "",False,True)
+                ast.createNode("!", "LOG_NOT", 1, "", False, True)
             else:
                 ast.createNode("!", "LOG_NOT", 1)
 
@@ -330,12 +328,11 @@ class ASTprinter(mathGrammerListener):
             if ast.nextConst:
                 ast.nextConst = False
 
-
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
         pass
 
-    #------------------------------------------- Start new part--------------------------------------------------#
+    # ------------------------------------------- Start new part--------------------------------------------------#
 
     # Enter a parse tree produced by mathGrammerParser#statement.
     def enterStatement(self, ctx: mathGrammerParser.StatementContext):
@@ -346,13 +343,12 @@ class ASTprinter(mathGrammerListener):
         pass
 
     # Enter a parse tree produced by mathGrammerParser#extern_decl.
-    def enterExtern_decl(self, ctx:mathGrammerParser.Extern_declContext):
+    def enterExtern_decl(self, ctx: mathGrammerParser.Extern_declContext):
         pass
 
     # Exit a parse tree produced by mathGrammerParser#extern_decl.
-    def exitExtern_decl(self, ctx:mathGrammerParser.Extern_declContext):
+    def exitExtern_decl(self, ctx: mathGrammerParser.Extern_declContext):
         pass
-
 
     # # Enter a parse tree produced by mathGrammerParser#comment.
     # def enterComment(self, ctx:mathGrammerParser.CommentContext):
@@ -380,36 +376,32 @@ class ASTprinter(mathGrammerListener):
     # def exitMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
     #     pass #
 
-
     # Enter a parse tree produced by mathGrammerParser#print_stmt.
-    def enterPrint_stmt(self, ctx:mathGrammerParser.Print_stmtContext):
+    def enterPrint_stmt(self, ctx: mathGrammerParser.Print_stmtContext):
         ast.createNode(ctx.getChild(0), "PRINTF", 1)
 
     # Exit a parse tree produced by mathGrammerParser#print_stmt.
-    def exitPrint_stmt(self, ctx:mathGrammerParser.Print_stmtContext):
+    def exitPrint_stmt(self, ctx: mathGrammerParser.Print_stmtContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#function_def.
-    def enterFunction_def(self, ctx:mathGrammerParser.Function_defContext):
+    def enterFunction_def(self, ctx: mathGrammerParser.Function_defContext):
         pass
 
     # Exit a parse tree produced by mathGrammerParser#function_def.
-    def exitFunction_def(self, ctx:mathGrammerParser.Function_defContext):
+    def exitFunction_def(self, ctx: mathGrammerParser.Function_defContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#declaration.
-    def enterDeclaration(self, ctx:mathGrammerParser.DeclarationContext):
+    def enterDeclaration(self, ctx: mathGrammerParser.DeclarationContext):
         pass
 
     # Exit a parse tree produced by mathGrammerParser#declaration.
-    def exitDeclaration(self, ctx:mathGrammerParser.DeclarationContext):
+    def exitDeclaration(self, ctx: mathGrammerParser.DeclarationContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#decl_spec.
-    def enterDecl_spec(self, ctx:mathGrammerParser.Decl_specContext):
+    def enterDecl_spec(self, ctx: mathGrammerParser.Decl_specContext):
         if ctx.getChildCount() == 2:
             ast.nextConst = True
         else:
@@ -419,49 +411,45 @@ class ASTprinter(mathGrammerListener):
             #     pass
 
     # Exit a parse tree produced by mathGrammerParser#decl_spec.
-    def exitDecl_spec(self, ctx:mathGrammerParser.Decl_specContext):
+    def exitDecl_spec(self, ctx: mathGrammerParser.Decl_specContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#init_decl_list.
-    def enterInit_decl_list(self, ctx:mathGrammerParser.Init_decl_listContext):
+    def enterInit_decl_list(self, ctx: mathGrammerParser.Init_decl_listContext):
         pass
 
     # Exit a parse tree produced by mathGrammerParser#init_decl_list.
-    def exitInit_decl_list(self, ctx:mathGrammerParser.Init_decl_listContext):
+    def exitInit_decl_list(self, ctx: mathGrammerParser.Init_decl_listContext):
         pass
 
     # Enter a parse tree produced by mathGrammerParser#init_declarator.
-    def enterInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
+    def enterInit_declarator(self, ctx: mathGrammerParser.Init_declaratorContext):
 
         if ctx.getChildCount() == 3:
             ast.createNode(ctx.getChild(1), "=", 2)
 
     # Exit a parse tree produced by mathGrammerParser#init_declarator.
-    def exitInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
+    def exitInit_declarator(self, ctx: mathGrammerParser.Init_declaratorContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#declarator.
-    def enterDeclarator(self, ctx:mathGrammerParser.DeclaratorContext):
+    def enterDeclarator(self, ctx: mathGrammerParser.DeclaratorContext):
         pass
 
     # Exit a parse tree produced by mathGrammerParser#declarator.
-    def exitDeclarator(self, ctx:mathGrammerParser.DeclaratorContext):
+    def exitDeclarator(self, ctx: mathGrammerParser.DeclaratorContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#initializer.
-    def enterInitializer(self, ctx:mathGrammerParser.InitializerContext):
+    def enterInitializer(self, ctx: mathGrammerParser.InitializerContext):
         pass
 
     # Exit a parse tree produced by mathGrammerParser#initializer.
-    def exitInitializer(self, ctx:mathGrammerParser.InitializerContext):
+    def exitInitializer(self, ctx: mathGrammerParser.InitializerContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#direct_declarator.
-    def enterDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):
+    def enterDirect_declarator(self, ctx: mathGrammerParser.Direct_declaratorContext):
 
         if ctx.IDENTIFIER() and ctx.getChildCount() == 1:
             ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ast.nextType, ast.nextConst)
@@ -469,12 +457,11 @@ class ASTprinter(mathGrammerListener):
                 ast.nextConst = False
 
     # Exit a parse tree produced by mathGrammerParser#direct_declarator.
-    def exitDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):
+    def exitDirect_declarator(self, ctx: mathGrammerParser.Direct_declaratorContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#ttype.
-    def enterTtype(self, ctx:mathGrammerParser.TtypeContext):
+    def enterTtype(self, ctx: mathGrammerParser.TtypeContext):
         if ctx.CHAR_KEY():
             ast.nextType = "CHAR"
         elif ctx.INT_KEY():
@@ -483,55 +470,53 @@ class ASTprinter(mathGrammerListener):
             ast.nextType = "FLOAT"
 
     # Exit a parse tree produced by mathGrammerParser#ttype.
-    def exitTtype(self, ctx:mathGrammerParser.TtypeContext):
+    def exitTtype(self, ctx: mathGrammerParser.TtypeContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#pointer.
-    def enterPointer(self, ctx:mathGrammerParser.PointerContext):
+    def enterPointer(self, ctx: mathGrammerParser.PointerContext):
         pass
 
     # Exit a parse tree produced by mathGrammerParser#pointer.
-    def exitPointer(self, ctx:mathGrammerParser.PointerContext):
+    def exitPointer(self, ctx: mathGrammerParser.PointerContext):
         pass
 
-
     # Enter a parse tree produced by mathGrammerParser#type_qualifier_list.
-    def enterType_qualifier_list(self, ctx:mathGrammerParser.Type_qualifier_listContext):
+    def enterType_qualifier_list(self, ctx: mathGrammerParser.Type_qualifier_listContext):
         ast.nextConst = True
 
     # Exit a parse tree produced by mathGrammerParser#type_qualifier_list.
-    def exitType_qualifier_list(self, ctx:mathGrammerParser.Type_qualifier_listContext):
+    def exitType_qualifier_list(self, ctx: mathGrammerParser.Type_qualifier_listContext):
         pass
 
     # Enter a parse tree produced by mathGrammerParser#pointersign.
-    def enterPointersign(self, ctx:mathGrammerParser.PointersignContext):
+    def enterPointersign(self, ctx: mathGrammerParser.PointersignContext):
         pass
 
     # Exit a parse tree produced by mathGrammerParser#pointersign.
-    def exitPointersign(self, ctx:mathGrammerParser.PointersignContext):
+    def exitPointersign(self, ctx: mathGrammerParser.PointersignContext):
         pass
 
-#------------------------------------------- End new part --------------------------------------------------#
 
+# ------------------------------------------- End new part --------------------------------------------------#
 
 
 def createGraph(ast, inputfile, number=0):
     path = "./ast_files/"
-    afterSlash = re.search("[^/]+$", inputfile) # build folder changes inputfile path
+    afterSlash = re.search("[^/]+$", inputfile)  # build folder changes inputfile path
     pos = afterSlash.start()
     inputfile = inputfile[pos:]
-    graphname = str(inputfile[:len(inputfile)-2]) + "_graph" + str(number) + ".gv"
-    astname = str(inputfile[:len(inputfile)-2]) + "_ast" + str(number) + ".png"
+    graphname = str(inputfile[:len(inputfile) - 2]) + "_graph" + str(number) + ".gv"
+    astname = str(inputfile[:len(inputfile) - 2]) + "_ast" + str(number) + ".png"
 
     graph_path = path + graphname
 
     f = open(graph_path, "w")
 
-    f.write("strict digraph G{\n") # we gebruiken een directed graph met max. één edge tussen twee vertices
+    f.write("strict digraph G{\n")  # we gebruiken een directed graph met max. één edge tussen twee vertices
 
-    tempLabel = "l1" # label die gebruikt wordt om nodes (kinderen) met dezelfde waarde te onderscheiden van elkaar.
-    tempLabel2 = "" # gelijkaardig aan tempLabel, maar tempLabel2 zorgt ervoor dat we de root juist onthouden en gebruiken.
+    tempLabel = "l1"  # label die gebruikt wordt om nodes (kinderen) met dezelfde waarde te onderscheiden van elkaar.
+    tempLabel2 = ""  # gelijkaardig aan tempLabel, maar tempLabel2 zorgt ervoor dat we de root juist onthouden en gebruiken.
     createVerticesAndEdges(tempLabel2, ast, f, tempLabel)
 
     f.write("}\n")
@@ -540,12 +525,13 @@ def createGraph(ast, inputfile, number=0):
 
     os.chdir('./ast_files/')
 
-    os.system("dot -Tpng " + graphname + " -o " + astname) # "run" command voor graphviz, "ast#.png" bevat het schema van de AST.
+    os.system(
+        "dot -Tpng " + graphname + " -o " + astname)  # "run" command voor graphviz, "ast#.png" bevat het schema van de AST.
 
     os.chdir('../')
 
-def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
 
+def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
     # graphviz werkt op een manier waarbij, als je één vertice 'A' hebt,
     # die je naar twee aparte vertices wil laten gaan d.m.v. twee directed/undirected edges
     # waarbij de twee vertices dezelfde waarde (bv. 'B') bevatten, dat er maar één
@@ -555,39 +541,40 @@ def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
     if ast.root is None:
         return None
 
-    elif node is None: # we zitten in de ROOT root
+    elif node is None:  # we zitten in de ROOT root
         if len(ast.root.children) > 0:
 
-            tempLabels = [] # bevat de labels voor de kinderen, hebben we nodig voor de volgende for loop.
+            tempLabels = []  # bevat de labels voor de kinderen, hebben we nodig voor de volgende for loop.
             for child in ast.root.children:
-                tempLabel = tempLabel + "1" # unieke templabel per kind.
+                tempLabel = tempLabel + "1"  # unieke templabel per kind.
 
-                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n") # labeled vertices maken
+                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")  # labeled vertices maken
                 tempLabels.append(tempLabel)
 
             for child in range(len(ast.root.children)):
 
                 graphFile.write("\"" + str(ast.root.value) + "\"" + "->")
                 if len(ast.root.children[child].children) > 0:
-                    graphFile.write("\"" + tempLabels[child] + "\"" + "\n") # speciale tekens moeten tussen "" geplaatst worden.
+                    graphFile.write(
+                        "\"" + tempLabels[child] + "\"" + "\n")  # speciale tekens moeten tussen "" geplaatst worden.
                 else:
                     graphFile.write(tempLabels[child] + "\n")
-                tempLabel = tempLabel + "3" # zodat er onder siblings geen zelfde labels ontstaan.
+                tempLabel = tempLabel + "3"  # zodat er onder siblings geen zelfde labels ontstaan.
                 createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, ast.root.children[child])
-    else: # we zitten in een node
+    else:  # we zitten in een node
         if len(node.children) > 0:
 
-            a = False # kleine contructie om te weten of we met het symbool zelf/met de label ervan moeten werken.
+            a = False  # kleine contructie om te weten of we met het symbool zelf/met de label ervan moeten werken.
             # Als a False is en blijft, betekent dit dat we ergens in het begin van de boom zitten (merk de if-statement op),
             # en voor het eerste teken onder de root hoeven we niet te vervangen door de label
             if (tempLabel2 != ""):
                 a = True
 
-            tempLabels = [] # bevat de labels voor de kinderen, hebben we nodig voor de volgende for loop.
+            tempLabels = []  # bevat de labels voor de kinderen, hebben we nodig voor de volgende for loop.
             for child in node.children:
-                tempLabel = tempLabel + "1" # unieke templabel per kind
+                tempLabel = tempLabel + "1"  # unieke templabel per kind
 
-                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n") # labeled vertices maken
+                graphFile.write(tempLabel + "[label = \"" + str(child.value) + "\"]" + "\n")  # labeled vertices maken
                 tempLabels.append(tempLabel)
 
             for child in range(len(node.children)):
@@ -598,15 +585,15 @@ def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
                     graphFile.write("\"" + tempLabel2 + "\"" + "->")
 
                 if len(node.children[child].children) > 0:
-                    graphFile.write("\"" + tempLabels[child] + "\"" + "\n") # speciale tekens moeten tussen "" geplaatst worden.
+                    graphFile.write(
+                        "\"" + tempLabels[child] + "\"" + "\n")  # speciale tekens moeten tussen "" geplaatst worden.
                 else:
                     graphFile.write(tempLabels[child] + "\n")
-                tempLabel = tempLabel + "3" # zodat er onder siblings geen zelfde labels ontstaan.
+                tempLabel = tempLabel + "3"  # zodat er onder siblings geen zelfde labels ontstaan.
                 createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, node.children[child])
 
 
 def optimizationVisitor(tree, table=False):
-
     # replaces every binary operation node that has
     # two literal nodes as children with a literal node containing the result of the operation.
     # Similarly, it also replaces every unary operation node that has a literal node as its
@@ -633,7 +620,7 @@ def optimizationVisitor(tree, table=False):
             optimized = True
             while optimized:
                 # Geen optimalization nodig
-                if var_list[1:len(var_list)-1].count(actAST.token) or actAST.token == "ROOT":
+                if var_list[1:len(var_list) - 1].count(actAST.token) or actAST.token == "ROOT":
                     optimized = False
 
                 # We moeten gaan optimaliseren
@@ -741,16 +728,35 @@ def constantFolding(tree):
         return constantFolding(tree.children[placeOp])
 
 
+#########################################################################################################################
+# Replaces indentifiers in expressions with their value, if it is know at compile-time, before performing costant       #
+# folding.                                                                                                              #
+#########################################################################################################################
+def constantPropagation(tree):
+    """
+    :param tree: The AST where constant propagation needs to be applied on.
+    :return: A reconstructed AST, constructed by applying constant propagation on the input AST.
+    """
 
-def constantPropagation():
-    pass
+    # if onlyInt:
+    #     if len(tree.children) > 1:
+    #         #binary
+    #         if tree.children[0].token == "IDENTIFIER" or tree.children[1].token == "IDENTIFIER":
+    #             pass
+    #     else:
+    #         #unary
+    #         if tree.children[0].token == "IDENTIFIER":
+    #             pass
+
+    # We hebben enkel integers als kinderen dus we kunnen deze optellen
 
 
 def optimize(tree):
     constantPropagation(tree)
     constantFolding(tree)
 
-#----------------------------------------------------------------------------------------------------------------------#
+
+# ----------------------------------------------------------------------------------------------------------------------#
 
 def symbolLookup(varName, symbolTable):
     """
@@ -770,11 +776,12 @@ def symbolLookup(varName, symbolTable):
 
 
 def setupSymbolTables(ast, node=None):
-
     if ast.root is None:
         return None
 
-    elif node is None: #Hebben we de root
+    elif node is None:  # Hebben we de root
+
+        # symbolTable = SymbolTable()
 
         if len(ast.root.children) > 0:
 
@@ -790,8 +797,8 @@ def setupSymbolTables(ast, node=None):
 
             value = None
 
-            if len(node.children[1].children) != 0: # optimizen
-                pass
+            # if len(node.children[1].children) != 0:  # optimizen
+            #     pass
 
             isConst = node.children[0].isConst
             isOverwritten = False
@@ -803,10 +810,7 @@ def setupSymbolTables(ast, node=None):
         #         ast.setupSymbolTables(ast, child)
 
 
-
-
-
-#----------------------------------------------------------------------------------------------------------------------#
+# ----------------------------------------------------------------------------------------------------------------------#
 def codeGenerationVisitor():
     f = open("generatedLLVMIR_files/llvmCode", "w")
 
@@ -814,12 +818,12 @@ def codeGenerationVisitor():
 
     f.close()
 
-def traverse(ast, node=None):
 
+def traverse(ast, node=None):
     if ast.root is None:
         return None
 
-    elif node is None: #Hebben we de root
+    elif node is None:  # Hebben we de root
 
         visit(ast.root.value)
 
@@ -838,23 +842,27 @@ def traverse(ast, node=None):
 
 
 def visit(value):
-
     if value == "=":
         pass
     elif value == "printf":
         pass
 
+
 def add(file, var1, var2):
     pass
 
-def subtract(file, var1, var2): # var1 - var2
+
+def subtract(file, var1, var2):  # var1 - var2
     pass
+
 
 def multiply(file, var1, var2):
     pass
 
-def divide(file, var1, var2): # var1 / var2
+
+def divide(file, var1, var2):  # var1 / var2
     pass
+
 
 def assign(file, var1, var2):
     pass
