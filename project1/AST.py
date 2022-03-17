@@ -797,11 +797,6 @@ def constantPropagation(tree, node=None):
 def optimize(tree):
 
     constantPropagation(tree)
-    #
-    # for child in tree.root.children: # ToDo: Dit klopt niet helemaal het is niet perse het kind van de root dat moet meegeven worden aan de functie
-    #                                  # Het is gewoon de node vanaf waar de optimalization moet plaatsvinden die meegeven moet worden.
-    #     prepConstanFolding(child)
-
 
 # ----------------------------------------------------------------------------------------------------------------------#
 
@@ -864,10 +859,17 @@ def setupSymbolTables(ast, node=None):
 
             value = node.children[1]
 
+            type = node.children[0].type
+
             # if len(node.children[1].children) != 0:  # optimizen
             #     pass
-            if node.children[0].value in ast.symbolTableStack[0].dict:
+            if str(node.children[0].value) in ast.symbolTableStack[0].dict:
                 isOverwritten = True
+
+                table = tableLookup(node.children[0])
+                symbol_lookup = symbolLookup(node.children[0].value, table)
+                type = symbol_lookup[1].type
+
             else:
                 isOverwritten = False
             isConst = node.children[0].isConst
