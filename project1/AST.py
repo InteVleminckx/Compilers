@@ -44,8 +44,8 @@ class AST:
         self.nextType = ""
 
         globalTable = SymbolTable()
+        globalTable.astNode = self.root
         self.symbolTableList = [globalTable]
-
         self.symbolTableStack = [globalTable] # herkent dat niet als een stack in een andere functie, top() werkt niet
 
     def createNode(self, value, token, numberOfChilds, type="", isConst=False, unaryParenth=False):
@@ -143,7 +143,7 @@ ast = AST()
 
 # De self.root kan eigenlijk nooit None zijn dan dus we voegen deze gewoon al toe aan het begin van de expressie
 ast.root = createNodeItem("ROOT", "ROOT", None)
-
+ast.root.symbolTablePointer = ast.symbolTableList[0]
 
 class ASTprinter(mathGrammerListener):
 
@@ -644,88 +644,94 @@ def optimizationVisitor(tree, table=False):
 # child with a literal node containing the result of the operation.                                                     #
 #########################################################################################################################
 def constantFolding(tree):
+    # We need to look first in what situation we are.
+    # We look first at the token of the current node.
+    # We can split these up in different parts.
+    # 1) If the token is an Integer, Float. Then it cannot have any children so this is a base case
+    #    and we cannot go any further in the ast.
+    # 2) When the token is an operation like: BIN_OP1, BIN_OP2, etc. then we need to check the children
+    #    of this node and check their token
+    # So we start with point one. We can split these in 2 statements, so we can return the correct type.
 
-    # Eerst kijken we of de kinderen enkel integers zijn of niet
-    onlyInt = True
-    placeOp = 0
+    if tree.token == "INT":
+        return int(str(tree.value)), "INT"  # value and token of this node
 
-    for child in tree.children:
-        if not var_list.count(child.token):
-            onlyInt = False
-            break
-        placeOp += 1
+    elif tree.token == "FLOAT":
+        return float(str(tree.value)), "FLOAT"  # value and token of this node
 
-    if onlyInt:
-        value = 0
-        type_ = None
-        if tree.token == "BIN_OP1" or tree.token == "BIN_OP2":
-
-            if (tree.children[0].token == "FLOAT" or tree.children[1].token == "FLOAT"):
-                type_ = float, "FLOAT"
-            else:
-                type_ = int, "INT"
-
-            operations = {
-                "+": type_[0](str(tree.children[0].value)) + type_[0](str(tree.children[1].value)),
-                "-": type_[0](str(tree.children[0].value)) - type_[0](str(tree.children[1].value)),
-                "*": type_[0](str(tree.children[0].value)) * type_[0](str(tree.children[1].value)),
-                "/": type_[0](str(tree.children[0].value)) / type_[0](str(tree.children[1].value)),
-                "%": type_[0](str(tree.children[0].value)) % type_[0](str(tree.children[1].value))
-            }
-            value = operations[str(tree.value)]
-
-        elif tree.token == "LOG_OR" or tree.token == "LOG_AND" or tree.token == "LOG_NOT":
-            type_ = "INT"
-
-            if str(tree.value) == "||":
-                if float(str(tree.children[0].value)) == 0 and float(str(tree.children[1].value)) == 0:
-                    value = 0
-                else:
-                    value = 1
-            elif str(tree.value) == "&&":
-                if float(str(tree.children[0].value)) == 0 or float(str(tree.children[1].value)) == 0:
-                    value = 0
-                else:
-                    value = 1
-            elif str(tree.value) == "!":
-                if float(str(tree.children[0].value)) == 0:
-                    value = 1
-                else:
-                    value = 0
-
-        elif tree.token == "COMP_OP" or tree.token == "EQ_OP":
-            type_ = "INT"
-
-            statements = {
-                ">": float(str(tree.children[0].value)) > float(str(tree.children[1].value)),
-                "<": float(str(tree.children[0].value)) < float(str(tree.children[1].value)),
-                "<=": float(str(tree.children[0].value)) <= float(str(tree.children[1].value)),
-                ">=": float(str(tree.children[0].value)) >= float(str(tree.children[1].value)),
-                "==": float(str(tree.children[0].value)) == float(str(tree.children[1].value)),
-                "!=": float(str(tree.children[0].value)) != float(str(tree.children[1].value)),
-            }
-            value = 1 if statements[str(tree.value)] else 0
-
-        elif tree.token == "UN_OP":
-            if (tree.children[0].token == "FLOAT"):
-                type_ = float, "FLOAT"
-            else:
-                type_ = int, "INT"
-
-            if str(tree.value) == "+":
-                value = type_[0](str(tree.children[0].value))
-            elif str(tree.value) == "-":
-                value = -type_[0](str(tree.children[0].value))
-
-        tree.value = str(value)
-        tree.children = []
-        tree.token = type_[1]
-
-        return tree.parent
+    # When we didn't match the conditions for point one, we go to point 2.
 
     else:
 
-        return constantFolding(tree.children[placeOp])
+        # We need to check what kind operation we need to operate.
+        # First we check if it is a binary operation like +,-,*,/,%
+
+        value = None
+        token = None
+
+        value_c0 = constantFolding(tree.children[0])[0]
+        value_c1 = constantFolding(tree.children[1])[0] if len(tree.children) == 2 else None
+
+        if tree.token == "BIN_OP1" or tree.token == "BIN_OP2":
+
+
+            bin_operations = {
+                "+": value_c0 + value_c1,
+                "-": value_c0 - value_c1,
+                "*": value_c0 * value_c1,
+                "/": value_c0 / value_c1,
+                "%": value_c0 % value_c1
+            }
+
+            # Finding the value recursivly
+            value = bin_operations[str(tree.value)]
+            # Checking what type the value is, it is a int or a float.
+            token = "INT" if isinstance(value, int) else "FLOAT"
+
+
+        # We check if it is a logaritmise operation like ||, &&, !
+        elif tree.token == "LOG_OR" or tree.token == "LOG_AND" or tree.token == "LOG_NOT":
+
+            log_operations = {
+                "||": value_c0 == 0 and value_c1 == 0,
+                "&&": value_c0 == 0 or value_c1 == 0,
+                "!": value_c0 == 0
+            }
+
+            # Checking if the value needs to be zero or one.
+            value = 0 if log_operations[str(tree.value)] else 1
+            # Because this always has value zero or one, the type always gonna be a integer.
+            token = "INT"
+
+
+        # We check if it is a comparison operation like <,>,<=,>=,==,!=
+        elif tree.token == "COMP_OP" or tree.token == "EQ_OP":
+
+            comp_operations = {
+                ">": value_c0 > value_c1,
+                "<": value_c0 < value_c1,
+                "<=": value_c0 <= value_c1,
+                ">=": value_c0 >= value_c1,
+                "==": value_c0 == value_c1,
+                "!=": value_c0 != value_c1
+            }
+
+            # Checking if the value needs to be zero or one.
+            value = 1 if comp_operations[str(tree.value)] else 0
+            # Because this always has value zero or one, the type always gonna be a interger.
+            token = "INT"
+
+
+        # We check if it is a unary operation like +,-
+        elif tree.token == "UN_OP":
+            # The value is just the return value of his child.
+            value = -value_c0 if str(tree.value) == "-" else value_c0
+            # Checking what type the value is, it is a int or a float.
+            token = "INT" if isinstance(value, int) else "FLOAT"
+
+        # At this moment we fold the full branch of this node and need to replace this node
+        # with the new value and token.
+        return value, token
 
 
 #########################################################################################################################
@@ -738,22 +744,47 @@ def constantPropagation(tree):
     :return: A reconstructed AST, constructed by applying constant propagation on the input AST.
     """
 
-    # if onlyInt:
-    #     if len(tree.children) > 1:
-    #         #binary
-    #         if tree.children[0].token == "IDENTIFIER" or tree.children[1].token == "IDENTIFIER":
-    #             pass
-    #     else:
-    #         #unary
-    #         if tree.children[0].token == "IDENTIFIER":
-    #             pass
+    if node is None:  # Hebben we de root
+        # count = 0
+        if len(tree.root.children) > 0:
+            for child in tree.root.children:
+                constantPropagation(tree, child)
 
-    # We hebben enkel integers als kinderen dus we kunnen deze optellen
+    else:
+        if node.token == "=":
+            constantPropagation(tree, node.children[1])
 
+        elif node.token == "IDENTIFIER":
+            table = tableLookup(node)
+
+            if symbolLookup(node.value, table)[0] is True:
+                s_list = symbolLookup(node.value, table)[1]
+                if s_list.isConst or (symbolLookup(node.value, table)[2] and not s_list.isOverwritten):
+
+                    parent = node.parent
+                    node = s_list.value
+                    node.parent = parent
+
+                    node.token = s_list.type
+                    s_list.value = node
+            else:
+                pass
+        else:
+            if len(node.children) > 0:
+                for child in node.children:
+                    constantPropagation(tree, child)
+            else:
+                return
 
 def optimize(tree):
     constantPropagation(tree)
-    constantFolding(tree)
+
+    for child in tree.root.children: # ToDo: Dit klopt niet helemaal het is niet perse het kind van de root dat moet meegeven worden aan de functie
+                                     # Het is gewoon de node vanaf waar de optimalization moet plaatsvinden die meegeven moet worden.
+        new = constantFolding(child)
+        child.value = new[0]
+        child.token = new[1]
+        child.children = []
 
 
 # ----------------------------------------------------------------------------------------------------------------------#
@@ -763,6 +794,8 @@ def symbolLookup(varName, symbolTable):
 
     :param varName: identifier (var) name
     :param symbolTable: current symbol table (current scope)
+    :param sameScope: says if the variable is in the first symboltable we look in, so if this true, sameScope will be true
+                      otherwise it will be false.
     :return: value of the symbol table entry (with key = varName) (which is a list)
     """
 
@@ -803,7 +836,8 @@ def setupSymbolTables(ast, node=None):
             isConst = node.children[0].isConst
             isOverwritten = False
             tableValue = Value(node.children[0].type, value, isConst, isOverwritten)
-            ast.symbolTableStack[0].addVar(node.children[0].value, tableValue)
+            ast.symbolTableStack[0].addVar(str(node.children[0].value), tableValue)
+
 
         # else:
         #     for child in node.children:
