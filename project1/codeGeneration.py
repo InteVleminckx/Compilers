@@ -68,21 +68,22 @@ def storeValues(file, tree):
 
                     file.write("store " + type + " " + value + ", " + type + "* %" + str(list_s[1].register) + ", align " + align + "\n")
 
-                # elif len(child.children)
 
-def add(file, var1, var2):
+            #ToDo: At this momement when we optimizen the ast al expression are calculated so we don't need to add other things then what we now have for llvm.
+
+def add(file, var1, var2, type):
     pass
 
 
-def subtract(file, var1, var2):  # var1 - var2
+def subtract(file, var1, var2, type):  # var1 - var2
     pass
 
 
-def multiply(file, var1, var2):
+def multiply(file, var1, var2, type):
     pass
 
 
-def divide(file, var1, var2):  # var1 / var2
+def divide(file, var1, var2, type):  # var1 / var2
     pass
 
 
