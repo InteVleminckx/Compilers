@@ -56,8 +56,8 @@ def main(argv):
     a = ast
     setupSymbolTables(a)
     createGraph(a, argv[1], 0)
-    # semanticAnalysisVisitor(a)
     optimize(a)
+    # semanticAnalysisVisitor(a.root)
     # print("")
     # optimizationVisitor(a)
     createGraph(a, argv[1], 1)
