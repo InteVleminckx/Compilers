@@ -1,24 +1,21 @@
-from antlr4.error.ErrorStrategy import *
+from antlr4.error.ErrorListener import *
 
 
-class ErrorHandeling(BailErrorStrategy):
+# Will inherent de class ErrorListener
+class ErrorHandeler(ErrorListener):
 
-    def recover(self, recognizer:Parser, e:RecognitionException):
-        context = recognizer._ctx
-        while context is not None:
-            context.exception = e
-            context = context.parentCtx
-        raise ParseCancellationException(e)
-        exit()
+	def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+		print("[ERROR] Mismatched input at line: " + str(line) + ", column: " + str(column) + " expecting something else then '" +
+			  offendingSymbol.text + "'.")
+		exit(1)
 
-    # Make sure we don't attempt to recover inline; if the parser
-    #  successfully recovers, it won't throw an exception.
-    #
-    def recoverInline(self, recognizer:Parser):
-        self.recover(recognizer, InputMismatchException(recognizer))
-        exit()
+	def reportAmbiguity(self, recognizer, dfa, startIndex, stopIndex, exact, ambigAlts, configs):
+		pass
+
+	def reportAttemptingFullContext(self, recognizer, dfa, startIndex, stopIndex, conflictingAlts, configs):
+		pass
+
+	def reportContextSensitivity(self, recognizer, dfa, startIndex, stopIndex, prediction, configs):
+		pass
 
 
-    # Make sure we don't attempt to recover from problems in subrules.#
-    def sync(self, recognizer:Parser):
-        pass

@@ -3,7 +3,7 @@ from antlr4 import *
 from mathGrammerLexer import mathGrammerLexer
 from mathGrammerParser import mathGrammerParser
 from AST import *
-# import ErrorHandeling
+from ErrorHandeling import ErrorHandeler
 
 #clang -S -emit-llvm -o output.ll -c input.c
 #dos2unix -k -o filename
@@ -40,7 +40,9 @@ def main(argv):
     lexer = mathGrammerLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = mathGrammerParser(stream)
-
+    parser.removeErrorListeners()
+    errorListener = ErrorHandeler()
+    parser.addErrorListener(errorListener)
     # errorListener = ErrorHandeling
     # parser.addErrorListener(errorListener)
 

@@ -11,11 +11,13 @@
 // * a
 //*/
 
+int* b = *5;
+
 const int a = 5;
-a = 6;
-int y = 4;
+//a = 6;
+int y = 4.5;
 //int y = 5;
-int b = y;
-int c = b;
-printf(b);
-int d = 5 + 10 + c + 25;
+//int b = y;
+//int c = b;
+//printf(b);
+//int d = 5 + 10 + c + 25;
