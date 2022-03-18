@@ -236,12 +236,24 @@ class ASTprinter(mathGrammerListener):
 
         if ctx.getChildCount() > 1:
 
-            for x in range(ctx.getChildCount() - 1):
-                if ctx.getChild(ctx.getChildCount() - 1).start.text == "(" or ctx.getChild(
-                        ctx.getChildCount() - 1).start.text == ctx.getChild(ctx.getChildCount() - 1).stop.text:
-                    ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column, "", False, False, True)
-                else:
-                    ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column)
+            if str(ctx.getChild(1)) != "++" and str(ctx.getChild(1)) != "--" and  str(ctx.getChild(0)) != "++" and str(ctx.getChild(0)) != "--":
+                for x in range(ctx.getChildCount() - 1):
+                    if ctx.getChild(ctx.getChildCount() - 1).start.text == "(" or ctx.getChild(
+                            ctx.getChildCount() - 1).start.text == ctx.getChild(ctx.getChildCount() - 1).stop.text:
+                        ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column, "", False, False, True)
+                    else:
+                        ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column)
+
+            else:
+                if str(ctx.getChild(0)) == "++":
+                    ast.createNode(ctx.getChild(0), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                elif str(ctx.getChild(1)) == "++":
+                    ast.createNode(ctx.getChild(1), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                elif str(ctx.getChild(0)) == "--":
+                    ast.createNode(ctx.getChild(0), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                elif str(ctx.getChild(1)) == "--":
+                    ast.createNode(ctx.getChild(1), "UN_OP", 1, ctx.start.line, ctx.start.column)
+
 
     # Exit a parse tree produced by mathGrammerParser#term.
     def exitTerm(self, ctx: mathGrammerParser.TermContext):
@@ -695,7 +707,7 @@ def constantFolding(tree):
         token = None
 
         value_c0, value_c0_t = constantFolding(tree.children[0])
-        value_c1, value_c1_t = constantFolding(tree.children[1]) if len(tree.children) == 2 else None
+        value_c1, value_c1_t = constantFolding(tree.children[1]) if len(tree.children) == 2 else (None,None)
 
         if tree.token == "BIN_OP1" or tree.token == "BIN_OP2":
 
@@ -728,7 +740,7 @@ def constantFolding(tree):
             log_operations = {
                 "||": value_c0 == 0 and value_c1 == 0,
                 "&&": value_c0 == 0 or value_c1 == 0,
-                "!": value_c0 == 0
+                "!": value_c0 != 0
             }
 
             # Checking if the value needs to be zero or one.
