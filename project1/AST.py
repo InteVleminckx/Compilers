@@ -682,6 +682,8 @@ def constantFolding(tree):
     elif tree.token == "FLOAT":
         return float(str(tree.value)), "FLOAT"  # value and token of this node
 
+    elif tree.token == "CHAR":
+        return str(tree.value), "CHAR"
     # When we didn't match the conditions for point one, we go to point 2.
 
     else:
@@ -692,11 +694,19 @@ def constantFolding(tree):
         value = None
         token = None
 
-        value_c0 = constantFolding(tree.children[0])[0]
-        value_c1 = constantFolding(tree.children[1])[0] if len(tree.children) == 2 else None
+        value_c0, value_c0_t = constantFolding(tree.children[0])
+        value_c1, value_c1_t = constantFolding(tree.children[1]) if len(tree.children) == 2 else None
 
         if tree.token == "BIN_OP1" or tree.token == "BIN_OP2":
 
+            if value_c0 is not None and value_c1 is not None:
+                value_c0 = int(ord(value_c0[1])) if isinstance(value_c0, str) else value_c0
+                value_c1 = int(ord(value_c1[1])) if isinstance(value_c1, str) else value_c1
+
+            # Semantic Error
+            if value_c0_t != value_c1_t:
+                print("[ Warning ] line " + str(tree.children[0].line) + ", position " + str(
+                    tree.children[0].column) + " : " + "Operation of incompatible types")
 
             bin_operations = {
                 "+": value_c0 + value_c1,
@@ -783,12 +793,11 @@ def constantPropagation(tree, node=None):
             symbol_lookup = symbolLookup(node.value, table)
             if symbol_lookup[0] is True:
                 s_list = symbol_lookup[1]
-                if s_list.isConst or (symbol_lookup[2] and not s_list.isOverwritten):
+                if s_list.isConst or (symbol_lookup[2]):
 
                     # parent = node.parent
                     node.value = s_list.value.value
                     node.token = s_list.value.token
-
                     # node.token = s_list.type
                     # s_list.value = node
             else:
@@ -843,18 +852,18 @@ def symbolLookup(varName, symbolTable, sameScope=True): # zoekt in de symbol tab
             return False, None, None
 
 
-def setupSymbolTables(ast, node=None):
-    if ast.root is None:
+def setupSymbolTables(tree, node=None):
+    if tree.root is None:
         return None
 
     elif node is None:  # Hebben we de root
 
         # symbolTable = SymbolTable()
 
-        if len(ast.root.children) > 0:
+        if len(tree.root.children) > 0:
 
-            for child in ast.root.children:
-                setupSymbolTables(ast, child)
+            for child in tree.root.children:
+                setupSymbolTables(tree, child)
     else:
         ## geval 1: we openen een nieuw block
 
@@ -871,8 +880,13 @@ def setupSymbolTables(ast, node=None):
             # if len(node.children[1].children) != 0:  # optimizen
             #     pass
             isOverwritten = False
-            if str(node.children[0].value) in ast.symbolTableStack[0].dict:
+            if str(node.children[0].value) in tree.symbolTableStack[0].dict:
                 isOverwritten = True
+
+                for child in ast.root.children:
+                    constantPropagation(ast, child)
+                    if child == node:
+                        break
 
                 table = tableLookup(node.children[0])
                 symbol_lookup = symbolLookup(node.children[0].value, table)
@@ -882,14 +896,14 @@ def setupSymbolTables(ast, node=None):
             semanticAnalysisVisitor(node, node.children[0], node.children[1])
 
             tableValue = Value(type, value, isConst, isOverwritten)
-            ast.symbolTableStack[0].addVar(str(node.children[0].value), tableValue)
+            tree.symbolTableStack[0].addVar(str(node.children[0].value), tableValue)
 
 
         elif node.token == "IDENTIFIER" and not node.parent.token == "=":
             semanticAnalysisVisitor(node)
 
         for child in node.children:
-            setupSymbolTables(ast, child)
+            setupSymbolTables(tree, child)
 
 # ----------------------------------------------------------------------------------------------------------------------#
 
@@ -964,58 +978,3 @@ def semanticAnalysisVisitor(node, child1=None, child2=None):
 
 
 # ----------------------------------------------------------------------------------------------------------------------#
-def codeGenerationVisitor():
-    f = open("generatedLLVMIR_files/llvmCode", "w")
-
-    f.write("")
-
-    f.close()
-
-
-def traverse(ast, node=None):
-    if ast.root is None:
-        return None
-
-    elif node is None:  # Hebben we de root
-
-        visit(ast.root.value)
-
-        if len(ast.root.children) > 0:
-            pass
-            # for child in ast.root.children:
-            #     if child.token == "=":
-            #
-            #     ast.traverse(ast, child)
-    else:
-        visit(node.value)
-        if len(node.children) > 0:
-            pass
-            # for child in node.children:
-            #     ast.traverse(ast, child)
-
-
-def visit(value):
-    if value == "=":
-        pass
-    elif value == "printf":
-        pass
-
-
-def add(file, var1, var2):
-    pass
-
-
-def subtract(file, var1, var2):  # var1 - var2
-    pass
-
-
-def multiply(file, var1, var2):
-    pass
-
-
-def divide(file, var1, var2):  # var1 / var2
-    pass
-
-
-def assign(file, var1, var2):
-    pass

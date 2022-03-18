@@ -4,6 +4,7 @@ from mathGrammerLexer import mathGrammerLexer
 from mathGrammerParser import mathGrammerParser
 from AST import *
 from ErrorHandeling import ErrorHandeler
+from codeGeneration import *
 
 #clang -S -emit-llvm -o output.ll -c input.c
 #dos2unix -k -o filename
@@ -60,7 +61,7 @@ def main(argv):
     # print("")
     # optimizationVisitor(a)
     createGraph(a, argv[1], 1)
-
+    codeGenerator(a)
     # codeGenerationVisitor()
 
 if __name__ == '__main__':

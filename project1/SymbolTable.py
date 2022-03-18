@@ -6,6 +6,7 @@ class Value:
         self.isOverwritten = isOverwritten # bool
         self.inputTypes = inputTypes # parameter type (e.g. for functions)
         self.outputTypes = outputTypes # return type (e.g. for functions)
+        self.register = None
 
 
 class SymbolTable:
