@@ -23,7 +23,7 @@ You can simply run ./testscript.sh in the project1/ folder. In the terminal, you
 
 ## Progress:
 
-###Implementation status:
+### Implementation status:
 
 V: Working. \
 -: Partially working with known problems (described below).  
