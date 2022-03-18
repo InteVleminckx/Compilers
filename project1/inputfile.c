@@ -12,9 +12,9 @@
 //*/
 
 int a = 5;
-int b = 10;
+int b = 10.0;
 char c = 'a';
-float d = b;
+int d = b;
 int e = a + b;
 float h = a + d;
 int g = c + a;

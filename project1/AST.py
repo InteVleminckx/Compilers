@@ -976,7 +976,22 @@ def semanticAnalysisVisitor(node):
             if symbol_lookup_child2[0]:
                 if node.children[0].type != symbol_lookup_child2[1].type:
                     # Operation or assignment of incompatible types.
-                    print("[ Error ] line " + str(node.line) + ", position " + str(
+                    print("[ Warning ] line " + str(node.line) + ", position " + str(
+                        node.column) + " : " + "Assignment of incompatible types")
+            else:
+                child2Type = None
+                # int = bool(re.match("([0-9]+)", str(node.children[1].value)))
+                # float = bool(re.match("([0-9]+([.][0-9]*)|[.][0-9]+)", str(node.children[1].value)))
+                # char = bool(re.match("(\'.\')", str(node.children[1].value)))
+
+                if type(node.children[1].value) == float:
+                    child2Type = "FLOAT"
+                elif type(node.children[1].value) == int:
+                    child2Type = "INT"
+                elif type(node.children[1].value) == str and str(node.children[1].value)[0] == "\'":
+                    child2Type = "CHAR"
+                if node.children[0].type != child2Type:
+                    print("[ Warning ] line " + str(node.line) + ", position " + str(
                         node.column) + " : " + "Assignment of incompatible types")
         else:
             pass # how to do this for a whole expression?
