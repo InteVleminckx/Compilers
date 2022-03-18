@@ -918,8 +918,8 @@ def semanticAnalysisVisitor(node, child1=None, child2=None):
 
         if symbol_lookup[0] is False:
             # Undefined reference.
-            print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Undefined or Uninitialized Reference.")
-            # exit()
+            print("[ Error ] line " + str(node.line) + ", position " + str(node.column) + " : " + "Undefined or Uninitialized Reference.")
+            exit()
 
         # !!!!! @ inte:  WAT HIERONDER GECOMMENT STAAT, IS SIMPELWEG VERPLAATST NAAR DE ELSE HIERONDER, WANT DAT IS CORRECTER DENK IK
         # elif symbol_lookup[0] is True and node.type == "" and not symbol_lookup[1].isOverwritten:
@@ -939,29 +939,28 @@ def semanticAnalysisVisitor(node, child1=None, child2=None):
         if symbol_lookup[0] is False:
             if child1.type == "":
                 # Undefined reference.
-                print("[ Error ] line " + str(node.line) + ", postition " + str(
+                print("[ Error ] line " + str(node.line) + ", position " + str(
                     node.column) + " : " + "Uninitialized Reference.")
-                # exit()
+                exit()
         else:
 
             # Redeclaration or redefinition of an existing variable.
             if child1.type != "":
-                print("[ Error ] line " + str(node.line) + ", postition " + str(
+                print("[ Error ] line " + str(node.line) + ", position " + str(
                     node.column) + " : " + "Duplicate declaration")
                 exit()
 
             # Operation or assignment of incompatible types.
             if 5 == 4:
-                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Operation of incompatible types")
+                print("[ Error ] line " + str(node.line) + ", position " + str(node.column) + " : " + "Operation of incompatible types")
 
             # Assignment to an rvalue.
             if 5 == 4:
-                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Assignment to an rvalue")
+                print("[ Error ] line " + str(node.line) + ", position " + str(node.column) + " : " + "Assignment to an rvalue")
 
             # Assignment to a const variable.
             if symbol_lookup[1].isConst:
-                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Assignment to a const variable")
-
+                print("[ Error ] line " + str(node.line) + ", position " + str(node.column) + " : " + "Assignment to a const variable")
 
 
 # ----------------------------------------------------------------------------------------------------------------------#
