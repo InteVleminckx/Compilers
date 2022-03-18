@@ -25,14 +25,24 @@ do
     # clang -cc1 foo.c -emit-llvm
     # -ast-print
 
-    python3 "main.py" $f
-    exit_status=$?
-    if [ "${exit_status}" -ne 0 ];
-    then
-      echo "$f : EXIT CODE ${exit_status}"
+    python3 "main.py" $f > "testfiles_output/${f##*/}.txt"
+
+    OUTPUT="testfiles_output/${f##*/}.txt"
+    CORRECT="correct_testfiles_output/${f##*/}.txt"
+
+    if cmp --silent -- "$OUTPUT" "$CORRECT"; then
+      echo "Generated file: ${OUTPUT} is correct."
     else
-      echo "$f : EXIT CODE 0"
+      echo "Generated file: ${OUTPUT} is not correct."
     fi
+
+#    exit_status=$?
+#    if [ "${exit_status}" -ne 0 ];
+#    then
+#      echo "$f : EXIT CODE ${exit_status}"
+#    else
+#      echo "$f : EXIT CODE 0"
+#    fi
   else
     echo "Error trying to open or run \"$f\""
   fi

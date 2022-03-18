@@ -2,7 +2,24 @@
 
 ## Instructions:
 
+The build script is ***buildscript.sh*** (present in the project folder). This allows to generate the python classes (ANTLR).
+The test script, which runs all the test in the testfiles folder, and puts the output in the ast_files folder, is ***testscript.sh*** (present in the project folder).
+You can simply run ./testscript.sh in the project1/ folder. In the terminal, you will get an overview of which file outputs were correct.
+
 ## Testfiles information:
+
+| Testfile       | Functionality                                  |
+|----------------|------------------------------------------------|
+| A_inputfile2.c | Example code from second assignment sheet (P2) | 
+| A_inputfile3.c | Example code from third assignment sheet (P3)  |
+| inputfile0.c   | Binary operations and unary operations         |
+| inputfile1.c   | Logical operations                             |
+| inputfile2.c   | Comparison operators                           |
+| inputfile3.c   | Types, reserved words, variables               |
+| inputfile4.c   | Identifier Operations                          |
+| inputfile5.c   | Comments and printf                            |
+| inputfile6.c   | Error outputs                                  |
+
 
 ## Progress:
 
@@ -48,6 +65,7 @@ X: Not working or not implemented.
 **Known problems:**\
 P2: Conversions: Right now, all (implicit) conversions (e.g. int to float too) raise a warning (=>semantic analysis). This can/will be fixed in the future.
 P3: 2 Code Generation: LLVM: Check TODO in codeGeneration.py
+We also haven't paid any attention to assignment between pointers and type checking when assigning a pointer yet.
 
 **Extra functionality, not described in the assignment sheet:** \
 /
