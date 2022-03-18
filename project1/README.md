@@ -8,18 +8,23 @@ You can simply run ./testscript.sh in the project1/ folder. In the terminal, you
 
 ## Testfiles information:
 
-| Testfile       | Functionality                                  |
-|----------------|------------------------------------------------|
-| A_inputfile2.c | Example code from second assignment sheet (P2) | 
-| A_inputfile3.c | Example code from third assignment sheet (P3)  |
-| inputfile0.c   | Binary operations and unary operations         |
-| inputfile1.c   | Logical operations                             |
-| inputfile2.c   | Comparison operators                           |
-| inputfile3.c   | Types, reserved words, variables               |
-| inputfile4.c   | Identifier Operations                          |
-| inputfile5.c   | Comments and printf                            |
-| inputfile6.c   | Error outputs                                  |
+| Testfile       | Functionality                                                 |
+|----------------|---------------------------------------------------------------|
+| A_inputfile2.c | Example code from second assignment sheet (P2)                | 
+| A_inputfile3.c | Example code from third assignment sheet (P3)                 |
+| inputfile0.c   | Binary operations and unary operations                        |
+| inputfile1.c   | Logical operations                                            |
+| inputfile2.c   | Comparison operators                                          |
+| inputfile3.c   | Types, reserved words, variables                              |
+| inputfile4.c   | Identifier Operations                                         |
+| inputfile5.c   | Comments and printf                                           |
+| inputfile6.c   | Error outputs: Redeclaration of an existing variable.         |
+| inputfile7.c   | Error outputs: Use of an undefined or uninitialized variable. |
+| inputfile8.c   | Error outputs: Use of an undefined or uninitialized variable. |
+| inputfile9.c   | Error outputs: Assignment to a const variable.                |
+| inputfile10.c  | (Syntax) Error outputs: Mismatched input.                     |
 
+***note***: Semantic errors (Operations or assignments of incompatible types) are done throughout the testfiles.
 
 ## Progress:
 
