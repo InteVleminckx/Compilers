@@ -1,0 +1,10 @@
+a
+=
+5
+ROOT
+b
+=
+a
++
+c
+[ Error ] line 3, position 12 : Undefined or Uninitialized Reference.

@@ -1,0 +1,8 @@
+a
+=
+10
+ROOT
+a
+=
+5
+[ Error ] line 3, position 0 : Assignment to a const variable
