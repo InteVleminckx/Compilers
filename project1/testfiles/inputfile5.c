@@ -1,5 +1,15 @@
-int a = 5*(3/10 + 9/10);
-char c = 'c';
-float b=!e;
-printf(a);
-printf(1+2/3);
+//comments and printf
+/*
+    Dit bestand bevat allemaal comments en printf functies
+    */
+
+printf(5455455);
+printf(5455.544);
+printf('d');
+
+/*
+    Nog print functies?
+*/
+
+printf(5+5+5+5+5+5+5+5+5+5);
+printf(45510.054545*154545.0);

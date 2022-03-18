@@ -54,6 +54,7 @@ def main(argv):
     walker.walk(printer, tree)
 
     a = ast
+    a.inorderTraversal(print)
     setupSymbolTables(a)
     createGraph(a, argv[1], 0)
     optimize(a)

@@ -1,5 +1,16 @@
-int a = 5*(3/10 + 9/10);
-char c = 'c';
-float b=!e;
-printf(a);
-printf(1+2/3);
+//Identifier Operations.
+int a = 1;
+int b = 2;
+int c = 3;
+int d = 4;
+int e = 5;
+
+int f = a + b;
+int g = b - c;
+int h = c * d;
+float i = d / e;
+
+int j = f * g;
+float k = h / i;
+
+float l = j + k;

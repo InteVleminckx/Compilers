@@ -2,7 +2,7 @@
 
 # This script runs the testfiles
 
-FILES="./testfiles/A*3.c"
+FILES="./testfiles/*.c"
 for f in $FILES
 do
 # Check if "$f" FILE exists and is a regular file and then only copy it #
