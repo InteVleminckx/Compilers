@@ -866,6 +866,7 @@ def setupSymbolTables(ast, node=None):
             value = node.children[1]
 
             type = node.children[0].type
+            isConst = node.children[0].isConst
 
             # if len(node.children[1].children) != 0:  # optimizen
             #     pass
@@ -876,19 +877,23 @@ def setupSymbolTables(ast, node=None):
                 table = tableLookup(node.children[0])
                 symbol_lookup = symbolLookup(node.children[0].value, table)
                 type = symbol_lookup[1].type
+                isConst = symbol_lookup[1].isConst # also in this statement
 
-            isConst = node.children[0].isConst
+            semanticAnalysisVisitor(node, node.children[0], node.children[1])
+
             tableValue = Value(type, value, isConst, isOverwritten)
             ast.symbolTableStack[0].addVar(str(node.children[0].value), tableValue)
 
-        if node.token == "IDENTIFIER":
-            pass
+
+        elif node.token == "IDENTIFIER" and not node.parent.token == "=":
+            semanticAnalysisVisitor(node)
+
         for child in node.children:
-            ast.setupSymbolTables(ast, child)
+            setupSymbolTables(ast, child)
 
 # ----------------------------------------------------------------------------------------------------------------------#
 
-def semanticAnalysisVisitor(tree, node=None):
+def semanticAnalysisVisitor(node, child1=None, child2=None):
 
     """
     Semantic errors:
@@ -906,52 +911,58 @@ def semanticAnalysisVisitor(tree, node=None):
     :return:
     """
 
+    if child1 is None and child2 is None:
+        # check for undefined reference
+        table = tableLookup(node)
+        symbol_lookup = symbolLookup(node.value, table)
 
+        if symbol_lookup[0] is False:
+            # Undefined reference.
+            print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Undefined or Uninitialized Reference.")
+            # exit()
 
-    # # Operation or assignment of incompatible types.
-    # print("[ Error ] Operation of incompatible types")
-    #
-    # # Assignment to an rvalue.
-    # print("[ Error ] Assignment to an rvalue")
-    #
-    # # Assignment to a const variable.
-    # print("[ Error ] Assignment to a const variable")
+        # !!!!! @ inte:  WAT HIERONDER GECOMMENT STAAT, IS SIMPELWEG VERPLAATST NAAR DE ELSE HIERONDER, WANT DAT IS CORRECTER DENK IK
+        # elif symbol_lookup[0] is True and node.type == "" and not symbol_lookup[1].isOverwritten:
+        #     # Uninitialized reference.
+        #     print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Uninitialized Reference.")
+        #     # exit()
 
-    if node is None:  # Hebben we de root
-        if len(tree.root.children) > 0:
-            for child in tree.root.children:
-                semanticAnalysisVisitor(tree, child)
-
-        # else:
-        #     # Heeft geen kinderen dus er is enkel een root
-        #     visit(tree.root.value)
+        # Redeclaration or redefinition of an existing variable.
+        # if symbol_lookup[0] is True and node.type != "" and symbol_lookup[1].isOverwritten:
+        #     print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Duplicate declaration")
+        #     # exit()
 
     else:
-        if node.token == "IDENTIFIER":
-            # check for undefined reference
-            table = tableLookup(node)
-            symbol_lookup = symbolLookup(node.value, table)
-            if symbol_lookup[0] is False:
+        table = tableLookup(child1)
+        symbol_lookup = symbolLookup(child1.value, table)
+
+        if symbol_lookup[0] is False:
+            if child1.type == "":
                 # Undefined reference.
-                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Undefined Reference.")
-                exit()
-            elif symbol_lookup[0] is True and node.type == "":
-                # Uninitialized reference.
-                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Uninitialized Reference.")
-                exit()
+                print("[ Error ] line " + str(node.line) + ", postition " + str(
+                    node.column) + " : " + "Uninitialized Reference.")
+                # exit()
+        else:
 
             # Redeclaration or redefinition of an existing variable.
-            if symbol_lookup[0] is True and node.type != "":
-                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Duplicate declaration")
+            if child1.type != "":
+                print("[ Error ] line " + str(node.line) + ", postition " + str(
+                    node.column) + " : " + "Duplicate declaration")
                 exit()
 
-        if len(node.children) > 0:
-            for child in node.children:
-                semanticAnalysisVisitor(tree, child)
+            # Operation or assignment of incompatible types.
+            if 5 == 4:
+                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Operation of incompatible types")
 
-        # else:
-        #     # Heeft geen kinderen dus er is enkel een root
-        #     visit(node.value)
+            # Assignment to an rvalue.
+            if 5 == 4:
+                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Assignment to an rvalue")
+
+            # Assignment to a const variable.
+            if symbol_lookup[1].isConst:
+                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Assignment to a const variable")
+
+
 
 # ----------------------------------------------------------------------------------------------------------------------#
 def codeGenerationVisitor():
