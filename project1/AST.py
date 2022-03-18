@@ -7,8 +7,8 @@ import re
 var_list = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
 
 
-def createNodeItem(token, value, parent,line=0,column=0 ,type="", isConst=False):
-    node = Node(token, value, parent, line, column, type, isConst)
+def createNodeItem(token, value, parent,line=0,column=0 ,type="", isConst=False, isOverwritten=False):
+    node = Node(token, value, parent, line, column, type, isConst, isOverwritten)
     return node
 
 
@@ -44,13 +44,14 @@ class AST:
 
         self.nextConst = False
         self.nextType = ""
+        self.nextOverwrite = False # for debugging purposes, can be removed (but then all references to this should be removed)
 
         globalTable = SymbolTable()
         globalTable.astNode = self.root
         self.symbolTableList = [globalTable]
         self.symbolTableStack = [globalTable] # herkent dat niet als een stack in een andere functie, top() werkt niet
 
-    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, unaryParenth=False):
+    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, isOverwritten=False, unaryParenth=False):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
         for parent in self.parentsList:
             hasUnfilledChildren = False
@@ -64,7 +65,7 @@ class AST:
 
         # We maken een node aan en pre-fillen al de children
         if self.root is None:
-            node = createNodeItem(token, value, None,line,column, type, isConst)
+            node = createNodeItem(token, value, None,line,column, type, isConst, isOverwritten)
             for i in range(numberOfChilds):
                 node.children.append(None)
             self.root = node
@@ -76,7 +77,7 @@ class AST:
 
             if var_list.count(token):
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent,line,column, type, isConst)
+                node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten)
                 for i in range(len(curParent.children)):
                     if curParent.children[i] is None:
                         curParent.children[i] = node
@@ -87,7 +88,7 @@ class AST:
 
             else:
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent,line,column, type, isConst)
+                node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten)
                 for i in range(numberOfChilds):
                     node.children.append(None)
                 for i in range(len(curParent.children)):
@@ -100,7 +101,7 @@ class AST:
                     for unary in self.unaries:
                         curParent = self.parentsList[len(self.parentsList) - 1]
 
-                        node = createNodeItem(unary[0], unary[1], curParent,line,column, type, isConst)
+                        node = createNodeItem(unary[0], unary[1], curParent,line,column, type, isConst, isOverwritten)
                         node.children.append(None)
                         for i in range(len(curParent.children)):
                             if curParent.children[i] is None:
@@ -238,7 +239,7 @@ class ASTprinter(mathGrammerListener):
             for x in range(ctx.getChildCount() - 1):
                 if ctx.getChild(ctx.getChildCount() - 1).start.text == "(" or ctx.getChild(
                         ctx.getChildCount() - 1).start.text == ctx.getChild(ctx.getChildCount() - 1).stop.text:
-                    ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column, "", False, True)
+                    ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column, "", False, False, True)
                 else:
                     ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column)
 
@@ -307,7 +308,7 @@ class ASTprinter(mathGrammerListener):
         # Anders hebben we 2 kinderen
         if ctx.getChildCount() == 2:
             if ctx.getChild(1).start.text == "(" or ctx.getChild(1).start.text == ctx.getChild(1).stop.text:
-                ast.createNode("!", "LOG_NOT", 1, ctx.start.line, ctx.start.column, "", False, True)
+                ast.createNode("!", "LOG_NOT", 1, ctx.start.line, ctx.start.column, "", False, False, True)
             else:
                 ast.createNode("!", "LOG_NOT", 1, ctx.start.line, ctx.start.column)
 
@@ -326,10 +327,11 @@ class ASTprinter(mathGrammerListener):
         elif ctx.FLOAT() and ctx.getChildCount() == 1:
             ast.createNode(ctx.FLOAT(), "FLOAT", 0, ctx.start.line, ctx.start.column)
         elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst)
+            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
             if ast.nextConst:
                 ast.nextConst = False
             ast.nextType = ""
+            ast.nextOverwrite = False
 
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
@@ -410,8 +412,10 @@ class ASTprinter(mathGrammerListener):
         else:
             if ctx.CONST():
                 ast.nextConst = True
-            # elif ctx.ttype():
-            #     pass
+            elif ctx.ttype():
+                pass
+            else: # geen type, e.g. x = 5
+                ast.nextOverwrite = True
 
     # Exit a parse tree produced by mathGrammerParser#decl_spec.
     def exitDecl_spec(self, ctx: mathGrammerParser.Decl_specContext):
@@ -455,10 +459,11 @@ class ASTprinter(mathGrammerListener):
     def enterDirect_declarator(self, ctx: mathGrammerParser.Direct_declaratorContext):
 
         if ctx.IDENTIFIER() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst)
+            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
             if ast.nextConst:
                 ast.nextConst = False
             ast.nextType = ""
+            ast.nextOverwrite = False
 
     # Exit a parse tree produced by mathGrammerParser#direct_declarator.
     def exitDirect_declarator(self, ctx: mathGrammerParser.Direct_declaratorContext):
@@ -597,7 +602,7 @@ def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
                 createVerticesAndEdges(tempLabels[child], ast, graphFile, tempLabel, node.children[child])
 
 
-def optimizationVisitor(tree, table=False):
+def optimizationVisitor(tree, table=False): # TODO verwijderen?
     # replaces every binary operation node that has
     # two literal nodes as children with a literal node containing the result of the operation.
     # Similarly, it also replaces every unary operation node that has a literal node as its
@@ -864,6 +869,7 @@ def setupSymbolTables(ast, node=None):
 
             # if len(node.children[1].children) != 0:  # optimizen
             #     pass
+            isOverwritten = False
             if str(node.children[0].value) in ast.symbolTableStack[0].dict:
                 isOverwritten = True
 
@@ -871,16 +877,14 @@ def setupSymbolTables(ast, node=None):
                 symbol_lookup = symbolLookup(node.children[0].value, table)
                 type = symbol_lookup[1].type
 
-            else:
-                isOverwritten = False
             isConst = node.children[0].isConst
             tableValue = Value(type, value, isConst, isOverwritten)
             ast.symbolTableStack[0].addVar(str(node.children[0].value), tableValue)
 
-
-        # else:
-        #     for child in node.children:
-        #         ast.setupSymbolTables(ast, child)
+        if node.token == "IDENTIFIER":
+            pass
+        for child in node.children:
+            ast.setupSymbolTables(ast, child)
 
 # ----------------------------------------------------------------------------------------------------------------------#
 
@@ -904,17 +908,14 @@ def semanticAnalysisVisitor(tree, node=None):
 
 
 
-    # Redeclaration or redefinition of an existing variable.
-    print("[ Error ] Duplicate declaration")
-
-    # Operation or assignment of incompatible types.
-    print("[ Error ] Operation of incompatible types")
-
-    # Assignment to an rvalue.
-    print("[ Error ] Assignment to an rvalue")
-
-    # Assignment to a const variable.
-    print("[ Error ] Assignment to a const variable")
+    # # Operation or assignment of incompatible types.
+    # print("[ Error ] Operation of incompatible types")
+    #
+    # # Assignment to an rvalue.
+    # print("[ Error ] Assignment to an rvalue")
+    #
+    # # Assignment to a const variable.
+    # print("[ Error ] Assignment to a const variable")
 
     if node is None:  # Hebben we de root
         if len(tree.root.children) > 0:
@@ -926,13 +927,22 @@ def semanticAnalysisVisitor(tree, node=None):
         #     visit(tree.root.value)
 
     else:
-        if node.token == "=":
+        if node.token == "IDENTIFIER":
             # check for undefined reference
-            table = tableLookup(node.children[0])
-            symbol_lookup = symbolLookup(node.children[0].value, table)
-            if symbol_lookup[0] is False and :
-                # Undefined or uninitialized reference.
-                print("[ Error ] line " + node.children[0].line + ", postition " + node.children[0].column + " : "+ "Undefined Reference.")
+            table = tableLookup(node)
+            symbol_lookup = symbolLookup(node.value, table)
+            if symbol_lookup[0] is False:
+                # Undefined reference.
+                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Undefined Reference.")
+                exit()
+            elif symbol_lookup[0] is True and node.type == "":
+                # Uninitialized reference.
+                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Uninitialized Reference.")
+                exit()
+
+            # Redeclaration or redefinition of an existing variable.
+            if symbol_lookup[0] is True and node.type != "":
+                print("[ Error ] line " + str(node.line) + ", postition " + str(node.column) + " : " + "Duplicate declaration")
                 exit()
 
         if len(node.children) > 0:

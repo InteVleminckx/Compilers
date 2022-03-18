@@ -11,9 +11,11 @@
 // * a
 //*/
 
-int a = 5;
+
+int y = 5;
+int u = 10;
 a = 6;
-int b = a;
+int b = y;
 int c = a + b;
 printf(a+b);
 int d = 5 + 10 + a + c + 25;
