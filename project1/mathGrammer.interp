@@ -32,10 +32,10 @@ null
 
 token symbolic names:
 null
-null
-null
-null
-null
+COMMA
+PRINTF
+LPARENTH
+RPARENTH
 EQ_OP_S
 CHAR_KEY
 INT_KEY

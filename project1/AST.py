@@ -518,8 +518,8 @@ class ASTprinter(mathGrammerListener):
     def exitPointersign(self, ctx: mathGrammerParser.PointersignContext):
         pass
 
-
 # ------------------------------------------- End new part --------------------------------------------------#
+
 
 
 def createGraph(ast, inputfile, number=0):
@@ -805,21 +805,17 @@ def constantPropagation(tree, node=None):
             symbol_lookup = symbolLookup(node.value, table)
             if symbol_lookup[0] is True:
                 s_list = symbol_lookup[1]
-                if s_list.isConst or (symbol_lookup[2]):
-
+                if s_list.isConst or (symbol_lookup[2] and not s_list.isOverwritten):
                     # parent = node.parent
                     node.value = s_list.value.value
                     node.token = s_list.value.token
                     # node.token = s_list.type
                     # s_list.value = node
-            else:
-                pass
         else:
             if len(node.children) > 0:
                 for child in node.children:
                     constantPropagation(tree, child)
-            else:
-                return
+
 
 def optimize(tree):
 
@@ -982,7 +978,7 @@ def semanticAnalysisVisitor(node):
         symbol_lookup = symbolLookup(node.children[0].value, table)
 
         table_child2 = tableLookup(node.children[1])
-        symbol_lookup_child2 = symbolLookup(node.children[1].value, table)
+        symbol_lookup_child2 = symbolLookup(node.children[1].value, table_child2)
 
         if len(node.children[1].children) == 0:
             if symbol_lookup_child2[0]:

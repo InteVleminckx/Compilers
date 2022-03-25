@@ -5,9 +5,13 @@ math
         ;
 
 statement
-        : log_op1 ';'
+        : log_op1 COMMA
         | extern_decl
 //        | comment
+        ;
+
+COMMA
+        : ';'
         ;
 
 extern_decl
@@ -29,16 +33,28 @@ extern_decl
 //        ;
 
 print_stmt
-        : 'printf' '(' log_op1 ')'
+        : PRINTF LPARENTH log_op1 RPARENTH
+        ;
+
+PRINTF
+        : 'printf'
+        ;
+
+LPARENTH
+        : '('
+        ;
+
+RPARENTH
+        : ')'
         ;
 
 function_def
-        : print_stmt ';'
+        : print_stmt COMMA
         ;
 
 declaration
-        : decl_spec ';'
-        | decl_spec init_decl_list ';'
+        : decl_spec COMMA
+        | decl_spec init_decl_list COMMA
         ;
 
 decl_spec

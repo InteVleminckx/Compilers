@@ -122,9 +122,9 @@ class mathGrammerParser ( Parser ):
                      "<INVALID>", "'const'", "'&'", "'*'", "'/'", "'%'", 
                      "'++'", "'--'", "'+'", "'-'", "'||'", "'&&'", "'!'" ]
 
-    symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "EQ_OP_S", "CHAR_KEY", "INT_KEY", "FLOAT_KEY", 
-                      "CHAR", "INT", "FLOAT", "CONST", "AMPERSAND", "MUL_SIGN", 
+    symbolicNames = [ "<INVALID>", "COMMA", "PRINTF", "LPARENTH", "RPARENTH", 
+                      "EQ_OP_S", "CHAR_KEY", "INT_KEY", "FLOAT_KEY", "CHAR", 
+                      "INT", "FLOAT", "CONST", "AMPERSAND", "MUL_SIGN", 
                       "DIV_SIGN", "MOD_SIGN", "DOUBLE_PLUS", "DOUBLE_MINUS", 
                       "PLUS", "MIN", "LOG_OR", "LOG_AND", "LOG_NOT", "COMP_OP", 
                       "EQ_OP", "SINGLE_COMMENT", "MULTI_COMMENT", "IDENTIFIER", 
@@ -164,10 +164,10 @@ class mathGrammerParser ( Parser ):
                    "log_op3", "var" ]
 
     EOF = Token.EOF
-    T__0=1
-    T__1=2
-    T__2=3
-    T__3=4
+    COMMA=1
+    PRINTF=2
+    LPARENTH=3
+    RPARENTH=4
     EQ_OP_S=5
     CHAR_KEY=6
     INT_KEY=7
@@ -250,7 +250,7 @@ class mathGrammerParser ( Parser ):
             self.state = 53
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << mathGrammerParser.T__0) | (1 << mathGrammerParser.T__1) | (1 << mathGrammerParser.T__2) | (1 << mathGrammerParser.CHAR_KEY) | (1 << mathGrammerParser.INT_KEY) | (1 << mathGrammerParser.FLOAT_KEY) | (1 << mathGrammerParser.CHAR) | (1 << mathGrammerParser.INT) | (1 << mathGrammerParser.FLOAT) | (1 << mathGrammerParser.CONST) | (1 << mathGrammerParser.AMPERSAND) | (1 << mathGrammerParser.MUL_SIGN) | (1 << mathGrammerParser.DOUBLE_PLUS) | (1 << mathGrammerParser.DOUBLE_MINUS) | (1 << mathGrammerParser.PLUS) | (1 << mathGrammerParser.MIN) | (1 << mathGrammerParser.LOG_NOT) | (1 << mathGrammerParser.IDENTIFIER))) != 0):
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << mathGrammerParser.COMMA) | (1 << mathGrammerParser.PRINTF) | (1 << mathGrammerParser.LPARENTH) | (1 << mathGrammerParser.CHAR_KEY) | (1 << mathGrammerParser.INT_KEY) | (1 << mathGrammerParser.FLOAT_KEY) | (1 << mathGrammerParser.CHAR) | (1 << mathGrammerParser.INT) | (1 << mathGrammerParser.FLOAT) | (1 << mathGrammerParser.CONST) | (1 << mathGrammerParser.AMPERSAND) | (1 << mathGrammerParser.MUL_SIGN) | (1 << mathGrammerParser.DOUBLE_PLUS) | (1 << mathGrammerParser.DOUBLE_MINUS) | (1 << mathGrammerParser.PLUS) | (1 << mathGrammerParser.MIN) | (1 << mathGrammerParser.LOG_NOT) | (1 << mathGrammerParser.IDENTIFIER))) != 0):
                 self.state = 50
                 self.statement()
                 self.state = 55
@@ -278,6 +278,9 @@ class mathGrammerParser ( Parser ):
         def log_op1(self):
             return self.getTypedRuleContext(mathGrammerParser.Log_op1Context,0)
 
+
+        def COMMA(self):
+            return self.getToken(mathGrammerParser.COMMA, 0)
 
         def extern_decl(self):
             return self.getTypedRuleContext(mathGrammerParser.Extern_declContext,0)
@@ -316,7 +319,7 @@ class mathGrammerParser ( Parser ):
                 self.state = 58
                 self.log_op1()
                 self.state = 59
-                self.match(mathGrammerParser.T__0)
+                self.match(mathGrammerParser.COMMA)
                 pass
 
             elif la_ == 2:
@@ -378,12 +381,12 @@ class mathGrammerParser ( Parser ):
             self.state = 66
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [mathGrammerParser.T__1]:
+            if token in [mathGrammerParser.PRINTF]:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 64
                 self.function_def()
                 pass
-            elif token in [mathGrammerParser.T__0, mathGrammerParser.CHAR_KEY, mathGrammerParser.INT_KEY, mathGrammerParser.FLOAT_KEY, mathGrammerParser.CONST, mathGrammerParser.MUL_SIGN, mathGrammerParser.IDENTIFIER]:
+            elif token in [mathGrammerParser.COMMA, mathGrammerParser.CHAR_KEY, mathGrammerParser.INT_KEY, mathGrammerParser.FLOAT_KEY, mathGrammerParser.CONST, mathGrammerParser.MUL_SIGN, mathGrammerParser.IDENTIFIER]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 65
                 self.declaration()
@@ -407,9 +410,18 @@ class mathGrammerParser ( Parser ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
+        def PRINTF(self):
+            return self.getToken(mathGrammerParser.PRINTF, 0)
+
+        def LPARENTH(self):
+            return self.getToken(mathGrammerParser.LPARENTH, 0)
+
         def log_op1(self):
             return self.getTypedRuleContext(mathGrammerParser.Log_op1Context,0)
 
+
+        def RPARENTH(self):
+            return self.getToken(mathGrammerParser.RPARENTH, 0)
 
         def getRuleIndex(self):
             return mathGrammerParser.RULE_print_stmt
@@ -438,13 +450,13 @@ class mathGrammerParser ( Parser ):
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 68
-            self.match(mathGrammerParser.T__1)
+            self.match(mathGrammerParser.PRINTF)
             self.state = 69
-            self.match(mathGrammerParser.T__2)
+            self.match(mathGrammerParser.LPARENTH)
             self.state = 70
             self.log_op1()
             self.state = 71
-            self.match(mathGrammerParser.T__3)
+            self.match(mathGrammerParser.RPARENTH)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -464,6 +476,9 @@ class mathGrammerParser ( Parser ):
         def print_stmt(self):
             return self.getTypedRuleContext(mathGrammerParser.Print_stmtContext,0)
 
+
+        def COMMA(self):
+            return self.getToken(mathGrammerParser.COMMA, 0)
 
         def getRuleIndex(self):
             return mathGrammerParser.RULE_function_def
@@ -494,7 +509,7 @@ class mathGrammerParser ( Parser ):
             self.state = 73
             self.print_stmt()
             self.state = 74
-            self.match(mathGrammerParser.T__0)
+            self.match(mathGrammerParser.COMMA)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -514,6 +529,9 @@ class mathGrammerParser ( Parser ):
         def decl_spec(self):
             return self.getTypedRuleContext(mathGrammerParser.Decl_specContext,0)
 
+
+        def COMMA(self):
+            return self.getToken(mathGrammerParser.COMMA, 0)
 
         def init_decl_list(self):
             return self.getTypedRuleContext(mathGrammerParser.Init_decl_listContext,0)
@@ -552,7 +570,7 @@ class mathGrammerParser ( Parser ):
                 self.state = 76
                 self.decl_spec()
                 self.state = 77
-                self.match(mathGrammerParser.T__0)
+                self.match(mathGrammerParser.COMMA)
                 pass
 
             elif la_ == 2:
@@ -562,7 +580,7 @@ class mathGrammerParser ( Parser ):
                 self.state = 80
                 self.init_decl_list()
                 self.state = 81
-                self.match(mathGrammerParser.T__0)
+                self.match(mathGrammerParser.COMMA)
                 pass
 
 
@@ -1867,7 +1885,7 @@ class mathGrammerParser ( Parser ):
                 self.state = 208
                 self.log_op3()
                 pass
-            elif token in [mathGrammerParser.T__2, mathGrammerParser.CHAR, mathGrammerParser.INT, mathGrammerParser.FLOAT, mathGrammerParser.AMPERSAND, mathGrammerParser.MUL_SIGN, mathGrammerParser.DOUBLE_PLUS, mathGrammerParser.DOUBLE_MINUS, mathGrammerParser.PLUS, mathGrammerParser.MIN, mathGrammerParser.IDENTIFIER]:
+            elif token in [mathGrammerParser.LPARENTH, mathGrammerParser.CHAR, mathGrammerParser.INT, mathGrammerParser.FLOAT, mathGrammerParser.AMPERSAND, mathGrammerParser.MUL_SIGN, mathGrammerParser.DOUBLE_PLUS, mathGrammerParser.DOUBLE_MINUS, mathGrammerParser.PLUS, mathGrammerParser.MIN, mathGrammerParser.IDENTIFIER]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 209
                 self.comp_expr()
@@ -1900,9 +1918,15 @@ class mathGrammerParser ( Parser ):
         def FLOAT(self):
             return self.getToken(mathGrammerParser.FLOAT, 0)
 
+        def LPARENTH(self):
+            return self.getToken(mathGrammerParser.LPARENTH, 0)
+
         def log_op1(self):
             return self.getTypedRuleContext(mathGrammerParser.Log_op1Context,0)
 
+
+        def RPARENTH(self):
+            return self.getToken(mathGrammerParser.RPARENTH, 0)
 
         def IDENTIFIER(self):
             return self.getToken(mathGrammerParser.IDENTIFIER, 0)
@@ -1950,14 +1974,14 @@ class mathGrammerParser ( Parser ):
                 self.state = 214
                 self.match(mathGrammerParser.FLOAT)
                 pass
-            elif token in [mathGrammerParser.T__2]:
+            elif token in [mathGrammerParser.LPARENTH]:
                 self.enterOuterAlt(localctx, 4)
                 self.state = 215
-                self.match(mathGrammerParser.T__2)
+                self.match(mathGrammerParser.LPARENTH)
                 self.state = 216
                 self.log_op1()
                 self.state = 217
-                self.match(mathGrammerParser.T__3)
+                self.match(mathGrammerParser.RPARENTH)
                 pass
             elif token in [mathGrammerParser.IDENTIFIER]:
                 self.enterOuterAlt(localctx, 5)

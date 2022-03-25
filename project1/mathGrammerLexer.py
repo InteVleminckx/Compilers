@@ -104,10 +104,10 @@ class mathGrammerLexer(Lexer):
 
     decisionsToDFA = [ DFA(ds, i) for i, ds in enumerate(atn.decisionToState) ]
 
-    T__0 = 1
-    T__1 = 2
-    T__2 = 3
-    T__3 = 4
+    COMMA = 1
+    PRINTF = 2
+    LPARENTH = 3
+    RPARENTH = 4
     EQ_OP_S = 5
     CHAR_KEY = 6
     INT_KEY = 7
@@ -144,18 +144,18 @@ class mathGrammerLexer(Lexer):
             "'-'", "'||'", "'&&'", "'!'" ]
 
     symbolicNames = [ "<INVALID>",
-            "EQ_OP_S", "CHAR_KEY", "INT_KEY", "FLOAT_KEY", "CHAR", "INT", 
-            "FLOAT", "CONST", "AMPERSAND", "MUL_SIGN", "DIV_SIGN", "MOD_SIGN", 
-            "DOUBLE_PLUS", "DOUBLE_MINUS", "PLUS", "MIN", "LOG_OR", "LOG_AND", 
-            "LOG_NOT", "COMP_OP", "EQ_OP", "SINGLE_COMMENT", "MULTI_COMMENT", 
-            "IDENTIFIER", "WS" ]
+            "COMMA", "PRINTF", "LPARENTH", "RPARENTH", "EQ_OP_S", "CHAR_KEY", 
+            "INT_KEY", "FLOAT_KEY", "CHAR", "INT", "FLOAT", "CONST", "AMPERSAND", 
+            "MUL_SIGN", "DIV_SIGN", "MOD_SIGN", "DOUBLE_PLUS", "DOUBLE_MINUS", 
+            "PLUS", "MIN", "LOG_OR", "LOG_AND", "LOG_NOT", "COMP_OP", "EQ_OP", 
+            "SINGLE_COMMENT", "MULTI_COMMENT", "IDENTIFIER", "WS" ]
 
-    ruleNames = [ "T__0", "T__1", "T__2", "T__3", "EQ_OP_S", "CHAR_KEY", 
-                  "INT_KEY", "FLOAT_KEY", "CHAR", "INT", "FLOAT", "CONST", 
-                  "AMPERSAND", "MUL_SIGN", "DIV_SIGN", "MOD_SIGN", "DOUBLE_PLUS", 
-                  "DOUBLE_MINUS", "PLUS", "MIN", "LOG_OR", "LOG_AND", "LOG_NOT", 
-                  "COMP_OP", "EQ_OP", "SINGLE_COMMENT", "MULTI_COMMENT", 
-                  "IDENTIFIER", "WS" ]
+    ruleNames = [ "COMMA", "PRINTF", "LPARENTH", "RPARENTH", "EQ_OP_S", 
+                  "CHAR_KEY", "INT_KEY", "FLOAT_KEY", "CHAR", "INT", "FLOAT", 
+                  "CONST", "AMPERSAND", "MUL_SIGN", "DIV_SIGN", "MOD_SIGN", 
+                  "DOUBLE_PLUS", "DOUBLE_MINUS", "PLUS", "MIN", "LOG_OR", 
+                  "LOG_AND", "LOG_NOT", "COMP_OP", "EQ_OP", "SINGLE_COMMENT", 
+                  "MULTI_COMMENT", "IDENTIFIER", "WS" ]
 
     grammarFileName = "mathGrammer.g4"
 

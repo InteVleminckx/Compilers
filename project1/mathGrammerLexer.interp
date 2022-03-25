@@ -32,10 +32,10 @@ null
 
 token symbolic names:
 null
-null
-null
-null
-null
+COMMA
+PRINTF
+LPARENTH
+RPARENTH
 EQ_OP_S
 CHAR_KEY
 INT_KEY
@@ -63,10 +63,10 @@ IDENTIFIER
 WS
 
 rule names:
-T__0
-T__1
-T__2
-T__3
+COMMA
+PRINTF
+LPARENTH
+RPARENTH
 EQ_OP_S
 CHAR_KEY
 INT_KEY
