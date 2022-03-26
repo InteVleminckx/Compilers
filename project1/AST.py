@@ -974,23 +974,20 @@ def semanticAnalysisVisitor(node):
 
     if node.token == "=":
 
-        table = tableLookup(node.children[0])
-        symbol_lookup = symbolLookup(node.children[0].value, table)
+        # table = tableLookup(node.children[0])
+        # symbol_lookup = symbolLookup(node.children[0].value, table)
 
         table_child2 = tableLookup(node.children[1])
         symbol_lookup_child2 = symbolLookup(node.children[1].value, table_child2)
 
-        if len(node.children[1].children) == 0:
-            if symbol_lookup_child2[0]:
+        if len(node.children[1].children) == 0: # if the right child doesn't have any children.
+            if symbol_lookup_child2[0]: # if the right child is found in a symbol table.
                 if node.children[0].type != symbol_lookup_child2[1].type:
                     # Operation or assignment of incompatible types.
                     print("[ Warning ] line " + str(node.line) + ", position " + str(
                         node.column) + " : " + "Assignment of incompatible types")
             else:
                 child2Type = None
-                # int = bool(re.match("([0-9]+)", str(node.children[1].value)))
-                # float = bool(re.match("([0-9]+([.][0-9]*)|[.][0-9]+)", str(node.children[1].value)))
-                # char = bool(re.match("(\'.\')", str(node.children[1].value)))
 
                 if type(node.children[1].value) == float:
                     child2Type = "FLOAT"
@@ -1001,10 +998,51 @@ def semanticAnalysisVisitor(node):
                 if node.children[0].type != child2Type:
                     print("[ Warning ] line " + str(node.line) + ", position " + str(
                         node.column) + " : " + "Assignment of incompatible types")
-        else:
-            pass # how to do this for a whole expression?
+        else: # for a whole expression
 
-    for child in node.children:
-        semanticAnalysisVisitor(child)
+            if node.children[0].type != evaluateExpressionType(node.children[1]):
+                print("[ Warning ] line " + str(node.line) + ", position " + str(
+                    node.line) + " : " + "Assignment of incompatible types")
+
+    if len(node.children) > 0:
+        for child in node.children:
+            semanticAnalysisVisitor(child)
+
+def evaluateExpressionType(node=None):
+
+    if len(node.children) > 0:
+
+        child0_type = evaluateExpressionType(node.children[0])
+        child1_type = evaluateExpressionType(node.children[1])
+
+        if child0_type != child1_type:
+            print("[ Warning ] line " + str(node.line) + ", position " + str(
+                node.column) + " : " + "Operation of incompatible types")
+
+        node_type = ""
+
+        if child0_type == "FLOAT" or child1_type == "FLOAT":
+            node_type = "FLOAT"
+        elif child0_type == "INT" or child1_type == "INT":
+            node_type = "INT"
+        else:
+            node_type = "CHAR"
+
+        return node_type
+
+    else:
+
+        table = tableLookup(node)
+        symbol_lookup = symbolLookup(node.value, table)
+
+        if symbol_lookup[0]:
+            return symbol_lookup[1].type
+        else:
+            if type(node.value) == float:
+                return "FLOAT"
+            elif type(node.value) == int:
+                return "INT"
+            elif type(node.value) == str:
+                return "CHAR"
 
 # ----------------------------------------------------------------------------------------------------------------------#

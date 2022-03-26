@@ -151,9 +151,33 @@ var
 	    : CHAR
         | INT
         | FLOAT
-		| '(' log_op1 ')'
+		| LPARENTH log_op1 RPARENTH
 		| IDENTIFIER
 		;
+
+IF
+        : 'if'
+        ;
+
+ELSE
+        : 'else'
+        ;
+
+WHILE
+        : 'while'
+        ;
+
+FOR
+        : 'for'
+        ;
+
+BREAK
+        : 'break'
+        ;
+
+CONTINUE
+        : 'continue'
+        ;
 
 EQ_OP_S
         : '='

@@ -3,7 +3,7 @@ from AST import *
 registerCount = 1
 
 def codeGenerator(tree):
-    f = open("generatedLLVMIR_files/llvmCode.ll", "w")
+    f = open("generatedLLVMIR_files/llvmCode1.ll", "w")
     codeGenerationVisitor(f, tree)
     storeValues(f, tree)
     f.close()
