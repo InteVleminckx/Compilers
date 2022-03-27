@@ -5,13 +5,8 @@ math
         ;
 
 statement
-        : log_op1 COMMA
+        : log_op1 SEMICOLON
         | extern_decl
-//        | comment
-        ;
-
-COMMA
-        : ';'
         ;
 
 extern_decl
@@ -19,42 +14,22 @@ extern_decl
         | declaration
         ;
 
-//comment
-//        : single_comment
-//        | multi_comment
-//        ;
-//
-//single_comment
-//        : SINGLE_COMMENT
-//        ;
-//
-//multi_comment
-//        : MULTI_COMMENT
-//        ;
-
 print_stmt
         : PRINTF LPARENTH log_op1 RPARENTH
         ;
 
-PRINTF
-        : 'printf'
-        ;
-
-LPARENTH
-        : '('
-        ;
-
-RPARENTH
-        : ')'
-        ;
-
 function_def
-        : print_stmt COMMA
+        : decl_spec declarator
+        | print_stmt SEMICOLON
+        ;
+
+it_statement
+        : WHILE LPARENTH log_op1 RPARENTH
         ;
 
 declaration
-        : decl_spec COMMA
-        | decl_spec init_decl_list COMMA
+        : decl_spec SEMICOLON
+        | decl_spec init_decl_list SEMICOLON
         ;
 
 decl_spec
@@ -67,21 +42,17 @@ decl_spec
 init_decl_list
         : init_declarator
         ;
-
 init_declarator
         : declarator
         | declarator EQ_OP_S initializer
         ;
-
 declarator
         : pointer direct_declarator
         | direct_declarator
         ;
-
 initializer
         : log_op1
         ;
-
 direct_declarator
         : IDENTIFIER
         ;
@@ -154,6 +125,30 @@ var
 		| LPARENTH log_op1 RPARENTH
 		| IDENTIFIER
 		;
+
+SEMICOLON
+        : ';'
+        ;
+
+PRINTF
+        : 'printf'
+        ;
+
+LPARENTH
+        : '('
+        ;
+
+RPARENTH
+        : ')'
+        ;
+
+LBRACKET_CURLY
+        : '{'
+        ;
+
+RBRACKET_CURLY
+        : '}'
+        ;
 
 IF
         : 'if'
