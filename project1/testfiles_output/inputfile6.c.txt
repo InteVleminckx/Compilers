@@ -1,8 +1,0 @@
-a
-=
-5
-ROOT
-a
-=
-6
-[ Error ] line 3, position 4 : Duplicate declaration

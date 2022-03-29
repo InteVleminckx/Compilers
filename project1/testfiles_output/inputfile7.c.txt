@@ -1,4 +1,0 @@
-a
-=
-6
-[ Error ] line 2, position 0 : Uninitialized Reference.

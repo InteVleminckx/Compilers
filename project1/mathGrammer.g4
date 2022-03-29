@@ -42,12 +42,14 @@ decl_spec
 init_decl_list
         : init_declarator
         ;
+
 init_declarator
         : declarator
         | declarator EQ_OP_S initializer
         ;
 declarator
         : pointer direct_declarator
+        | reference direct_declarator
         | direct_declarator
         ;
 initializer
@@ -70,6 +72,12 @@ pointer
         | pointersign type_qualifier_list pointer
         ;
 
+reference
+        : AMPERSAND
+        | AMPERSAND type_qualifier_list
+        | AMPERSAND reference
+        | AMPERSAND type_qualifier_list reference
+        ;
 
 type_qualifier_list
         : CONST
@@ -124,14 +132,24 @@ var
         | FLOAT
 		| LPARENTH log_op1 RPARENTH
 		| IDENTIFIER
+		| func_call
 		;
+
+func_call
+        : IDENTIFIER LPARENTH func_call_par_list RPARENTH
+        ;
+
+func_call_par_list
+        : log_op1
+        | log_op1 COMMA func_call_par_list
+        ;
 
 SEMICOLON
         : ';'
         ;
 
-PRINTF
-        : 'printf'
+COMMA
+        : ','
         ;
 
 LPARENTH
@@ -160,6 +178,10 @@ ELSE
 
 WHILE
         : 'while'
+        ;
+
+PRINTF
+        : 'printf'
         ;
 
 FOR
