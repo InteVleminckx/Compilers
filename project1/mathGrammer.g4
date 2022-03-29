@@ -5,12 +5,13 @@ math
         ;
 
 statement
-        : log_op1 SEMICOLON
-        | extern_decl
+        : extern_decl // log_op1 SEMICOLON
+        | LBRACKET_CURLY statement* RBRACKET_CURLY
         ;
 
 extern_decl
-        : function_def
+        : stat
+        | function_def
         | declaration
         ;
 
@@ -19,12 +20,59 @@ print_stmt
         ;
 
 function_def
-        : decl_spec declarator
+        : decl_spec declarator LPARENTH declaration_list RPARENTH comp_stat
+        | decl_spec declarator comp_stat
+        | declarator declaration_list comp_stat
+        | declarator comp_stat
+        ;
+
+stat
+        : comp_stat
+        | expr_statement
+        | sel_statement
+        | it_statement
+        | j_statement
         | print_stmt SEMICOLON
+        | declaration_list
+        ;
+
+stat_list
+        : stat*
+        //| stat_list stat
+        ;
+
+comp_stat
+        : LBRACKET_CURLY RBRACKET_CURLY
+        | LBRACKET_CURLY stat_list RBRACKET_CURLY
+        | LBRACKET_CURLY declaration_list RBRACKET_CURLY
+        | LBRACKET_CURLY declaration_list stat_list RBRACKET_CURLY
         ;
 
 it_statement
-        : WHILE LPARENTH log_op1 RPARENTH
+        : WHILE LPARENTH log_op1 RPARENTH stat
+        | FOR LPARENTH declaration expr_statement log_op1 RPARENTH stat
+        ;
+
+sel_statement
+        : IF LPARENTH log_op1 RPARENTH stat
+        | IF LPARENTH log_op1 RPARENTH stat ELSE stat
+        ;
+
+j_statement
+        : CONTINUE SEMICOLON
+        | BREAK SEMICOLON
+        | RETURN SEMICOLON
+        | RETURN log_op1
+        ;
+
+expr_statement
+        : log_op1 SEMICOLON
+        | SEMICOLON
+        ;
+
+declaration_list
+        : declaration
+        | declaration_list declaration
         ;
 
 declaration
@@ -41,6 +89,7 @@ decl_spec
 
 init_decl_list
         : init_declarator
+        | init_decl_list COMMA init_declarator
         ;
 
 init_declarator
@@ -57,12 +106,24 @@ initializer
         ;
 direct_declarator
         : IDENTIFIER
+        | direct_declarator LPARENTH parameter_type_list RPARENTH
+        ;
+
+parameter_type_list
+        : parameter_decl
+        | parameter_type_list COMMA parameter_decl
+        ;
+
+parameter_decl
+        : decl_spec declarator
+        | decl_spec
         ;
 
 ttype
         : CHAR_KEY
         | INT_KEY
         | FLOAT_KEY
+        | VOID
         ;
 
 pointer
@@ -196,6 +257,10 @@ CONTINUE
         : 'continue'
         ;
 
+RETURN
+        : 'return'
+        ;
+
 EQ_OP_S
         : '='
         ;
@@ -210,6 +275,10 @@ INT_KEY
 
 FLOAT_KEY
         : 'float'
+        ;
+
+VOID
+        : 'void'
         ;
 
 CHAR
