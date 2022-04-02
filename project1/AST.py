@@ -1011,6 +1011,9 @@ def setupSymbolTables(tree, node=None):
     else:
         ## geval 1: we openen een nieuw block
 
+        if node.token == "FUNC_DEF":
+            pass
+
         # symbolTable = SymbolTable()
 
         ## geval 2: we openen geen nieuw block
@@ -1041,7 +1044,6 @@ def setupSymbolTables(tree, node=None):
 
             tableValue = Value(type, value, isConst, isOverwritten)
             tree.symbolTableStack[0].addVar(str(node.children[0].value), tableValue)
-
 
         elif node.token == "IDENTIFIER" and not node.parent.token == "=":
             semanticAnalysis(node)
