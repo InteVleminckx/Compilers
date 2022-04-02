@@ -481,6 +481,14 @@ class ASTprinter(mathGrammerListener):
     def exitDirect_declarator(self, ctx: mathGrammerParser.Direct_declaratorContext):
         pass
 
+    # Enter a parse tree produced by mathGrammerParser#initializer_list.
+    def enterInitializer_list(self, ctx: mathGrammerParser.Initializer_listContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#initializer_list.
+    def exitInitializer_list(self, ctx: mathGrammerParser.Initializer_listContext):
+        pass
+
     # Enter a parse tree produced by mathGrammerParser#ttype.
     def enterTtype(self, ctx: mathGrammerParser.TtypeContext):
         if ctx.CHAR_KEY():
@@ -502,6 +510,14 @@ class ASTprinter(mathGrammerListener):
     def exitPointer(self, ctx: mathGrammerParser.PointerContext):
         pass
 
+    # Enter a parse tree produced by mathGrammerParser#reference.
+    def enterReference(self, ctx: mathGrammerParser.ReferenceContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#reference.
+    def exitReference(self, ctx: mathGrammerParser.ReferenceContext):
+        pass
+
     # Enter a parse tree produced by mathGrammerParser#type_qualifier_list.
     def enterType_qualifier_list(self, ctx: mathGrammerParser.Type_qualifier_listContext):
         ast.nextConst = True
@@ -521,6 +537,126 @@ class ASTprinter(mathGrammerListener):
 # ------------------------------------------- End new part --------------------------------------------------#
 
 
+    # Enter a parse tree produced by mathGrammerParser#import_stat_list.
+    def enterImport_stat_list(self, ctx: mathGrammerParser.Import_stat_listContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#import_stat_list.
+    def exitImport_stat_list(self, ctx: mathGrammerParser.Import_stat_listContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#import_statement.
+    def enterImport_statement(self, ctx: mathGrammerParser.Import_statementContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#import_statement.
+    def exitImport_statement(self, ctx: mathGrammerParser.Import_statementContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#stat.
+    def enterStat(self, ctx: mathGrammerParser.StatContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#stat.
+    def exitStat(self, ctx: mathGrammerParser.StatContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#stat_list.
+    def enterStat_list(self, ctx: mathGrammerParser.Stat_listContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#stat_list.
+    def exitStat_list(self, ctx: mathGrammerParser.Stat_listContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#comp_stat.
+    def enterComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#comp_stat.
+    def exitComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#it_statement.
+    def enterIt_statement(self, ctx: mathGrammerParser.It_statementContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#it_statement.
+    def exitIt_statement(self, ctx: mathGrammerParser.It_statementContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#sel_statement.
+    def enterSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#sel_statement.
+    def exitSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#j_statement.
+    def enterJ_statement(self, ctx: mathGrammerParser.J_statementContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#j_statement.
+    def exitJ_statement(self, ctx: mathGrammerParser.J_statementContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#expr_statement.
+    def enterExpr_statement(self, ctx: mathGrammerParser.Expr_statementContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#expr_statement.
+    def exitExpr_statement(self, ctx: mathGrammerParser.Expr_statementContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#declaration_list.
+    def enterDeclaration_list(self, ctx: mathGrammerParser.Declaration_listContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#declaration_list.
+    def exitDeclaration_list(self, ctx: mathGrammerParser.Declaration_listContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#identifier_list.
+    def enterIdentifier_list(self, ctx:mathGrammerParser.Identifier_listContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#identifier_list.
+    def exitIdentifier_list(self, ctx:mathGrammerParser.Identifier_listContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#parameter_type_list.
+    def enterParameter_type_list(self, ctx:mathGrammerParser.Parameter_type_listContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#parameter_type_list.
+    def exitParameter_type_list(self, ctx:mathGrammerParser.Parameter_type_listContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#parameter_decl.
+    def enterParameter_decl(self, ctx:mathGrammerParser.Parameter_declContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#parameter_decl.
+    def exitParameter_decl(self, ctx:mathGrammerParser.Parameter_declContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#func_call.
+    def enterFunc_call(self, ctx: mathGrammerParser.Func_callContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#func_call.
+    def exitFunc_call(self, ctx: mathGrammerParser.Func_callContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#func_call_par_list.
+    def enterFunc_call_par_list(self, ctx: mathGrammerParser.Func_call_par_listContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#func_call_par_list.
+    def exitFunc_call_par_list(self, ctx: mathGrammerParser.Func_call_par_listContext):
+        pass
 
 def createGraph(ast, inputfile, number=0):
     path = "./ast_files/"
@@ -771,7 +907,7 @@ def constantFolding(tree):
         elif tree.token == "UN_OP":
             # The value is just the return value of his child.
             value = -value_c0 if str(tree.value) == "-" else value_c0
-            # Checking what type the value is, it is a int or a float.
+            # Checking what type the value is, it is an int or a float.
             token = "INT" if isinstance(value, int) else "FLOAT"
 
         # At this moment we fold the full branch of this node and need to replace this node
