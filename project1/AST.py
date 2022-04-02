@@ -587,7 +587,19 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#sel_statement.
     def enterSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):
-        pass
+
+
+        #begin met condition aan te maken
+        #dan if node met zijn huidige info
+        #dan else node als dit aanwezig is
+
+        #condition == child 2
+
+        if ctx.getChildCount() == 5:
+            ast.createNode("BRANCH", "BRANCH", 2, ctx.start.line, ctx.start.column)
+
+        elif ctx.getChildCount() == 7:
+            ast.createNode("BRANCH", "BRANCH", 3, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#sel_statement.
     def exitSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):

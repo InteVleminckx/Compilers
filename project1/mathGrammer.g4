@@ -221,12 +221,11 @@ var
 		;
 
 func_call
-        : IDENTIFIER LPARENTH func_call_par_list RPARENTH
+        : IDENTIFIER LPARENTH func_call_par_list? RPARENTH
         ;
 
 func_call_par_list
-        : log_op1
-        | log_op1 COMMA func_call_par_list
+        : log_op1 (COMMA log_op1)*
         ;
 
 HASHTAG
