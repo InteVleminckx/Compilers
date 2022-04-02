@@ -8,7 +8,7 @@ import_stat_list
         : import_statement*
         ;
 import_statement
-        : HASHTAG INCLUDE LTBRACKET (.|'.')*? GTBRACKET
+        : HASHTAG INCLUDE COMP_OP (.|'.')*? COMP_OP
         ;
 
 statement
@@ -227,14 +227,6 @@ func_call
 func_call_par_list
         : log_op1
         | log_op1 COMMA func_call_par_list
-        ;
-
-LTBRACKET
-        : '<'
-        ;
-
-GTBRACKET
-        : '>'
         ;
 
 HASHTAG

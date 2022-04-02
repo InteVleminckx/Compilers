@@ -14,6 +14,16 @@ class mathGrammerVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by mathGrammerParser#import_stat_list.
+    def visitImport_stat_list(self, ctx:mathGrammerParser.Import_stat_listContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#import_statement.
+    def visitImport_statement(self, ctx:mathGrammerParser.Import_statementContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by mathGrammerParser#statement.
     def visitStatement(self, ctx:mathGrammerParser.StatementContext):
         return self.visitChildren(ctx)
@@ -31,6 +41,46 @@ class mathGrammerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by mathGrammerParser#function_def.
     def visitFunction_def(self, ctx:mathGrammerParser.Function_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#stat.
+    def visitStat(self, ctx:mathGrammerParser.StatContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#stat_list.
+    def visitStat_list(self, ctx:mathGrammerParser.Stat_listContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#comp_stat.
+    def visitComp_stat(self, ctx:mathGrammerParser.Comp_statContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#it_statement.
+    def visitIt_statement(self, ctx:mathGrammerParser.It_statementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#sel_statement.
+    def visitSel_statement(self, ctx:mathGrammerParser.Sel_statementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#j_statement.
+    def visitJ_statement(self, ctx:mathGrammerParser.J_statementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#expr_statement.
+    def visitExpr_statement(self, ctx:mathGrammerParser.Expr_statementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#declaration_list.
+    def visitDeclaration_list(self, ctx:mathGrammerParser.Declaration_listContext):
         return self.visitChildren(ctx)
 
 
@@ -64,8 +114,28 @@ class mathGrammerVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by mathGrammerParser#initializer_list.
+    def visitInitializer_list(self, ctx:mathGrammerParser.Initializer_listContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by mathGrammerParser#direct_declarator.
     def visitDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#identifier_list.
+    def visitIdentifier_list(self, ctx:mathGrammerParser.Identifier_listContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#parameter_type_list.
+    def visitParameter_type_list(self, ctx:mathGrammerParser.Parameter_type_listContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#parameter_decl.
+    def visitParameter_decl(self, ctx:mathGrammerParser.Parameter_declContext):
         return self.visitChildren(ctx)
 
 
@@ -76,6 +146,11 @@ class mathGrammerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by mathGrammerParser#pointer.
     def visitPointer(self, ctx:mathGrammerParser.PointerContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#reference.
+    def visitReference(self, ctx:mathGrammerParser.ReferenceContext):
         return self.visitChildren(ctx)
 
 
@@ -131,6 +206,16 @@ class mathGrammerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by mathGrammerParser#var.
     def visitVar(self, ctx:mathGrammerParser.VarContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#func_call.
+    def visitFunc_call(self, ctx:mathGrammerParser.Func_callContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#func_call_par_list.
+    def visitFunc_call_par_list(self, ctx:mathGrammerParser.Func_call_par_listContext):
         return self.visitChildren(ctx)
 
 
