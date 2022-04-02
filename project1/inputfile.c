@@ -11,14 +11,14 @@
 // * a
 //*/
 
-int a = 5;
-int b = 10.0;
-char c = 'a';
-int d = b;
-int e = a + b;
-float h = a + d;
-int g = c + a;
-int f = e + 25;
+//int a = 5;
+//int b = 10.0;
+//char c = 'a';
+//int d = b;
+//int e = a + b;
+//float h = a + d;
+//int g = c + a;
+//int f = e + 25;
 //printf(f);
 
 //int* b = *5;
@@ -31,3 +31,11 @@ int f = e + 25;
 //int c = b;
 //printf(b);
 //int d = 5 + 10 + c + 25;
+#include <stdio.h>
+#include <stdio.h>
+
+int a[5];
+float abc[7] = {{19, 5, 5, 5, 5},{5,4,5,4,5}};
+char c[];
+a();
+int a[5][6];

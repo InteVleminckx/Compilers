@@ -1,7 +1,14 @@
 grammar mathGrammer;
 
 math
-        : statement* EOF
+        : import_stat_list? statement* EOF
+        ;
+
+import_stat_list
+        : import_statement*
+        ;
+import_statement
+        : HASHTAG INCLUDE LTBRACKET (.|'.')*? GTBRACKET
         ;
 
 statement
@@ -33,7 +40,7 @@ stat
         | it_statement
         | j_statement
         | print_stmt SEMICOLON
-        | declaration_list
+        // | declaration_list // dit veroorzaakt een vreemde boom
         ;
 
 stat_list
@@ -103,10 +110,27 @@ declarator
         ;
 initializer
         : log_op1
+        | LBRACKET_CURLY initializer_list RBRACKET_CURLY
+        | LBRACKET_CURLY initializer_list COMMA RBRACKET_CURLY
         ;
+
+initializer_list
+        : initializer
+        | initializer_list COMMA initializer
+        ;
+
 direct_declarator
         : IDENTIFIER
         | direct_declarator LPARENTH parameter_type_list RPARENTH
+        | direct_declarator LBRACKET_SQUARE log_op1 RBRACKET_SQUARE
+        | direct_declarator LBRACKET_SQUARE RBRACKET_SQUARE
+        | direct_declarator LPARENTH identifier_list RPARENTH
+        | direct_declarator LPARENTH RPARENTH
+        ;
+
+identifier_list
+        : IDENTIFIER
+        | identifier_list COMMA IDENTIFIER
         ;
 
 parameter_type_list
@@ -179,7 +203,7 @@ log_op1
 		;
 
 log_op2
-        :log_op3 (LOG_AND log_op3)*
+        : log_op3 (LOG_AND log_op3)*
 		;
 
 log_op3
@@ -205,6 +229,22 @@ func_call_par_list
         | log_op1 COMMA func_call_par_list
         ;
 
+LTBRACKET
+        : '<'
+        ;
+
+GTBRACKET
+        : '>'
+        ;
+
+HASHTAG
+        : '#'
+        ;
+
+INCLUDE
+        : 'include'
+        ;
+
 SEMICOLON
         : ';'
         ;
@@ -227,6 +267,14 @@ LBRACKET_CURLY
 
 RBRACKET_CURLY
         : '}'
+        ;
+
+LBRACKET_SQUARE
+        : '['
+        ;
+
+RBRACKET_SQUARE
+        : ']'
         ;
 
 IF
