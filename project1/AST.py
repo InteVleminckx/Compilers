@@ -403,7 +403,13 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#function_def.
     def enterFunction_def(self, ctx: mathGrammerParser.Function_defContext):
-        pass
+
+        if ctx.getChildCount() == 6:
+            ast.createNode("FUNC_DEF", "FUNC_DEF", 4, ctx.start.line, ctx.start.column)
+        elif ctx.getChildCount() == 3:
+            pass
+        else:
+            pass
 
     # Exit a parse tree produced by mathGrammerParser#function_def.
     def exitFunction_def(self, ctx: mathGrammerParser.Function_defContext):

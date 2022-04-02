@@ -27,7 +27,7 @@ print_stmt
         ;
 
 function_def
-        : decl_spec declarator LPARENTH declaration_list RPARENTH comp_stat
+        : decl_spec declarator declaration_list comp_stat
         | decl_spec declarator comp_stat
         | declarator declaration_list comp_stat
         | declarator comp_stat
