@@ -178,13 +178,16 @@ class ASTprinter(mathGrammerListener):
 
         ast.parentsList = [ast.root]
 
-        if ctx.getChildCount() == 0:
+        if ctx.getChildCount() == 1:
             ast.root.children.pop()
             ast.parentsList = []
 
     # Exit a parse tree produced by mathGrammerParser#math.
     def exitMath(self, ctx: mathGrammerParser.MathContext):
-        pass
+
+        for i in range(len(ast.root.children)):
+            if ast.root.children[i] is None:
+                ast.root.children.remove(ast.root.children[i])
 
     # Enter a parse tree produced by mathGrammerParser#comp_expr.
     def enterComp_expr(self, ctx: mathGrammerParser.Comp_exprContext):
@@ -404,10 +407,10 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#function_def.
     def enterFunction_def(self, ctx: mathGrammerParser.Function_defContext):
 
-        if ctx.getChildCount() == 6:
+        if ctx.getChildCount() == 4:
             ast.createNode("FUNC_DEF", "FUNC_DEF", 4, ctx.start.line, ctx.start.column)
         elif ctx.getChildCount() == 3:
-            pass
+            ast.createNode("FUNC_DEF", "FUNC_DEF", 4, ctx.start.line, ctx.start.column)
         else:
             pass
 

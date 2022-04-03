@@ -23,19 +23,16 @@
 
 //int* b = *5;
 
-//const int a = 5;
-//a = 6;
-//int y = 4.5;
-//int y = 5;
-//int b = y;
-//int c = b;
-//printf(b);
-//int d = 5 + 10 + c + 25;
-#include <stdio.h>
-#include <stdio.h>
-
-int a[5];
-float abc[7] = {{19, 5, 5, 5, 5},{5,4,5,4,5}};
-char c[];
-a();
-int a[5][6];
+const int a = 5;
+int y = 4.5;
+int b = y;
+int c = b;
+int d = 5 + 10 + c + 25;
+//#include <stdio.h>
+//#include <stdio.h>
+//
+//int a[5];
+//float abc[7] = {{19, 5, 5, 5, 5},{5,4,5,4,5}};
+//char c[];
+//a();
+//int a[5][6];
