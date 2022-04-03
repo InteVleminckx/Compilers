@@ -370,32 +370,6 @@ class ASTprinter(mathGrammerListener):
     def exitExtern_decl(self, ctx: mathGrammerParser.Extern_declContext):
         pass
 
-    # # Enter a parse tree produced by mathGrammerParser#comment.
-    # def enterComment(self, ctx:mathGrammerParser.CommentContext):
-    #     pass #
-    #
-    # # Exit a parse tree produced by mathGrammerParser#comment.
-    # def exitComment(self, ctx:mathGrammerParser.CommentContext):
-    #     pass #
-    #
-    #
-    # # Enter a parse tree produced by mathGrammerParser#single_comment.
-    # def enterSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
-    #     pass #
-    #
-    # # Exit a parse tree produced by mathGrammerParser#single_comment.
-    # def exitSingle_comment(self, ctx:mathGrammerParser.Single_commentContext):
-    #     pass #
-    #
-    #
-    # # Enter a parse tree produced by mathGrammerParser#multi_comment.
-    # def enterMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
-    #     pass #
-    #
-    # # Exit a parse tree produced by mathGrammerParser#multi_comment.
-    # def exitMulti_comment(self, ctx:mathGrammerParser.Multi_commentContext):
-    #     pass #
-
     # Enter a parse tree produced by mathGrammerParser#print_stmt.
     def enterPrint_stmt(self, ctx: mathGrammerParser.Print_stmtContext):
         ast.createNode(ctx.getChild(0), "PRINTF", 1, ctx.start.line, ctx.start.column)
@@ -410,6 +384,11 @@ class ASTprinter(mathGrammerListener):
         if ctx.getChildCount() == 4:
             ast.createNode("FUNC_DEF", "FUNC_DEF", 4, ctx.start.line, ctx.start.column)
         elif ctx.getChildCount() == 3:
+            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+            print(ctx.getChild(2).getText())
+            print(ctx.getChild(1).getText())
+            print(ctx.getChild(1).getChildCount())
+            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             ast.createNode("FUNC_DEF", "FUNC_DEF", 4, ctx.start.line, ctx.start.column)
         else:
             pass
@@ -545,7 +524,6 @@ class ASTprinter(mathGrammerListener):
 
 # ------------------------------------------- End new part --------------------------------------------------#
 
-
     # Enter a parse tree produced by mathGrammerParser#import_stat_list.
     def enterImport_stat_list(self, ctx: mathGrammerParser.Import_stat_listContext):
         pass
@@ -616,7 +594,13 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#j_statement.
     def enterJ_statement(self, ctx: mathGrammerParser.J_statementContext):
-        pass
+
+        if ctx.CONTINUE():
+            ast.createNode("CONTINUE", "CONTINUE", 0, ctx.start.line, ctx.start.column)
+        elif ctx.BREAK():
+            ast.createNode("BREAK", "BREAK", 0, ctx.start.line, ctx.start.column)
+        elif ctx.RETURN():
+            ast.createNode("RETURN", "RETURN", 1, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#j_statement.
     def exitJ_statement(self, ctx: mathGrammerParser.J_statementContext):
@@ -645,7 +629,6 @@ class ASTprinter(mathGrammerListener):
     # Exit a parse tree produced by mathGrammerParser#identifier_list.
     def exitIdentifier_list(self, ctx:mathGrammerParser.Identifier_listContext):
         pass
-
 
     # Enter a parse tree produced by mathGrammerParser#parameter_type_list.
     def enterParameter_type_list(self, ctx:mathGrammerParser.Parameter_type_listContext):

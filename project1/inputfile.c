@@ -23,6 +23,10 @@
 
 //int* b = *5;
 
+int mul(int x, int y){
+    return x * y;
+}
+
 const int a = 5;
 int y = 4.5;
 int b = y;
