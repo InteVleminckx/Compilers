@@ -111,6 +111,9 @@ class AST:
 
                     self.unaries = []
 
+                if node.token == "BRANCH":
+                    return node
+
     def inorderTraversal(self, visit, node=None):
 
         if self.root is None:
@@ -152,6 +155,8 @@ class ASTprinter(mathGrammerListener):
 
     def __init__(self):
         self.prevParents = []
+        self.selStack = []
+        self.createScope = (False, "")
 
     # Enter a parse tree produced by mathGrammerParser#math.
     def enterMath(self, ctx: mathGrammerParser.MathContext):
@@ -436,7 +441,7 @@ class ASTprinter(mathGrammerListener):
     def enterInit_declarator(self, ctx: mathGrammerParser.Init_declaratorContext):
 
         if ctx.getChildCount() == 3:
-            ast.createNode(ctx.getChild(1), "=", 2, ctx.start.line, ctx.start.column)
+            ast.createNode(ctx.getChild(1), "=", 2, ctx.start.line,  ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#init_declarator.
     def exitInit_declarator(self, ctx: mathGrammerParser.Init_declaratorContext):
@@ -555,8 +560,9 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#stat_list.
     def enterStat_list(self, ctx: mathGrammerParser.Stat_listContext):
-
-        ast.createNode("Statlist", "Statlist", ctx.getChildCount(), ctx.start.line, ctx.start.column)
+        if self.createScope[0]:
+            ast.createNode(self.createScope[1], self.createScope[1], ctx.getChildCount(), ctx.start.line, ctx.start.column)
+            self.createScope = (False, "")
 
     # Exit a parse tree produced by mathGrammerParser#stat_list.
     def exitStat_list(self, ctx: mathGrammerParser.Stat_listContext):
@@ -564,7 +570,18 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#comp_stat.
     def enterComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
-        pass
+
+        statement = "ELSE"
+
+        if self.selStack[len(self.selStack)-1][1] is True:
+            statement = "IF"
+            self.selStack[len(self.selStack) - 1] = (self.selStack[len(self.selStack) - 1][0], False)
+
+        if len(self.selStack) != 0 and ctx.getChildCount() > 2:
+            self.createScope = (True, statement)
+        elif len(self.selStack) != 0 and ctx.getChildCount() == 2:
+            self.createScope = (False, statement)
+            ast.createNode(statement, statement, 0, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#comp_stat.
     def exitComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
@@ -588,15 +605,24 @@ class ASTprinter(mathGrammerListener):
 
         #condition == child 2
 
+        branch = None
+
         if ctx.getChildCount() == 5:
-            ast.createNode("BRANCH", "BRANCH", 2, ctx.start.line, ctx.start.column)
+            branch = ast.createNode("BRANCH", "BRANCH", 2, ctx.start.line, ctx.start.column)
+            if str(ctx.getChild(0)) == "if":
+                ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
+                self.selStack.append((branch, True))
 
         elif ctx.getChildCount() == 7:
-            ast.createNode("BRANCH", "BRANCH", 3, ctx.start.line, ctx.start.column)
+            branch = ast.createNode("BRANCH", "BRANCH", 3, ctx.start.line, ctx.start.column)
+            if str(ctx.getChild(0)) == "if":
+                ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
+                self.selStack.append((branch, True))
+
 
     # Exit a parse tree produced by mathGrammerParser#sel_statement.
     def exitSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):
-        pass
+        self.selStack.pop()
 
     # Enter a parse tree produced by mathGrammerParser#j_statement.
     def enterJ_statement(self, ctx: mathGrammerParser.J_statementContext):
