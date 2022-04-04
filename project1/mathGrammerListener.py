@@ -80,15 +80,6 @@ class mathGrammerListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by mathGrammerParser#stat_list.
-    def enterStat_list(self, ctx:mathGrammerParser.Stat_listContext):
-        pass
-
-    # Exit a parse tree produced by mathGrammerParser#stat_list.
-    def exitStat_list(self, ctx:mathGrammerParser.Stat_listContext):
-        pass
-
-
     # Enter a parse tree produced by mathGrammerParser#comp_stat.
     def enterComp_stat(self, ctx:mathGrammerParser.Comp_statContext):
         pass
@@ -131,15 +122,6 @@ class mathGrammerListener(ParseTreeListener):
 
     # Exit a parse tree produced by mathGrammerParser#expr_statement.
     def exitExpr_statement(self, ctx:mathGrammerParser.Expr_statementContext):
-        pass
-
-
-    # Enter a parse tree produced by mathGrammerParser#declaration_list.
-    def enterDeclaration_list(self, ctx:mathGrammerParser.Declaration_listContext):
-        pass
-
-    # Exit a parse tree produced by mathGrammerParser#declaration_list.
-    def exitDeclaration_list(self, ctx:mathGrammerParser.Declaration_listContext):
         pass
 
 

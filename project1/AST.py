@@ -156,7 +156,7 @@ class ASTprinter(mathGrammerListener):
     def __init__(self):
         self.prevParents = []
         self.selStack = []
-        self.createScope = (False, "")
+        self.createScope = False
 
     # Enter a parse tree produced by mathGrammerParser#math.
     def enterMath(self, ctx: mathGrammerParser.MathContext):
@@ -558,30 +558,16 @@ class ASTprinter(mathGrammerListener):
     def exitStat(self, ctx: mathGrammerParser.StatContext):
         pass
 
-    # Enter a parse tree produced by mathGrammerParser#stat_list.
-    def enterStat_list(self, ctx: mathGrammerParser.Stat_listContext):
-        if self.createScope[0]:
-            ast.createNode(self.createScope[1], self.createScope[1], ctx.getChildCount(), ctx.start.line, ctx.start.column)
-            self.createScope = (False, "")
-
-    # Exit a parse tree produced by mathGrammerParser#stat_list.
-    def exitStat_list(self, ctx: mathGrammerParser.Stat_listContext):
-        pass
-
     # Enter a parse tree produced by mathGrammerParser#comp_stat.
     def enterComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
 
         statement = "ELSE"
 
-        if self.selStack[len(self.selStack)-1][1] is True:
+        if self.selStack[len(self.selStack)-1] is True:
             statement = "IF"
-            self.selStack[len(self.selStack) - 1] = (self.selStack[len(self.selStack) - 1][0], False)
+            self.selStack[len(self.selStack) - 1] = False
 
-        if len(self.selStack) != 0 and ctx.getChildCount() > 2:
-            self.createScope = (True, statement)
-        elif len(self.selStack) != 0 and ctx.getChildCount() == 2:
-            self.createScope = (False, statement)
-            ast.createNode(statement, statement, 0, ctx.start.line, ctx.start.column)
+        ast.createNode(statement, statement, ctx.getChildCount()-2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#comp_stat.
     def exitComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
@@ -598,27 +584,17 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#sel_statement.
     def enterSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):
 
-
-        #begin met condition aan te maken
-        #dan if node met zijn huidige info
-        #dan else node als dit aanwezig is
-
-        #condition == child 2
-
-        branch = None
-
         if ctx.getChildCount() == 5:
-            branch = ast.createNode("BRANCH", "BRANCH", 2, ctx.start.line, ctx.start.column)
+            ast.createNode("BRANCH", "BRANCH", 2, ctx.start.line, ctx.start.column)
             if str(ctx.getChild(0)) == "if":
                 ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
-                self.selStack.append((branch, True))
+                self.selStack.append(True)
 
         elif ctx.getChildCount() == 7:
-            branch = ast.createNode("BRANCH", "BRANCH", 3, ctx.start.line, ctx.start.column)
+            ast.createNode("BRANCH", "BRANCH", 3, ctx.start.line, ctx.start.column)
             if str(ctx.getChild(0)) == "if":
                 ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
-                self.selStack.append((branch, True))
-
+                self.selStack.append(True)
 
     # Exit a parse tree produced by mathGrammerParser#sel_statement.
     def exitSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):
@@ -644,14 +620,6 @@ class ASTprinter(mathGrammerListener):
 
     # Exit a parse tree produced by mathGrammerParser#expr_statement.
     def exitExpr_statement(self, ctx: mathGrammerParser.Expr_statementContext):
-        pass
-
-    # Enter a parse tree produced by mathGrammerParser#declaration_list.
-    def enterDeclaration_list(self, ctx: mathGrammerParser.Declaration_listContext):
-        pass
-
-    # Exit a parse tree produced by mathGrammerParser#declaration_list.
-    def exitDeclaration_list(self, ctx: mathGrammerParser.Declaration_listContext):
         pass
 
     # Enter a parse tree produced by mathGrammerParser#identifier_list.

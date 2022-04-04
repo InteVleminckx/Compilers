@@ -49,11 +49,6 @@ class mathGrammerVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by mathGrammerParser#stat_list.
-    def visitStat_list(self, ctx:mathGrammerParser.Stat_listContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by mathGrammerParser#comp_stat.
     def visitComp_stat(self, ctx:mathGrammerParser.Comp_statContext):
         return self.visitChildren(ctx)
@@ -76,11 +71,6 @@ class mathGrammerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by mathGrammerParser#expr_statement.
     def visitExpr_statement(self, ctx:mathGrammerParser.Expr_statementContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by mathGrammerParser#declaration_list.
-    def visitDeclaration_list(self, ctx:mathGrammerParser.Declaration_listContext):
         return self.visitChildren(ctx)
 
 

@@ -27,9 +27,9 @@ print_stmt
         ;
 
 function_def
-        : decl_spec declarator declaration_list comp_stat
-        | decl_spec declarator comp_stat
-        | declarator declaration_list comp_stat
+//        : decl_spec declarator declaration_list comp_stat
+        : decl_spec declarator comp_stat
+//        | declarator declaration_list comp_stat
         | declarator comp_stat
         ;
 
@@ -43,16 +43,16 @@ stat
         // | declaration_list // dit veroorzaakt een vreemde boom
         ;
 
-stat_list
-        : stat*
+//stat_list
+//        : stat
         //| stat_list stat
-        ;
+//        ;
 
 comp_stat
-        : LBRACKET_CURLY RBRACKET_CURLY
-        | LBRACKET_CURLY stat_list RBRACKET_CURLY
-        | LBRACKET_CURLY declaration_list RBRACKET_CURLY
-        | LBRACKET_CURLY declaration_list stat_list RBRACKET_CURLY
+//        : LBRACKET_CURLY RBRACKET_CURLY
+//        | LBRACKET_CURLY stat_list RBRACKET_CURLY
+//        | LBRACKET_CURLY declaration_list RBRACKET_CURLY
+        : LBRACKET_CURLY (declaration | stat)* RBRACKET_CURLY
         ;
 
 it_statement
@@ -77,10 +77,10 @@ expr_statement
         | SEMICOLON
         ;
 
-declaration_list
-        : declaration
-        | declaration_list declaration
-        ;
+//declaration_list
+//        : declaration
+//        | declaration_list declaration
+//        ;
 
 declaration
         : decl_spec SEMICOLON
