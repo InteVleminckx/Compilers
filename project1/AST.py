@@ -95,7 +95,8 @@ class AST:
                     if curParent.children[i] is None:
                         curParent.children[i] = node
                         break
-                self.parentsList.append(node)
+                if numberOfChilds > 0:
+                    self.parentsList.append(node)
 
                 if len(self.unaries) != 0:
                     for unary in self.unaries:
@@ -111,8 +112,6 @@ class AST:
 
                     self.unaries = []
 
-                if node.token == "BRANCH":
-                    return node
 
     def inorderTraversal(self, visit, node=None):
 
@@ -156,7 +155,7 @@ class ASTprinter(mathGrammerListener):
     def __init__(self):
         self.prevParents = []
         self.selStack = []
-        self.createScope = False
+        self.new_blocks = 0
 
     # Enter a parse tree produced by mathGrammerParser#math.
     def enterMath(self, ctx: mathGrammerParser.MathContext):
@@ -190,7 +189,7 @@ class ASTprinter(mathGrammerListener):
     # Exit a parse tree produced by mathGrammerParser#math.
     def exitMath(self, ctx: mathGrammerParser.MathContext):
 
-        for i in range(len(ast.root.children)):
+        for i in range(len(ast.root.children)-1, 0, -1):
             if ast.root.children[i] is None:
                 ast.root.children.remove(ast.root.children[i])
 
@@ -562,16 +561,38 @@ class ASTprinter(mathGrammerListener):
     def enterComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
 
         statement = "ELSE"
+        if len(self.selStack) > 0:
+            if self.selStack[len(self.selStack) - 1][1] is True:
+                if self.selStack[len(self.selStack) - 1][0] is True:
+                    statement = "IF"
+                    self.selStack[len(self.selStack) - 1] = (False, False)
+            else:
+                statement = "NEW_BLOCK"
+                # new scope nog genen nieuwe IF of Else tegengekomen maar wel nieuwe comp dus gaat nieuwe scope aangemaakt worden
+                self.new_blocks += 1
+        else:
+            statement = "NEW_BLOCK"
+            # new scope nog genen nieuwe IF of Else tegengekomen maar wel nieuwe comp dus gaat nieuwe scope aangemaakt worden
+            self.new_blocks += 1
 
-        if self.selStack[len(self.selStack)-1] is True:
-            statement = "IF"
-            self.selStack[len(self.selStack) - 1] = False
+        if statement == "ELSE":
+            self.selStack[len(self.selStack) - 1] = (False, False)
 
-        ast.createNode(statement, statement, ctx.getChildCount()-2, ctx.start.line, ctx.start.column)
+        ast.createNode(statement, statement, ctx.getChildCount() - 2, ctx.start.line, ctx.start.column)
+
 
     # Exit a parse tree produced by mathGrammerParser#comp_stat.
     def exitComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
-        pass
+
+        if self.new_blocks > 0:
+            self.new_blocks -= 1
+
+        if len(self.selStack) > 0:
+            # We hebben alle nieuwe blocks verlaten dus kunnen nu de juiste else terug bij bijhorend if plaatsen
+            if self.selStack[len(self.selStack) - 1][1] is False and self.new_blocks == 0:
+                self.selStack[len(self.selStack) - 1] = (False, True)
+
+
 
     # Enter a parse tree produced by mathGrammerParser#it_statement.
     def enterIt_statement(self, ctx: mathGrammerParser.It_statementContext):
@@ -588,13 +609,13 @@ class ASTprinter(mathGrammerListener):
             ast.createNode("BRANCH", "BRANCH", 2, ctx.start.line, ctx.start.column)
             if str(ctx.getChild(0)) == "if":
                 ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
-                self.selStack.append(True)
+                self.selStack.append((True, True))
 
         elif ctx.getChildCount() == 7:
             ast.createNode("BRANCH", "BRANCH", 3, ctx.start.line, ctx.start.column)
             if str(ctx.getChild(0)) == "if":
                 ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
-                self.selStack.append(True)
+                self.selStack.append((True, True))
 
     # Exit a parse tree produced by mathGrammerParser#sel_statement.
     def exitSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):
