@@ -154,8 +154,15 @@ class ASTprinter(mathGrammerListener):
 
     def __init__(self):
         self.prevParents = []
+        """
+        selStackt[(0,1,2)]
+        [0] = indicates if the statement is created or not 
+        [1] = indicates if the scope is leaved from this statement
+        [2] = statement that must be created
+        """
         self.selStack = []
         self.new_blocks = 0
+        self.createWhile = False
 
     # Enter a parse tree produced by mathGrammerParser#math.
     def enterMath(self, ctx: mathGrammerParser.MathContext):
@@ -561,11 +568,21 @@ class ASTprinter(mathGrammerListener):
     def enterComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
 
         statement = "ELSE"
+
         if len(self.selStack) > 0:
             if self.selStack[len(self.selStack) - 1][1] is True:
                 if self.selStack[len(self.selStack) - 1][0] is True:
-                    statement = "IF"
-                    self.selStack[len(self.selStack) - 1] = (False, False)
+
+                    if self.selStack[len(self.selStack) - 1][2] == "WHILE":
+                        statement = "WHILE"
+                    else:
+                        statement = "IF"
+
+                    self.selStack[len(self.selStack) - 1] = (False, False, statement)
+
+                elif self.selStack[len(self.selStack) - 1][2] == "WHILE":
+                    return
+
             else:
                 statement = "NEW_BLOCK"
                 # new scope nog genen nieuwe IF of Else tegengekomen maar wel nieuwe comp dus gaat nieuwe scope aangemaakt worden
@@ -576,7 +593,7 @@ class ASTprinter(mathGrammerListener):
             self.new_blocks += 1
 
         if statement == "ELSE":
-            self.selStack[len(self.selStack) - 1] = (False, False)
+            self.selStack[len(self.selStack) - 1] = (False, False, statement)
 
         ast.createNode(statement, statement, ctx.getChildCount() - 2, ctx.start.line, ctx.start.column)
 
@@ -590,13 +607,19 @@ class ASTprinter(mathGrammerListener):
         if len(self.selStack) > 0:
             # We hebben alle nieuwe blocks verlaten dus kunnen nu de juiste else terug bij bijhorend if plaatsen
             if self.selStack[len(self.selStack) - 1][1] is False and self.new_blocks == 0:
-                self.selStack[len(self.selStack) - 1] = (False, True)
+                self.selStack[len(self.selStack) - 1] = (False, True, self.selStack[len(self.selStack) - 1][2])
 
 
 
     # Enter a parse tree produced by mathGrammerParser#it_statement.
     def enterIt_statement(self, ctx: mathGrammerParser.It_statementContext):
-        pass
+        if str(ctx.getChild(0)) == "while":
+            ast.createNode("BRANCH", "BRANCH", 2, ctx.start.line, ctx.start.column)
+            ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
+            self.selStack.append((True, True, "WHILE"))
+
+        elif str(ctx.getChild(0)) == "for":
+            pass
 
     # Exit a parse tree produced by mathGrammerParser#it_statement.
     def exitIt_statement(self, ctx: mathGrammerParser.It_statementContext):
@@ -609,13 +632,13 @@ class ASTprinter(mathGrammerListener):
             ast.createNode("BRANCH", "BRANCH", 2, ctx.start.line, ctx.start.column)
             if str(ctx.getChild(0)) == "if":
                 ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
-                self.selStack.append((True, True))
+                self.selStack.append((True, True, "IF"))
 
         elif ctx.getChildCount() == 7:
             ast.createNode("BRANCH", "BRANCH", 3, ctx.start.line, ctx.start.column)
             if str(ctx.getChild(0)) == "if":
                 ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
-                self.selStack.append((True, True))
+                self.selStack.append((True, True, "IF"))
 
     # Exit a parse tree produced by mathGrammerParser#sel_statement.
     def exitSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):
