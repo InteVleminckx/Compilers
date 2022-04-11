@@ -1,32 +1,47 @@
-int c = 0;
-int d = 0;
-while (c == d){
-    //do something
-    int a = 10;
-    int b = 10;
-
-    if (a==b){
-        printf(a);
-    }
-    else {
-        printf(b);
-    }
-
-
+while(10 == 10)
+{
     {
-        printf(c);
-        {
-        {
-            if (a == 10){
-                printf(a);
-            }
-            while(a==c){
-                int g = 10;
-                {
-                    printf(g);
+        int z = 0;
+    }
+    printf(10);
+}
+
+{
+
+}
+
+for (int i = 0; i < 10; ++i){
+    if (i == 0){
+        printf(i);
+
+    }
+}
+
+int a = 10;
+
+if (10 == 10){
+    a++;
+    while (a < 10){
+        --a;
+
+        for (int j = 10; j > 0; --j){
+            {
+                if (j == 5){
+                    continue;
+                }
+                else{
+                    break;
                 }
             }
-        }
+            break;
+            int k = 0;
         }
     }
+}
+
+if (5 == 5){
+
+}
+else {
+
 }

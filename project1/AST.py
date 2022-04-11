@@ -51,6 +51,13 @@ class AST:
         self.symbolTableList = [globalTable]
         self.symbolTableStack = [globalTable] # herkent dat niet als een stack in een andere functie, top() werkt niet
 
+    def returnLastBranch(self):
+        node = self.parentsList[len(self.parentsList)-1].children[len(self.parentsList[len(self.parentsList)-1].children)-1]
+        node.parent = None
+        self.parentsList[len(self.parentsList) - 1].children[
+            len(self.parentsList[len(self.parentsList) - 1].children) - 1] = None
+        return node
+
     def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, isOverwritten=False, unaryParenth=False):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
         for parent in self.parentsList:
@@ -75,30 +82,25 @@ class AST:
         else:
             curParent = self.parentsList[len(self.parentsList) - 1]
 
-            if var_list.count(token):
-                # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten)
-                for i in range(len(curParent.children)):
-                    if curParent.children[i] is None:
-                        curParent.children[i] = node
-                        break
 
-            elif (token == "LOG_NOT" or token == "UN_OP") and not unaryParenth:
+
+            if (token == "LOG_NOT" or token == "UN_OP") and not unaryParenth:
                 self.unaries.append((token, value))
 
             else:
-                # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten)
-                for i in range(numberOfChilds):
-                    node.children.append(None)
-                for i in range(len(curParent.children)):
-                    if curParent.children[i] is None:
-                        curParent.children[i] = node
-                        break
-                if numberOfChilds > 0:
-                    self.parentsList.append(node)
 
+                # if var_list.count(token):
+                #     # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
+                #     node = createNodeItem(token, value, curParent, line, column, type, isConst, isOverwritten)
+                #     for i in range(len(curParent.children)):
+                #         if curParent.children[i] is None:
+                #             curParent.children[i] = node
+                #             break
+                #
+                #     if len(self.unaries) != 0:
+                clearedUnary = False
                 if len(self.unaries) != 0:
+                    clearedUnary = True
                     for unary in self.unaries:
                         curParent = self.parentsList[len(self.parentsList) - 1]
 
@@ -112,6 +114,21 @@ class AST:
 
                     self.unaries = []
 
+                if clearedUnary:
+                    clearedUnary = False
+                    curParent = self.parentsList[len(self.parentsList) - 1]
+                    self.parentsList.pop()
+
+                # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
+                node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten)
+                for i in range(numberOfChilds):
+                    node.children.append(None)
+                for i in range(len(curParent.children)):
+                    if curParent.children[i] is None:
+                        curParent.children[i] = node
+                        break
+                if numberOfChilds > 0:
+                    self.parentsList.append(node)
 
     def inorderTraversal(self, visit, node=None):
 
@@ -150,19 +167,22 @@ ast = AST()
 ast.root = createNodeItem("ROOT", "ROOT", None)
 ast.root.symbolTablePointer = ast.symbolTableList[0]
 
+
+class Statement:
+
+    def __init__(self, statement):
+        self.statement = statement
+        self.createdDeclaration = False
+        self.createdCondition = False
+        self.createdScopes = [False, False] #[0]: scope1 en [1]: scope2 (geval van else)
+        self.iteration = [None, None] #[0]: ++ of -- en [1]: identifier
+        self.turn = False
+
 class ASTprinter(mathGrammerListener):
 
     def __init__(self):
         self.prevParents = []
-        """
-        selStackt[(0,1,2)]
-        [0] = indicates if the statement is created or not 
-        [1] = indicates if the scope is leaved from this statement
-        [2] = statement that must be created
-        """
-        self.selStack = []
-        self.new_blocks = 0
-        self.createWhile = False
+        self.stack_scopes = []
 
     # Enter a parse tree produced by mathGrammerParser#math.
     def enterMath(self, ctx: mathGrammerParser.MathContext):
@@ -203,8 +223,11 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#comp_expr.
     def enterComp_expr(self, ctx: mathGrammerParser.Comp_exprContext):
         # print("enterComp_expr")
-
         if ctx.getChildCount() == 3:
+            if len(self.stack_scopes) > 0:
+                if self.stack_scopes[-1].statement == "FOR" and self.stack_scopes[-1].createdDeclaration:
+                    ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
+                self.stack_scopes[-1].createdCondition = True
             ast.createNode(ctx.EQ_OP(), "EQ_OP", 2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#comp_expr.
@@ -216,6 +239,11 @@ class ASTprinter(mathGrammerListener):
         # print("enterComp_expr1")
 
         if ctx.getChildCount() == 3:
+            if len(self.stack_scopes) > 0:
+                if self.stack_scopes[-1].statement == "FOR" and self.stack_scopes[-1].createdDeclaration:
+                    ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
+                self.stack_scopes[-1].createdCondition = True
+
             ast.createNode(ctx.COMP_OP(), "COMP_OP", 2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#comp_expr1.
@@ -225,7 +253,6 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#expr.
     def enterExpr(self, ctx: mathGrammerParser.ExprContext):
         # print("enterExpr")
-
         if ctx.getChildCount() == 3:
             ast.createNode(ctx.getChild(1), "BIN_OP1", 2, ctx.start.line, ctx.start.column)
 
@@ -236,7 +263,6 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#factor.
     def enterFactor(self, ctx: mathGrammerParser.FactorContext):
         # print("enterFactor")
-
         if ctx.getChildCount() == 3:
             ast.createNode(ctx.getChild(1), "BIN_OP2", 2, ctx.start.line, ctx.start.column)
 
@@ -249,24 +275,45 @@ class ASTprinter(mathGrammerListener):
         # print("enterTerm")
 
         if ctx.getChildCount() > 1:
+            #Geeft aan er een for loop is of niet, anders doet het zijn normale gang
+            isFor = False
 
-            if str(ctx.getChild(1)) != "++" and str(ctx.getChild(1)) != "--" and  str(ctx.getChild(0)) != "++" and str(ctx.getChild(0)) != "--":
-                for x in range(ctx.getChildCount() - 1):
-                    if ctx.getChild(ctx.getChildCount() - 1).start.text == "(" or ctx.getChild(
+            #We controleren if we net een for statement gepushed hebben
+            #Controleren dus eerst of de stack niet leeg is
+            if len(self.stack_scopes) > 0:
+                curStatement = self.stack_scopes[-1]
+                #We geeft aan dat alle iteratatie nog toegevoegd moeten worden aan het statement
+                if curStatement.statement == "FOR" and curStatement.iteration[0] is None \
+                    and curStatement.iteration[1] is None:
+                    isFor = True
+                    if str(ctx.getChild(0)) == "++":
+                        curStatement.iteration[0] = (ctx.getChild(0), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                    elif str(ctx.getChild(1)) == "++":
+                        curStatement.iteration[0] = (ctx.getChild(1), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                    elif str(ctx.getChild(0)) == "--":
+                        curStatement.iteration[0] = (ctx.getChild(0), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                    elif str(ctx.getChild(1)) == "--":
+                        curStatement.iteration[0] = (ctx.getChild(1), "UN_OP", 1, ctx.start.line, ctx.start.column)
+
+            if not isFor:
+                if str(ctx.getChild(1)) != "++" and str(ctx.getChild(1)) != "--" and str(
+                    ctx.getChild(0)) != "++" and str(ctx.getChild(0)) != "--":
+                    for x in range(ctx.getChildCount() - 1):
+                        if ctx.getChild(ctx.getChildCount() - 1).start.text == "(" or ctx.getChild(
                             ctx.getChildCount() - 1).start.text == ctx.getChild(ctx.getChildCount() - 1).stop.text:
-                        ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column, "", False, False, True)
-                    else:
-                        ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column)
-
-            else:
-                if str(ctx.getChild(0)) == "++":
-                    ast.createNode(ctx.getChild(0), "UN_OP", 1, ctx.start.line, ctx.start.column)
-                elif str(ctx.getChild(1)) == "++":
-                    ast.createNode(ctx.getChild(1), "UN_OP", 1, ctx.start.line, ctx.start.column)
-                elif str(ctx.getChild(0)) == "--":
-                    ast.createNode(ctx.getChild(0), "UN_OP", 1, ctx.start.line, ctx.start.column)
-                elif str(ctx.getChild(1)) == "--":
-                    ast.createNode(ctx.getChild(1), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                            ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column, "", False,
+                                           False, True)
+                        else:
+                            ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                else:
+                    if str(ctx.getChild(0)) == "++":
+                        ast.createNode(ctx.getChild(0), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                    elif str(ctx.getChild(1)) == "++":
+                        ast.createNode(ctx.getChild(1), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                    elif str(ctx.getChild(0)) == "--":
+                        ast.createNode(ctx.getChild(0), "UN_OP", 1, ctx.start.line, ctx.start.column)
+                    elif str(ctx.getChild(1)) == "--":
+                        ast.createNode(ctx.getChild(1), "UN_OP", 1, ctx.start.line, ctx.start.column)
 
 
     # Exit a parse tree produced by mathGrammerParser#term.
@@ -304,7 +351,6 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#log_op2.
     def enterLog_op2(self, ctx: mathGrammerParser.Log_op2Context):
         # print("enterLog_op2")
-
         # Geen AND operation
         if ctx.getChildCount() == 1:
             # Dit is niet speciaal moet niets gebeuren we gaan gewoon verder door de parse tree
@@ -330,7 +376,6 @@ class ASTprinter(mathGrammerListener):
         # Als we 1 kind hebben, is er niets speciaals
         # if ctx.getChildCount() == 1:
         #     pass
-
         # Anders hebben we 2 kinderen
         if ctx.getChildCount() == 2:
             if ctx.getChild(1).start.text == "(" or ctx.getChild(1).start.text == ctx.getChild(1).stop.text:
@@ -346,18 +391,42 @@ class ASTprinter(mathGrammerListener):
     def enterVar(self, ctx: mathGrammerParser.VarContext):
         # print("enterVar")
 
-        if ctx.INT() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.INT(), "INT", 0, ctx.start.line, ctx.start.column)
-        elif ctx.CHAR() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.CHAR(), "CHAR", 0, ctx.start.line, ctx.start.column)
-        elif ctx.FLOAT() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.FLOAT(), "FLOAT", 0, ctx.start.line, ctx.start.column)
-        elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
-            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
-            if ast.nextConst:
-                ast.nextConst = False
-            ast.nextType = ""
-            ast.nextOverwrite = False
+
+        # Geeft aan er een for loop is of niet, anders doet het zijn normale gang
+        isFor = False
+
+        # We controleren if we net een for statement gepushed hebben
+        # Controleren dus eerst of de stack niet leeg is
+        if len(self.stack_scopes) > 0:
+            curStatement = self.stack_scopes[-1]
+            # We geeft aan dat alle iteratatie nog toegevoegd moeten worden aan het statement
+            if curStatement.statement == "FOR" and curStatement.iteration[0] is not None \
+                and curStatement.iteration[1] is None:
+                isFor = True
+                if ctx.INT() and ctx.getChildCount() == 1:
+                    curStatement.iteration[1] = (ctx.INT(), "INT", 0, ctx.start.line, ctx.start.column)
+                elif ctx.CHAR() and ctx.getChildCount() == 1:
+                    curStatement.iteration[1] = (ctx.CHAR(), "CHAR", 0, ctx.start.line, ctx.start.column)
+                elif ctx.FLOAT() and ctx.getChildCount() == 1:
+                    curStatement.iteration[1] = (ctx.FLOAT(), "FLOAT", 0, ctx.start.line, ctx.start.column)
+                elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
+                    curStatement.iteration[1] = (ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
+                                   ast.nextConst, ast.nextOverwrite)
+
+        if not isFor:
+
+            if ctx.INT() and ctx.getChildCount() == 1:
+                ast.createNode(ctx.INT(), "INT", 0, ctx.start.line, ctx.start.column)
+            elif ctx.CHAR() and ctx.getChildCount() == 1:
+                ast.createNode(ctx.CHAR(), "CHAR", 0, ctx.start.line, ctx.start.column)
+            elif ctx.FLOAT() and ctx.getChildCount() == 1:
+                ast.createNode(ctx.FLOAT(), "FLOAT", 0, ctx.start.line, ctx.start.column)
+            elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
+                ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
+                if ast.nextConst:
+                    ast.nextConst = False
+                ast.nextType = ""
+                ast.nextOverwrite = False
 
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
@@ -413,7 +482,11 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#declaration.
     def enterDeclaration(self, ctx: mathGrammerParser.DeclarationContext):
-        pass
+        if ctx.getChildCount() == 3:
+            if len(self.stack_scopes) > 0:
+                if self.stack_scopes[-1].statement == "FOR":
+                    ast.createNode("DECLARATION", "DECLARATION", 1, ctx.start.line, ctx.start.column)
+                    self.stack_scopes[-1].createdDeclaration = True
 
     # Exit a parse tree produced by mathGrammerParser#declaration.
     def exitDeclaration(self, ctx: mathGrammerParser.DeclarationContext):
@@ -554,8 +627,6 @@ class ASTprinter(mathGrammerListener):
     def exitImport_statement(self, ctx: mathGrammerParser.Import_statementContext):
         pass
 
-
-
     # Enter a parse tree produced by mathGrammerParser#stat.
     def enterStat(self, ctx: mathGrammerParser.StatContext):
         pass
@@ -567,59 +638,98 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#comp_stat.
     def enterComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
 
-        statement = "ELSE"
+        """
+        Een comp statement bereiken we wanneer we een scope openen met brackets
+        We kunnen aangeven in de AST dat we in een nieuwe scope zitten met volgende nodes:
+        * IF
+        * ELSE
+        * WHILE --> for en while loop
+        * NEW BLOCK
+        """
 
-        if len(self.selStack) > 0:
-            if self.selStack[len(self.selStack) - 1][1] is True:
-                if self.selStack[len(self.selStack) - 1][0] is True:
+        statement = str
 
-                    if self.selStack[len(self.selStack) - 1][2] == "WHILE":
-                        statement = "WHILE"
-                    else:
-                        statement = "IF"
+        #We controleren eerst of de stack leeg, als dit het geval is hebben we standaard een nieuw block
+        if len(self.stack_scopes) == 0:
+            self.stack_scopes.append(Statement("NEW_BLOCK"))
 
-                    self.selStack[len(self.selStack) - 1] = (False, False, statement)
+        #We pakken de laatst geopenede nieuwe scope
+        curStatement = self.stack_scopes[-1]
 
-                elif self.selStack[len(self.selStack) - 1][2] == "WHILE":
-                    return
+        #moest deze wel true zijn hebben we te maken met new blocks
+        if curStatement.turn:
+            #We maken een nieuw block aan en stellen het current hier aan gelijk
+            self.stack_scopes.append(Statement("NEW_BLOCK"))
+            curStatement = self.stack_scopes[-1]
 
+        #We zetten het statement actief
+        curStatement.turn = True
+        statement = curStatement.statement
+        #Controleren nog of het if + else is
+        if curStatement.statement == "ELSE":
+            if curStatement.createdScopes[0] == False:
+                curStatement.createdScopes[0] = True
+                statement = "IF"
             else:
-                statement = "NEW_BLOCK"
-                # new scope nog genen nieuwe IF of Else tegengekomen maar wel nieuwe comp dus gaat nieuwe scope aangemaakt worden
-                self.new_blocks += 1
+                curStatement.createdScopes[1] = True
+
+        #We maken de node aan voor dit statement
+        #Enkel de for loop is een uitzondering hier maken we een extra child node voor aan
+        if curStatement.statement == "FOR":
+            ast.createNode("WHILE", "WHILE", ctx.getChildCount() - 1, ctx.start.line, ctx.start.column)
         else:
-            statement = "NEW_BLOCK"
-            # new scope nog genen nieuwe IF of Else tegengekomen maar wel nieuwe comp dus gaat nieuwe scope aangemaakt worden
-            self.new_blocks += 1
-
-        if statement == "ELSE":
-            self.selStack[len(self.selStack) - 1] = (False, False, statement)
-
-        ast.createNode(statement, statement, ctx.getChildCount() - 2, ctx.start.line, ctx.start.column)
-
+            ast.createNode(statement, statement, ctx.getChildCount() - 2, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#comp_stat.
     def exitComp_stat(self, ctx: mathGrammerParser.Comp_statContext):
 
-        if self.new_blocks > 0:
-            self.new_blocks -= 1
+        """
+        Wanneer we het comp statement verlaten moeten we het statemetn van de stack poppen
+        en nog controleren of het geen for statement was anders moeten we hier eerst nog de nodige node voor aanmaken voor de iteratie
+        """
 
-        if len(self.selStack) > 0:
-            # We hebben alle nieuwe blocks verlaten dus kunnen nu de juiste else terug bij bijhorend if plaatsen
-            if self.selStack[len(self.selStack) - 1][1] is False and self.new_blocks == 0:
-                self.selStack[len(self.selStack) - 1] = (False, True, self.selStack[len(self.selStack) - 1][2])
+        #Controleren voor de zekerheid dat de stack niet leeg is
+        if len(self.stack_scopes) > 0:
+            canPop = True
+            if self.stack_scopes[-1].statement == "FOR":
+                #Aanmaken van de unary
+                ast.createNode(*self.stack_scopes[-1].iteration[0])
+                #Aanmaken van de idenifier
+                ast.createNode(*self.stack_scopes[-1].iteration[1])
 
+            elif self.stack_scopes[-1].statement == "ELSE":
+                #Dan moet else nog gemaakt worden dus statement mog nog niet gepopt worden
+                if self.stack_scopes[-1].createdScopes[1] is False:
+                    self.stack_scopes[-1].turn = False
+                    canPop = False
+
+            if canPop:
+                #We poppen de scope van de stack
+                self.stack_scopes.pop()
 
 
     # Enter a parse tree produced by mathGrammerParser#it_statement.
     def enterIt_statement(self, ctx: mathGrammerParser.It_statementContext):
+
+        """
+        We komen hier in een it_statement dus we weten dat we hier een while of for loop moeten aanmaken
+        """
+
+        #We hebben een while loop
         if str(ctx.getChild(0)) == "while":
+
+            #We generetaten de branch node hiervan, met 2 bijhorende kinderen == Condition en while scope
             ast.createNode("BRANCH", "BRANCH", 2, ctx.start.line, ctx.start.column)
+            # We pushen het while statement op de stack
+            self.stack_scopes.append(Statement("WHILE"))
+            #We kunnen de condition al direct aanmaken want dit wordt het volgende dat we tegenkomen met het parsen
             ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
-            self.selStack.append((True, True, "WHILE"))
 
         elif str(ctx.getChild(0)) == "for":
-            pass
+            ast.createNode("BRANCH", "BRANCH", 3, ctx.start.line, ctx.start.column)
+            # We pushen het for statement op de stack
+            self.stack_scopes.append(Statement("FOR"))
+
 
     # Exit a parse tree produced by mathGrammerParser#it_statement.
     def exitIt_statement(self, ctx: mathGrammerParser.It_statementContext):
@@ -627,22 +737,26 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#sel_statement.
     def enterSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):
-
+        """
+        We komen hier in een Sel_statement dus weten dat we een if of if+else gaan moeten aanmaken
+        """
         if ctx.getChildCount() == 5:
             ast.createNode("BRANCH", "BRANCH", 2, ctx.start.line, ctx.start.column)
             if str(ctx.getChild(0)) == "if":
+                #We pushen het if statement op de stack
+                self.stack_scopes.append(Statement("IF"))
                 ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
-                self.selStack.append((True, True, "IF"))
 
         elif ctx.getChildCount() == 7:
             ast.createNode("BRANCH", "BRANCH", 3, ctx.start.line, ctx.start.column)
             if str(ctx.getChild(0)) == "if":
+                #We pushen het else statement op de stack
+                self.stack_scopes.append(Statement("ELSE"))
                 ast.createNode("CONDITION", "CONDITION", 1, ctx.start.line, ctx.start.column)
-                self.selStack.append((True, True, "IF"))
 
     # Exit a parse tree produced by mathGrammerParser#sel_statement.
     def exitSel_statement(self, ctx: mathGrammerParser.Sel_statementContext):
-        self.selStack.pop()
+        pass
 
     # Enter a parse tree produced by mathGrammerParser#j_statement.
     def enterJ_statement(self, ctx: mathGrammerParser.J_statementContext):
