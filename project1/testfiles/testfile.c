@@ -1,47 +1,23 @@
-while(10 == 10)
-{
-    {
-        int z = 0;
-    }
-    printf(10);
+int mul(int x, int y){
+    return x * y;
 }
+/*
+* My program
+*/
+//int main(){
+//    int x = 1;
+//    while (x < 10) {
+//        int result = 10;
+//        int result = mul(x, 2);
+//        if ( x > 5) {
+//            result = 5;
+////            result = mul(result, x);
+//        }
+//        printf(result); //show the result
+//        x = x + 1;
+//    }
+//    return 0;
+//}
 
-{
-
-}
-
-for (int i = 0; i < 10; ++i){
-    if (i == 0){
-        printf(i);
-
-    }
-}
-
-int a = 10;
-
-if (10 == 10){
-    a++;
-    while (a < 10){
-        --a;
-
-        for (int j = 10; j > 0; --j){
-            {
-                if (j == 5){
-                    continue;
-                }
-                else{
-                    break;
-                }
-            }
-            break;
-            int k = 0;
-        }
-    }
-}
-
-if (5 == 5){
-
-}
-else {
-
-}
+result = mul(5,6);
+result = 5;

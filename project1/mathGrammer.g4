@@ -69,7 +69,7 @@ j_statement
         : CONTINUE SEMICOLON
         | BREAK SEMICOLON
         | RETURN SEMICOLON
-        | RETURN log_op1
+        | RETURN log_op1 SEMICOLON
         ;
 
 expr_statement
@@ -134,8 +134,8 @@ identifier_list
         ;
 
 parameter_type_list
-        : parameter_decl
-        | parameter_type_list COMMA parameter_decl
+        : parameter_decl (COMMA parameter_decl)*
+//        | parameter_type_list COMMA parameter_decl
         ;
 
 parameter_decl
