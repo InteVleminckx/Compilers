@@ -122,7 +122,7 @@ initializer_list
 direct_declarator
         : IDENTIFIER
         | direct_declarator LPARENTH parameter_type_list RPARENTH
-        | direct_declarator LBRACKET_SQUARE log_op1 RBRACKET_SQUARE
+        | direct_declarator (LBRACKET_SQUARE log_op1 RBRACKET_SQUARE)+
         | direct_declarator LBRACKET_SQUARE RBRACKET_SQUARE
         | direct_declarator LPARENTH identifier_list RPARENTH
         | direct_declarator LPARENTH RPARENTH

@@ -186,6 +186,7 @@ class ASTprinter(mathGrammerListener):
 	def __init__(self):
 		self.prevParents = []
 		self.stack_scopes = []
+		self.createArray = (False,0)
 
 	# Enter a parse tree produced by mathGrammerParser#math.
 	def enterMath(self, ctx: mathGrammerParser.MathContext):
@@ -304,7 +305,12 @@ class ASTprinter(mathGrammerListener):
 					for x in range(ctx.getChildCount() - 1):
 						if ctx.getChild(ctx.getChildCount() - 1).start.text == "(" or ctx.getChild(
 							ctx.getChildCount() - 1).start.text == ctx.getChild(ctx.getChildCount() - 1).stop.text:
-							ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column, "", False,
+
+							child = ctx.getChild(x)
+							#Geval dat we een * voor de identifier hebben
+							if child.getChildCount() == 1:
+								child = child.getChild(0)
+							ast.createNode(child, "UN_OP", 1, ctx.start.line, ctx.start.column, "", False,
 										   False, True)
 						else:
 							ast.createNode(ctx.getChild(x), "UN_OP", 1, ctx.start.line, ctx.start.column)
@@ -580,10 +586,24 @@ class ASTprinter(mathGrammerListener):
 					return
 
 			ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
+
+			if self.createArray[0]:
+				ast.createNode("INDICES", "INDICES", self.createArray[1], ctx.start.line, ctx.start.column)
+				self.createArray = (False,0)
+
 			if ast.nextConst:
 				ast.nextConst = False
 			ast.nextType = ""
 			ast.nextOverwrite = False
+
+		elif ctx.getChildCount() == 3:
+			if str(ctx.getChild(1)) == "[":
+				ast.createNode("ARRAY", "ARRAY", 1, ctx.start.line, ctx.start.column)
+		elif ctx.getChildCount() > 3:
+			if str(ctx.getChild(1)) == "[":
+				childs = int((ctx.getChildCount()-1)/3)
+				ast.createNode("ARRAY", "ARRAY", 2, ctx.start.line, ctx.start.column)
+				self.createArray = (True, childs)
 
 	# Exit a parse tree produced by mathGrammerParser#direct_declarator.
 	def exitDirect_declarator(self, ctx: mathGrammerParser.Direct_declaratorContext):
@@ -667,7 +687,8 @@ class ASTprinter(mathGrammerListener):
 
 	# Enter a parse tree produced by mathGrammerParser#import_stat_list.
 	def enterImport_stat_list(self, ctx: mathGrammerParser.Import_stat_listContext):
-		pass
+		if ctx.getChildCount() > 0:
+			ast.createNode("IMPORT", "IMPORT", ctx.getChildCount(), ctx.start.line, ctx.start.column)
 
 	# Exit a parse tree produced by mathGrammerParser#import_stat_list.
 	def exitImport_stat_list(self, ctx: mathGrammerParser.Import_stat_listContext):
@@ -675,7 +696,8 @@ class ASTprinter(mathGrammerListener):
 
 	# Enter a parse tree produced by mathGrammerParser#import_statement.
 	def enterImport_statement(self, ctx: mathGrammerParser.Import_statementContext):
-		pass
+		include = str(ctx.getChild(3)) + str(ctx.getChild(4)) + str(ctx.getChild(5))
+		ast.createNode(include, "INCLUDE", 0, ctx.start.line, ctx.start.column)
 
 	# Exit a parse tree produced by mathGrammerParser#import_statement.
 	def exitImport_statement(self, ctx: mathGrammerParser.Import_statementContext):
@@ -888,8 +910,14 @@ class ASTprinter(mathGrammerListener):
 	# Enter a parse tree produced by mathGrammerParser#func_call.
 	def enterFunc_call(self, ctx: mathGrammerParser.Func_callContext):
 		#We hebben een function call deze bestaat uit 3 of meer children
-		if ctx.getChildCount() == 3:
-			pass
+		childs = 1
+		#Deze staat standaard op 1 dit is als we geen parameters hebben, we zetten het gelijk aan 2 als we er wel hebben
+		if ctx.getChildCount() > 3:
+			childs = 2
+			print("")
+		ast.createNode("FUNC_CALL", "FUNC_CALL", 2, ctx.start.line, ctx.start.column)
+		ast.createNode("NAME", "NAME", 1, ctx.start.line, ctx.start.column)
+		ast.createNode(ctx.getChild(0), "IDENTIFIER", 0, ctx.start.line, ctx.start.column)
 
 	# Exit a parse tree produced by mathGrammerParser#func_call.
 	def exitFunc_call(self, ctx: mathGrammerParser.Func_callContext):
@@ -897,7 +925,16 @@ class ASTprinter(mathGrammerListener):
 
 	# Enter a parse tree produced by mathGrammerParser#func_call_par_list.
 	def enterFunc_call_par_list(self, ctx: mathGrammerParser.Func_call_par_listContext):
-		pass
+		#We kijken hier hoeveel kinderen we hebben
+		#We als we er 1 hebben is het zonder komma anders is elke parameter gesplitst door een komma
+		childs = 0
+		if ctx.getChildCount() == 1:
+			childs = 1
+		elif ctx.getChildCount() > 1:
+			childs = ctx.getChildCount() - int((ctx.getChildCount()-1)/2)
+
+		if childs > 0:
+			ast.createNode("PARAMETERS", "PARAMETERS", childs, ctx.start.line, ctx.start.column)
 
 	# Exit a parse tree produced by mathGrammerParser#func_call_par_list.
 	def exitFunc_call_par_list(self, ctx: mathGrammerParser.Func_call_par_listContext):
