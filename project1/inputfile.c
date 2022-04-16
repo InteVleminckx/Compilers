@@ -23,15 +23,10 @@
 
 //int* b = *5;
 
-int mul(int x, int y){
-    return x * y;
-}
+//int mul(int x, int y){
+//    return x * y;
+//}
 
-const int a = 5;
-int y = 4.5;
-int b = y;
-int c = b;
-int d = 5 + 10 + c + 25;
 //#include <stdio.h>
 //#include <stdio.h>
 //
@@ -40,3 +35,46 @@ int d = 5 + 10 + c + 25;
 //char c[];
 //a();
 //int a[5][6];
+
+while(10 == 10)
+{
+    {
+        int a = 0;
+    }
+    printf(10);
+}
+
+{
+
+}
+
+for (int i = 0; i < 10; ++i){
+    if (i == 0){
+        printf(i);
+
+    }
+}
+
+int a = 10;
+
+if (10 == 10){
+    a++;
+    while (a < 10){
+        --a;
+        for (int j = 10; j > 0; --j){
+            if (j == 5){
+                printf('a');
+            }
+            else{
+                printf('b');
+            }
+        }
+    }
+}
+
+if (5 == 5){
+
+}
+else {
+
+}
