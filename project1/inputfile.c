@@ -38,8 +38,10 @@
 
 while(10 == 10)
 {
+    int b = 15;
     {
         int a = 0;
+        int b = 15;
     }
     printf(10);
 }
@@ -49,6 +51,7 @@ while(10 == 10)
 }
 
 for (int i = 0; i < 10; ++i){
+    int uu = 8;
     if (i == 0){
         printf(i);
 

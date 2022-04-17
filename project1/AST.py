@@ -47,7 +47,7 @@ class AST:
         self.nextOverwrite = False # for debugging purposes, can be removed (but then all references to this should be removed)
 
         globalTable = SymbolTable()
-        globalTable.astNode = self.root
+        globalTable.astNode = self.root #
         self.symbolTableList = [globalTable]
         self.symbolTableStack = [globalTable]
 
@@ -1293,7 +1293,7 @@ def setupSymbolTables(tree, node=None):
     else:
         ## geval 1: we openen een nieuw block
         wasNewBlockOpened = False # nodig om te weten wanneer we de scope moeten sluiten
-        if node.token == "NEW_BLOCK" or node.token == "BRANCH" or node.token == "IF" or node.token == "ELSE" or node.token == "WHILE":
+        if node.token == "NEW_BLOCK" or node.token == "IF" or node.token == "ELSE" or node.token == "WHILE" or (node.token == "BRANCH" and node.children[0].token == "DECLARATION"):
             s = SymbolTable()
             s.enclosingSTable = tree.symbolTableStack[-1]
             s.astNode = node
@@ -1387,7 +1387,7 @@ def semanticAnalysis(node, child1=None, child2=None):
         else:
 
             # Redeclaration or redefinition of an existing variable.
-            if child1.type != "":
+            if child1.type != "" and symbol_lookup[2]: # allowed if it's in declared in another scope
                 print("[ Error ] line " + str(node.line) + ", position " + str(
                     node.column) + " : " + "Duplicate declaration")
                 exit(1)
