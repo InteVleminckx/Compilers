@@ -1461,12 +1461,11 @@ def semanticAnalysisVisitor(node):
                         node.column) + " : " + "Assignment of incompatible types")
             else:
                 child2Type = None
-
-                if type(node.children[1].value) == float:
+                if type(node.children[1].value) == float or node.children[1].token == "FLOAT":
                     child2Type = "FLOAT"
-                elif type(node.children[1].value) == int:
+                elif type(node.children[1].value) == int or node.children[1].token == "INT":
                     child2Type = "INT"
-                elif type(node.children[1].value) == str and str(node.children[1].value)[0] == "\'":
+                elif (type(node.children[1].value) == str and str(node.children[1].value)[0] == "\'") or node.children[1].token == "CHAR":
                     child2Type = "CHAR"
                 if node.children[0].type != child2Type:
                     print("[ Warning ] line " + str(node.line) + ", position " + str(

@@ -11,23 +11,25 @@
 // * a
 //*/
 
-//int a = 5;
-//int b = 10.0;
-//char c = 'a';
-//int d = b;
-//int e = a + b;
-//float h = a + d;
-//int g = c + a;
-//int f = e + 25;
+int a = 5;
+int b = 10.0;
+char c = 'a';
+
+int d = b;
+int e = a + b;
+
+float h = a + d;
+int g = c + a;
+
 //printf(f);
 
 //int* b = *5;
 
-int mul(int x, int y){
-    return x * y;
-}
-
-int h;
+//int mul(int x, int y){
+//    return x * y;
+//}
+//
+//int h;
 
 //#include <stdio.h>
 //#include <stdio.h>
@@ -47,39 +49,39 @@ while(10 == 10)
     }
     printf(10);
 }
-
-{
-
-}
-
-for (int i = 0; i < 10; ++i){
-    int uu = 8;
-    if (i == 0){
-        printf(i);
-
-    }
-}
-
-int a = 10;
-
-if (10 == 10){
-    a++;
-    while (a < 10){
-        --a;
-        for (int j = 10; j > 0; --j){
-            if (j == 5){
-                printf('a');
-            }
-            else{
-                printf('b');
-            }
-        }
-    }
-}
-
-if (5 == 5){
-
-}
-else {
-
-}
+//
+//{
+//
+//}
+//
+//for (int i = 0; i < 10; ++i){
+//    int uu = 8;
+//    if (i == 0){
+//        printf(i);
+//
+//    }
+//}
+//
+//int a = 10;
+//
+//if (10 == 10){
+//    a++;
+//    while (a < 10){
+//        --a;
+//        for (int j = 10; j > 0; --j){
+//            if (j == 5){
+//                printf('a');
+//            }
+//            else{
+//                printf('b');
+//            }
+//        }
+//    }
+//}
+//
+//if (5 == 5){
+//
+//}
+//else {
+//
+//}
