@@ -1291,9 +1291,13 @@ def setupSymbolTables(tree, node=None):
             for child in tree.root.children:
                 setupSymbolTables(tree, child)
     else:
-        ## geval 1: we openen een nieuw block
+        ## geval 1: we openen een nieuw block ##
+
         wasNewBlockOpened = False # nodig om te weten wanneer we de scope moeten sluiten
-        if node.token == "NEW_BLOCK" or node.token == "IF" or node.token == "ELSE" or node.token == "WHILE" or (node.token == "BRANCH" and node.children[0].token == "DECLARATION"):
+        if node.token == "NEW_BLOCK" or node.token == "IF" or node.token == "ELSE" or node.token == "WHILE" or\
+                (node.token == "BRANCH" and node.children[0].token == "DECLARATION") or \
+                (node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE"):
+
             s = SymbolTable()
             s.enclosingSTable = tree.symbolTableStack[-1]
             s.astNode = node
@@ -1302,21 +1306,19 @@ def setupSymbolTables(tree, node=None):
             tree.symbolTableList.append(s)
             wasNewBlockOpened = True
 
-        # symbolTable = SymbolTable()
+        ## geval 2: we openen geen nieuw block ##
 
-        ## geval 2: we openen geen nieuw block
-        if node.token == "=":
+        if node.token == "=": # variabele toevoegen aan symbol table
 
             value = node.children[1]
-
             type = node.children[0].type
             isConst = node.children[0].isConst
 
             # if len(node.children[1].children) != 0:  # optimizen
             #     pass
             isOverwritten = False
-            if str(node.children[0].value) in tree.symbolTableStack[0].dict:
-                isOverwritten = True
+            if str(node.children[0].value) in tree.symbolTableStack[0].dict: # als de variabele ervoor al gedeclareerd was.
+                isOverwritten = True # de variabele krijgt de status "overwritten"
 
                 for child in ast.root.children:
                     constantPropagation(ast, child)
@@ -1326,19 +1328,48 @@ def setupSymbolTables(tree, node=None):
                 table = tableLookup(node.children[0])
                 symbol_lookup = symbolLookup(node.children[0].value, table)
                 type = symbol_lookup[1].type
-                isConst = symbol_lookup[1].isConst # also in this statement
+                isConst = symbol_lookup[1].isConst
 
             semanticAnalysis(node, node.children[0], node.children[1])
 
             tableValue = Value(type, value, isConst, isOverwritten)
             tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
 
+        elif node.parent.token == "PARAMETERS" and not node.token == "=": # parametervariabelen van een functie toevoegen aan symbol table
+
+            value = node
+            type = node.type
+            isConst = node.isConst
+            isOverwritten = False
+
+            # semanticAnalysis(node, node.children[0], node.children[1])
+
+            tableValue = Value(type, value, isConst, isOverwritten)
+            tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
+
+        elif node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE": # functie(naam) toevoegen aan symbol table
+
+            value = node.children[3] # de "FUNC_DEF" node
+            type = node.children[0].children[0].token
+            isConst = False
+            isOverwritten = False
+            inputTypes = [node.children[0].children[0].token]
+            outputTypes = []
+            functionParameters = []
+            for i in range(len(node.children[2])):
+                outputTypes.append(node.children[2][i].type)
+                functionParameters.append(node.children[2][i].value)
+
+            # semanticAnalysis(node.children[1].children[0])
+
+            tableValue = Value(type, value, isConst, isOverwritten, inputTypes, outputTypes, functionParameters)
+            tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
+
         elif node.token == "IDENTIFIER" and not node.parent.token == "=":
             semanticAnalysis(node)
 
         for child in node.children:
             setupSymbolTables(tree, child)
-
         if wasNewBlockOpened:
             tree.symbolTableStack.pop(-1)
 
