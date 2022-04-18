@@ -577,7 +577,7 @@ class ASTprinter(mathGrammerListener):
                         if self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] is not None:
                             # TODO: Moet hier het type meegeven worden?
                             #We maken de identifier node aan
-                            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column)
+                            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
                             return
 
                     ast.createNode("NAME", "NAME", 1, ctx.start.line, ctx.start.column)
@@ -636,7 +636,7 @@ class ASTprinter(mathGrammerListener):
                 if self.stack_scopes[-1].createdReturnType:
                     #We kunnen het type van de identifier van de parameter opslagen
                     self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] = type
-                    return
+
                 else:
                     #Maken eerst een node aan met return type
                     ast.createNode("RETURN_TYPE", "RETURN_TYPE",1, ctx.start.line, ctx.start.column)
@@ -644,7 +644,7 @@ class ASTprinter(mathGrammerListener):
                     ast.createNode(type, type, 0, ctx.start.line, ctx.start.column)
                     self.stack_scopes[-1].createdReturnType = True
                     #We returnen terug zodat de code hieronder niet wordt uitgevoerd
-                    return
+
         ast.nextType = type
 
     # Exit a parse tree produced by mathGrammerParser#ttype.
@@ -1461,6 +1461,7 @@ def semanticAnalysisVisitor(node):
                         node.column) + " : " + "Assignment of incompatible types")
             else:
                 child2Type = None
+
                 if type(node.children[1].value) == float or node.children[1].token == "FLOAT":
                     child2Type = "FLOAT"
                 elif type(node.children[1].value) == int or node.children[1].token == "INT":
@@ -1511,11 +1512,11 @@ def evaluateExpressionType(node=None):
         if symbol_lookup[0]:
             return symbol_lookup[1].type
         else:
-            if type(node.value) == float:
+            if type(node.value) == float or node.token == "FLOAT":
                 return "FLOAT"
-            elif type(node.value) == int:
+            elif type(node.value) == int or node.token == "INT":
                 return "INT"
-            elif type(node.value) == str:
+            elif type(node.value) == str or node.token == "CHAR":
                 return "CHAR"
 
 # ----------------------------------------------------------------------------------------------------------------------#

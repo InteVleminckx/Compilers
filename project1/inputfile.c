@@ -25,9 +25,9 @@ int g = c + a;
 
 //int* b = *5;
 
-//int mul(int x, int y){
-//    return x * y;
-//}
+int mul(const int x, int y){
+    return x * y;
+}
 //
 //int h;
 
@@ -43,6 +43,8 @@ int g = c + a;
 while(10 == 10)
 {
     int b = 15;
+    int c = 5 + b;
+    char y = 'c';
     {
         int a = 0;
         int b = 15;
