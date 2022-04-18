@@ -1356,9 +1356,9 @@ def setupSymbolTables(tree, node=None):
             inputTypes = [node.children[0].children[0].token]
             outputTypes = []
             functionParameters = []
-            for i in range(len(node.children[2])):
-                outputTypes.append(node.children[2][i].type)
-                functionParameters.append(node.children[2][i].value)
+            for i in range(len(node.children[2].children)):
+                outputTypes.append(node.children[2].children[i].type)
+                functionParameters.append(node.children[2].children[i].value)
 
             # semanticAnalysis(node.children[1].children[0])
 
@@ -1366,7 +1366,18 @@ def setupSymbolTables(tree, node=None):
             tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
 
         elif node.token == "IDENTIFIER" and not node.parent.token == "=":
-            semanticAnalysis(node)
+            if not node.type == "":
+                value = node
+                type = node.type
+                isConst = node.isConst
+                isOverwritten = False
+
+                semanticAnalysis(node, node, node) # child1 is the node itself, we need to check that reference (if it is one)
+
+                tableValue = Value(type, value, isConst, isOverwritten)
+                tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
+            else:
+                semanticAnalysis(node)
 
         for child in node.children:
             setupSymbolTables(tree, child)

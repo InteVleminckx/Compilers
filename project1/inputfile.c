@@ -23,9 +23,11 @@
 
 //int* b = *5;
 
-//int mul(int x, int y){
-//    return x * y;
-//}
+int mul(int x, int y){
+    return x * y;
+}
+
+int h;
 
 //#include <stdio.h>
 //#include <stdio.h>
