@@ -1617,6 +1617,12 @@ def semanticAnalysisVisitor(node):
                 print("[ Warning ] line " + str(node.line) + ", position " + str(
                     node.line) + " : " + "Assignment of incompatible types")
 
+    elif node.token == "FUNC_CALL":
+        table = tableLookup(node.children[0].children[0])
+        symbol_lookup = symbolLookup(node.children[0].children[0].value, table)
+        if symbol_lookup[0] is False:
+            pass
+
 
     if len(node.children) > 0:
         for child in node.children:
