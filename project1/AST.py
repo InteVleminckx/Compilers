@@ -423,6 +423,10 @@ class ASTprinter(mathGrammerListener):
                 elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
                     curStatement.iteration[1] = (ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
                                    ast.nextConst, ast.nextOverwrite)
+                    if ast.nextConst:
+                        ast.nextConst = False
+                    ast.nextType = ""
+                    ast.nextOverwrite = False
 
         if not isFor:
 
@@ -577,9 +581,12 @@ class ASTprinter(mathGrammerListener):
 
                     if len(self.stack_scopes[-1].parameters) > 0:
                         if self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] is not None:
-                            # TODO: Moet hier het type meegeven worden?
                             #We maken de identifier node aan
                             ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
+                            if ast.nextConst:
+                                ast.nextConst = False
+                            ast.nextType = ""
+                            ast.nextOverwrite = False
                             return
 
                     ast.createNode("NAME", "NAME", 1, ctx.start.line, ctx.start.column)

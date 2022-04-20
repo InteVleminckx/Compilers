@@ -11,15 +11,15 @@
 // * a
 //*/
 
-int a = 5;
-int b = 10.0;
-char c = 'a';
-
-int d = b;
-int e = a + b;
-
-float h = a + d;
-int g = c + a;
+//int a = 5;
+//int b = 10.0;
+//char c = 'a';
+//
+//int d = b;
+//int e = a + b;
+//
+//float h = a + d;
+//int g = c + a;
 
 //printf(f);
 
