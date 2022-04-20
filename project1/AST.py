@@ -1580,9 +1580,6 @@ def semanticAnalysisVisitor(node):
 
     if node.token == "=":
 
-        # table = tableLookup(node.children[0])
-        # symbol_lookup = symbolLookup(node.children[0].value, table)
-
         table_child2 = tableLookup(node.children[1])
         symbol_lookup_child2 = symbolLookup(node.children[1].value, table_child2)
 
@@ -1605,10 +1602,18 @@ def semanticAnalysisVisitor(node):
                     print("[ Warning ] line " + str(node.line) + ", position " + str(
                         node.column) + " : " + "Assignment of incompatible types")
         else: # for a whole expression
+            if node.children[0].isOverwritten: # van de vorm 'x = ...'
+                table = tableLookup(node.children[0])
+                symbol_lookup = symbolLookup(node.children[0].value, table)
+                if symbol_lookup[0]:
+                    if symbol_lookup[1].type != evaluateExpressionType(node.children[1]):
+                        print("[ Warning ] line " + str(node.line) + ", position " + str(
+                            node.line) + " : " + "Assignment of incompatible types")
 
-            if node.children[0].type != evaluateExpressionType(node.children[1]):
-                print("[ Warning ] line " + str(node.line) + ", position " + str(
-                    node.line) + " : " + "Assignment of incompatible types")
+            else: # van de vorm 'type x = ...'
+                if node.children[0].type != evaluateExpressionType(node.children[1]):
+                    print("[ Warning ] line " + str(node.line) + ", position " + str(
+                        node.line) + " : " + "Assignment of incompatible types")
 
     elif node.token == "FUNC_CALL":
         table = tableLookup(node.children[0].children[0])
