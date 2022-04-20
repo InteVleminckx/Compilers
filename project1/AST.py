@@ -1260,7 +1260,7 @@ def propagation(node):
     if node.token == "IDENTIFIER":
 
         # We controleren wel eerst of de identifier niet de linkerkant is van de expressie want die mag niet vervangen worden
-        if node == node.parent.children[0] and node.parent.token == "=":
+        if (node == node.parent.children[0] and node.parent.token == "=") or node.parent.token == "NAME":
             # Dan returnen we gewoon
             return
 
@@ -1367,13 +1367,13 @@ def folding(node):
         node.children.clear()
 
 def getValuesChildren(child):
-    if child.token == "INT":
+    if child.token == "INT" and child.value != "INT":
         return int(str(child.value)), "INT"  # value and token of this node
 
-    elif child.token == "FLOAT":
+    elif child.token == "FLOAT"  and child.value != "FLOAT":
         return float(str(child.value)), "FLOAT"  # value and token of this node
 
-    elif child.token == "CHAR":
+    elif child.token == "CHAR"  and child.value != "CHAR":
         return str(child.value), "CHAR"
 
     else:
