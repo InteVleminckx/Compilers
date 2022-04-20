@@ -33,9 +33,8 @@ def generate(node, file):
             file.write("\n")
             file.write(function(child.parent.symbolTablePointer.dict))
 
-        elif child.token == "=":
-            # store()
-            pass
+        elif child.token == "=" and child.parent.token != "ROOT":
+            file.write(store(child1=child.children[0], child2=child.children[1]))
         generate(child, file)
 
 def globall(name, type, value):
@@ -62,11 +61,29 @@ def globall(name, type, value):
     return line
 
 
-def allocate(register):
-    pass
+def allocate(register, type):
 
-def store(register, type, value):
-    pass
+    return "  %" + str(register) + " = alloca " + types[type][0] + ", " + types[type][1] + "\n"
+
+def store(register=None, type=None, value=None, child1=None, child2=None, switch=False):
+
+    if switch:
+        return "  store " + types[type][0] + " " + str(value) + ", " + types[type][0] + \
+           "* " + "%" + str(register) + ", " + types[type][1] + "\n"
+    else:
+
+        #Search table
+        table = None
+
+        node = child1
+        while node.symbolTablePointer is None:
+            node = node.parent
+
+        table = node.symbolTablePointer.dict
+
+        # Allee telkens hier een store van toevoegen
+
+
 
 def function(table):
 
@@ -90,21 +107,37 @@ def function(table):
                 line += ", "
 
     line += " @" + name + "("
-
+    params = [name]
+    allocations = []
     regCount = 0
     for key in table:
         for register,para in enumerate(parameters):
             if str(para) == str(key):
-                table[key].register = register
+                params.append(str(para))
+                table[key].register.append(register)
                 line += types[table[key].type][0] + " %" + str(register)
+                allocations.append((table[key].type, key))
                 regCount = register
                 if register < len(parameters) - 1:
                     line += ", "
                 break
 
     line += ") #0 {\n"
+    regCount += 1
 
+    for typ, key in allocations:
+        regCount += 1
+        line += allocate(regCount, typ)
+        table[key].register.append(regCount)
 
+    for key in table:
+        if str(key) not in params:
+            regCount += 1
+            line += allocate(regCount, table[key].type)
+            table[key].register.append(regCount)
+
+    for typ, key in allocations:
+        line += store(register=table[key].register[1], type=typ, value="%"+str(table[key].register[0]), switch=True)
 
     return line
 

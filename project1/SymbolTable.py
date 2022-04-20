@@ -7,7 +7,7 @@ class Value:
         self.inputTypes = inputTypes # parameter type (e.g. for functions)
         self.outputTypes = outputTypes # return type (e.g. for functions)
         self.functionParamaters = functionParameters
-        self.register = None
+        self.register = []
 
 
 class SymbolTable:
