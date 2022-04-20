@@ -29,17 +29,17 @@ int mul(const int x, int y){
     return x * y;
 }
 
-while(10 == 10)
-{
-    int b = 15;
-    int c = 5 + b;
-    char y = 'c';
-    {
-        int a = 0;
-        int b = 15;
-    }
-    printf(10);
-}
+//while(10 == 10)
+//{
+//    int b = 15;
+//    int c = 5 + b;
+//    char y = 'c';
+//    {
+//        int a = 0;
+//        int b = 15;
+//    }
+//    printf(10);
+//}
 //
 //{
 //
