@@ -2,6 +2,118 @@ from AST import *
 
 registerCount = 1
 
+types = {"INT": ("i32", "align 4"), "FLOAT": ("float", "align 4"), "CHAR": ("i8", "align 1")}
+
+
+def toLLVM(tree):
+
+    file = open("tempFolder/llvmCode1.ll", "w")
+
+    if tree.root is None:
+        return
+
+    generate(tree.root, file)
+
+    file.close()
+
+def generate(node, file):
+
+    # We controleren eerst of er geen globale variable zijn aangemaakt
+    # We controleren dus eerst of we in de root zitten
+    # Controleren ook ineens of er wel globale variable zijn, anders is dit overbodig
+    if node.value == "ROOT" and len(node.symbolTablePointer.dict) > 0:
+        table = node.symbolTablePointer.dict
+        for key in table:
+            file.write(globall(str(key), table[key].value.token, table[key].value.value))
+
+    for child in node.children:
+        # We weten dat de parent alle informatie bevat over de functie want
+        # deze bevat de symboltable
+        if child.token == "FUNC_DEF":
+            file.write("\n")
+            file.write(function(child.parent.symbolTablePointer.dict))
+
+        elif child.token == "=":
+            # store()
+            pass
+        generate(child, file)
+
+def globall(name, type, value):
+    line = "@" + name + " = dso_local global " + types[type][0] + " "
+
+    if type == "CHAR":
+        line += str(ord(str(value)[1]))
+    elif type == "FLOAT":
+        placedot = 0
+        for cha in str(value):
+            if cha != '.':
+                placedot += 1
+            else:
+                break
+        line += str(value)
+        for i in range(7-len(str(value)[placedot:len(str(value))])):
+            line += "0"
+        line += "e+00"
+
+    else:
+        line += str(value)
+
+    line += ", " + types[type][1] + "\n"
+    return line
+
+
+def allocate(register):
+    pass
+
+def store(register, type, value):
+    pass
+
+def function(table):
+
+    name = None
+    parameters = []
+    type = []
+    for key in table:
+        if table[key].value.token == "FUNC_DEF":
+            name = str(key)
+            parameters = table[key].functionParamaters
+            type = table[key].outputTypes
+
+    line = "; Function Attrs: noinline nounwind optnone uwtable\ndefine dso_local "
+
+    if len(type) == 1 and type[0] is None:
+        line += "void "
+    elif len(type) >= 1:
+        for i, tt in enumerate(type):
+            line += types[tt][0]
+            if i < len(type)-1:
+                line += ", "
+
+    line += " @" + name + "("
+
+    regCount = 0
+    for key in table:
+        for register,para in enumerate(parameters):
+            if str(para) == str(key):
+                table[key].register = register
+                line += types[table[key].type][0] + " %" + str(register)
+                regCount = register
+                if register < len(parameters) - 1:
+                    line += ", "
+                break
+
+    line += ") #0 {\n"
+
+
+
+    return line
+
+
+def returnn(type, register):
+    pass
+
+
+
 def codeGenerator(tree):
     f = open("generatedLLVMIR_files/llvmCode1.ll", "w")
     codeGenerationVisitor(f, tree)

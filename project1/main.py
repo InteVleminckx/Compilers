@@ -61,9 +61,9 @@ def main(argv):
     semanticAnalysisVisitor(a.root)
     # optimizationVisitor(a)
     createGraph(a, argv[1], 1)
-    codeGenerator(a)
+    # codeGenerator(a)
     # codeGenerationVisitor()
-
+    toLLVM(a)
 
 if __name__ == '__main__':
     main(sys.argv)

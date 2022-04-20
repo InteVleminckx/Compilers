@@ -1358,7 +1358,7 @@ def folding(node):
 
     # We check if it is a unary operation like +,-
     elif node.token == "UN_OP":
-        print(node.token)
+        # print(node.token)
 
         # The value is just the return value of his child.
         node.value = -value_c0 if str(node.value) == "-" else value_c0
@@ -1370,10 +1370,10 @@ def getValuesChildren(child):
     if child.token == "INT" and child.value != "INT":
         return int(str(child.value)), "INT"  # value and token of this node
 
-    elif child.token == "FLOAT"  and child.value != "FLOAT":
+    elif child.token == "FLOAT" and child.value != "FLOAT":
         return float(str(child.value)), "FLOAT"  # value and token of this node
 
-    elif child.token == "CHAR"  and child.value != "CHAR":
+    elif child.token == "CHAR" and child.value != "CHAR":
         return str(child.value), "CHAR"
 
     else:
@@ -1459,12 +1459,6 @@ def setupSymbolTables(tree, node=None):
             if str(node.children[0].value) in tree.symbolTableStack[-1].dict: # als de variabele ervoor al gedeclareerd was.
                 isOverwritten = True # de variabele krijgt de status "overwritten"
 
-                #ToDo: kan zijn dat dit terug uncomment moet worden maar heb hier wat vragen bij...
-                # for child in ast.root.children:
-                #     constantPropagation(ast, child)
-                #     if child == node:
-                #         break
-
                 table = tableLookup(node.children[0])
                 symbol_lookup = symbolLookup(node.children[0].value, table)
                 type = symbol_lookup[1].type
@@ -1502,7 +1496,7 @@ def setupSymbolTables(tree, node=None):
 
             # semanticAnalysis(node.children[1].children[0])
 
-            tableValue = Value(type, value, isConst, isOverwritten, inputTypes, outputTypes, functionParameters)
+            tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters)
             tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
 
         elif node.token == "IDENTIFIER" and not node.parent.token == "=":
@@ -1624,7 +1618,7 @@ def semanticAnalysisVisitor(node):
 
 def evaluateExpressionType(node=None):
 
-    if len(node.children) > 0:
+    if len(node.children) > 1:
 
         child0_type = evaluateExpressionType(node.children[0])
         child1_type = evaluateExpressionType(node.children[1])

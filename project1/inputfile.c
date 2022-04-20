@@ -28,17 +28,6 @@
 int mul(const int x, int y){
     return x * y;
 }
-//
-//int h;
-
-//#include <stdio.h>
-//#include <stdio.h>
-//
-//int a[5];
-//float abc[7] = {{19, 5, 5, 5, 5},{5,4,5,4,5}};
-//char c[];
-//a();
-//int a[5][6];
 
 while(10 == 10)
 {
