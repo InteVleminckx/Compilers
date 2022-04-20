@@ -852,7 +852,10 @@ class ASTprinter(mathGrammerListener):
         elif ctx.BREAK():
             ast.createNode("BREAK", "BREAK", 0, ctx.start.line, ctx.start.column)
         elif ctx.RETURN():
-            ast.createNode("RETURN", "RETURN", 1, ctx.start.line, ctx.start.column)
+            if ctx.getChild(1).getText() == ";":
+                ast.createNode("RETURN", "RETURN", 0, ctx.start.line, ctx.start.column)
+            else:
+                ast.createNode("RETURN", "RETURN", 1, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#j_statement.
     def exitJ_statement(self, ctx: mathGrammerParser.J_statementContext):
@@ -1567,10 +1570,6 @@ def semanticAnalysis(node, child1=None, child2=None):
                 print("[ Error ] line " + str(node.line) + ", position " + str(
                     node.column) + " : " + "Duplicate declaration")
                 exit(1)
-
-            # Assignment to an rvalue.
-            # if 5 == 4:
-            #     print("[ Error ] line " + str(node.line) + ", position " + str(node.column) + " : " + "Assignment to an rvalue")
 
             # Assignment to a const variable.
             if symbol_lookup[1].isConst:
