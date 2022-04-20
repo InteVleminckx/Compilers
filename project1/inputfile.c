@@ -23,7 +23,10 @@
 
 //printf(f);
 
-//int* b = *5;
+int* b = 5;
+int **c = 10;
+float ***y = 20;
+int &r = 30;
 
 void mul(const int x, int y){
     int a = 5;

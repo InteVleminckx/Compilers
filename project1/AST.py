@@ -9,14 +9,14 @@ import re
 var_list = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
 
 
-def createNodeItem(token, value, parent,line=0,column=0 ,type="", isConst=False, isOverwritten=False):
-    node = Node(token, value, parent, line, column, type, isConst, isOverwritten)
+def createNodeItem(token, value, parent,line=0,column=0 ,type="", isConst=False, isOverwritten=False, pointer=None, reference=None):
+    node = Node(token, value, parent, line, column, type, isConst, isOverwritten, pointer, reference)
     return node
 
 
 class Node:
 
-    def __init__(self, token, value, parent,line, column, type, isConst, isOverwritten=None):
+    def __init__(self, token, value, parent,line, column, type, isConst, isOverwritten=None, pointer=None, reference=None):
         self.value = value
         self.token = token
         self.parent = parent
@@ -25,10 +25,13 @@ class Node:
         self.children = []
 
         self.type = type
-        self.isConst = isConst
-        self.isOverwritten = isOverwritten
+        self.isConst = isConst # whether the variable was declared const
+        self.isOverwritten = isOverwritten # whether the variable was assigned another value after initial declaration
 
         self.symbolTablePointer = None
+
+        self.pointer = pointer # 0 means not a pointer, 1 means one *, 2 means **, ...
+        self.reference = reference # 0 means no reference, 1 means one &, ...
 
     def getValue(self):
         return self.value
@@ -48,6 +51,9 @@ class AST:
         self.nextType = ""
         self.nextOverwrite = False # for debugging purposes, can be removed (but then all references to this should be removed)
 
+        self.pointerAmount = 0
+        self.referenceAmount = 0
+
         globalTable = SymbolTable()
         globalTable.astNode = self.root #
         self.symbolTableList = [globalTable]
@@ -60,7 +66,7 @@ class AST:
             len(self.parentsList[len(self.parentsList) - 1].children) - 1] = None
         return node
 
-    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, isOverwritten=False, unaryParenth=False):
+    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, isOverwritten=False, pointer=None, reference=None, unaryParenth=False):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
         for parent in self.parentsList:
             hasUnfilledChildren = False
@@ -74,7 +80,7 @@ class AST:
 
         # We maken een node aan en pre-fillen al de children
         if self.root is None:
-            node = createNodeItem(token, value, None,line,column, type, isConst, isOverwritten)
+            node = createNodeItem(token, value, None,line,column, type, isConst, isOverwritten, pointer, reference)
             for i in range(numberOfChilds):
                 node.children.append(None)
             self.root = node
@@ -104,7 +110,7 @@ class AST:
                     for unary in self.unaries:
                         curParent = self.parentsList[len(self.parentsList) - 1]
 
-                        node = createNodeItem(unary[0], unary[1], curParent,line,column, type, isConst, isOverwritten)
+                        node = createNodeItem(unary[0], unary[1], curParent,line,column, type, isConst, isOverwritten, pointer, reference)
                         node.children.append(None)
                         for i in range(len(curParent.children)):
                             if curParent.children[i] is None:
@@ -120,7 +126,7 @@ class AST:
                     self.parentsList.pop()
 
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten)
+                node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten, pointer, reference)
                 for i in range(numberOfChilds):
                     node.children.append(None)
                 for i in range(len(curParent.children)):
@@ -281,7 +287,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterTerm")
 
         if ctx.getChildCount() > 1:
-            #Geeft aan er een for loop is of niet, anders doet het zijn normale gang
+            #Geeft aan of er een for loop is of niet, anders doet het zijn normale gang
             isFor = False
 
             #We controleren if we net een for statement gepushed hebben
@@ -422,11 +428,13 @@ class ASTprinter(mathGrammerListener):
                     curStatement.iteration[1] = (ctx.FLOAT(), "FLOAT", 0, ctx.start.line, ctx.start.column)
                 elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
                     curStatement.iteration[1] = (ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
-                                   ast.nextConst, ast.nextOverwrite)
+                                   ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
                     if ast.nextConst:
                         ast.nextConst = False
                     ast.nextType = ""
                     ast.nextOverwrite = False
+                    ast.pointerAmount = 0
+                    ast.referenceAmount = 0
 
         if not isFor:
 
@@ -437,11 +445,13 @@ class ASTprinter(mathGrammerListener):
             elif ctx.FLOAT() and ctx.getChildCount() == 1:
                 ast.createNode(ctx.FLOAT(), "FLOAT", 0, ctx.start.line, ctx.start.column)
             elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
-                ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
+                ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
                 if ast.nextConst:
                     ast.nextConst = False
                 ast.nextType = ""
                 ast.nextOverwrite = False
+                ast.pointerAmount = 0
+                ast.referenceAmount = 0
 
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
@@ -582,11 +592,13 @@ class ASTprinter(mathGrammerListener):
                     if len(self.stack_scopes[-1].parameters) > 0:
                         if self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] is not None:
                             #We maken de identifier node aan
-                            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
+                            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
                             if ast.nextConst:
                                 ast.nextConst = False
                             ast.nextType = ""
                             ast.nextOverwrite = False
+                            ast.pointerAmount = 0
+                            ast.referenceAmount = 0
                             return
 
                     ast.createNode("NAME", "NAME", 1, ctx.start.line, ctx.start.column)
@@ -594,7 +606,7 @@ class ASTprinter(mathGrammerListener):
                     self.stack_scopes[-1].createdFunctionName = True
                     return
 
-            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
+            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
 
             if self.createArray[0]:
                 ast.createNode("INDICES", "INDICES", self.createArray[1], ctx.start.line, ctx.start.column)
@@ -604,6 +616,8 @@ class ASTprinter(mathGrammerListener):
                 ast.nextConst = False
             ast.nextType = ""
             ast.nextOverwrite = False
+            ast.pointerAmount = 0
+            ast.referenceAmount = 0
 
         elif ctx.getChildCount() == 3:
             if str(ctx.getChild(1)) == "[":
@@ -670,7 +684,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#reference.
     def enterReference(self, ctx: mathGrammerParser.ReferenceContext):
-        pass
+        ast.referenceAmount += 1
 
     # Exit a parse tree produced by mathGrammerParser#reference.
     def exitReference(self, ctx: mathGrammerParser.ReferenceContext):
@@ -686,7 +700,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#pointersign.
     def enterPointersign(self, ctx: mathGrammerParser.PointersignContext):
-        pass
+        ast.pointerAmount += 1
 
     # Exit a parse tree produced by mathGrammerParser#pointersign.
     def exitPointersign(self, ctx: mathGrammerParser.PointersignContext):
