@@ -23,27 +23,30 @@
 
 //printf(f);
 
+#include <stdio.h>
+#include <stdio.h>
+
 int b = 5;
 int **c = 10;
 float ***y = 20;
 int &r = 30;
 int *yy = &b;
 
-void mul(const int x, int y){
-    int a = 5;
-    int b = 6 + a;
-    y = x + b;
-    return x * y;
-}
-
-void function(const int x, int y){
-    int a = 5;
-    int b = 6 + a;
-    y = x + b;
-    char c = 'c' + 1;
-    int cc = a + b;
-    return;
-}
+//void mul(const int x, int y){
+//    int a = 5;
+//    int b = 6 + a;
+//    y = x + b;
+//    return x * y;
+//}
+//
+//void function(const int x, int y){
+//    int a = 5;
+//    int b = 6 + a;
+//    y = x + b;
+//    char c = 'c' + 1;
+//    int cc = a + b;
+//    return;
+//}
 
 //int b = 10;
 //while(10 == 10)

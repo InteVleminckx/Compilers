@@ -1449,6 +1449,11 @@ def setupSymbolTables(tree, node=None):
             for child in tree.root.children:
                 setupSymbolTables(tree, child)
     else:
+        # handle the include statements here
+        if node.token == "IMPORT":
+            for i in node.children:
+                tree.includes.append(i.value)
+
         ## geval 1: we openen een nieuw block ##
 
         wasNewBlockOpened = False # nodig om te weten wanneer we de scope moeten sluiten
@@ -1636,6 +1641,9 @@ def semanticAnalysisVisitor(node):
         symbol_lookup = symbolLookup(node.children[0].children[0].value, table)
         if symbol_lookup[0] is False:
             pass
+
+    elif node.token == "PRINTF" or node.token == "SCANF":
+        pass
 
 
     if len(node.children) > 0:
