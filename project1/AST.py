@@ -739,7 +739,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#reference.
     def enterReference(self, ctx: mathGrammerParser.ReferenceContext):
-        ast.referenceAmount += 1
+        pass
 
     # Exit a parse tree produced by mathGrammerParser#reference.
     def exitReference(self, ctx: mathGrammerParser.ReferenceContext):
@@ -1463,6 +1463,9 @@ def setupSymbolTables(tree, node=None):
             else:
                 semanticAnalysis(node)
 
+        elif node.token == "IDENTIFIER" and node.type == "":
+            semanticAnalysis(node)
+
         for child in node.children:
             setupSymbolTables(tree, child)
         if wasNewBlockOpened:
@@ -1525,7 +1528,7 @@ def semanticAnalysis(node, child1=None, child2=None):
 
 def semanticAnalysisVisitor(node):
 
-    if node.token == "=":
+    if node.token == "=": # assignments behandelen
 
         table_child2 = tableLookup(node.children[1])
         symbol_lookup_child2 = symbolLookup(node.children[1].value, table_child2)
@@ -1562,7 +1565,7 @@ def semanticAnalysisVisitor(node):
                     print("[ Warning ] line " + str(node.line) + ", position " + str(
                         node.line) + " : " + "Assignment of incompatible types")
 
-    elif node.token == "FUNC_CALL":
+    elif node.token == "FUNC_CALL": # function calls behandelen
         table = tableLookup(node.children[0].children[0]) # we look up the name of the function
         symbol_lookup = symbolLookup(node.children[0].children[0].value, table)
         if symbol_lookup[0] is False:
@@ -1582,7 +1585,6 @@ def semanticAnalysisVisitor(node):
                 if not symbol_lookup[1].inputTypes[i] == node.children[1].children[i].type:
                     print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
                         node.children[1].children[i].line) + " : " + "In function call, passing of incompatible type")
-
 
     elif node.token == "PRINTF" or node.token == "SCANF":
         text = node.children[0].value

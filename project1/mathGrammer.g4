@@ -171,10 +171,10 @@ pointer
         ;
 
 reference
-        : AMPERSAND
-        | AMPERSAND type_qualifier_list
-        | AMPERSAND reference
-        | AMPERSAND type_qualifier_list reference
+        : ampersandsign
+        | ampersandsign type_qualifier_list
+        | ampersandsign reference
+        | ampersandsign type_qualifier_list reference
         ;
 
 type_qualifier_list
@@ -202,13 +202,17 @@ factor
 		;
 
 term
-        : (PLUS | MIN | pointersign | AMPERSAND)* var
+        : (PLUS | MIN | pointersign | ampersandsign)* var
         | (DOUBLE_PLUS | DOUBLE_MINUS) var
         | var (DOUBLE_PLUS | DOUBLE_MINUS)
 		;
 
 pointersign
         : MUL_SIGN
+        ;
+
+ampersandsign
+        : AMPERSAND
         ;
 
 log_op1
