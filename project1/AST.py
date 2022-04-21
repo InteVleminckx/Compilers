@@ -1558,12 +1558,12 @@ def semanticAnalysisVisitor(node):
                 if symbol_lookup[0]:
                     if symbol_lookup[1].type != evaluateExpressionType(node.children[1]):
                         print("[ Warning ] line " + str(node.line) + ", position " + str(
-                            node.line) + " : " + "Assignment of incompatible types")
+                            node.column) + " : " + "Assignment of incompatible types")
 
             else: # van de vorm 'type x = ...'
                 if node.children[0].type != evaluateExpressionType(node.children[1]):
                     print("[ Warning ] line " + str(node.line) + ", position " + str(
-                        node.line) + " : " + "Assignment of incompatible types")
+                        node.column) + " : " + "Assignment of incompatible types")
 
     elif node.token == "FUNC_CALL": # function calls behandelen
         table = tableLookup(node.children[0].children[0]) # we look up the name of the function
@@ -1575,16 +1575,16 @@ def semanticAnalysisVisitor(node):
             exit(1)
         if len(node.children[1].children) > len(symbol_lookup[1].inputTypes):
             print("[ Error ] line " + str(node.children[1].line) + ", position " + str(
-                node.children[1].line) + " : " + "In function call, given more arguments than expected")
+                node.children[1].column) + " : " + "In function call, given more arguments than expected")
             exit(1)
         elif len(node.children[1].children) < len(symbol_lookup[1].inputTypes): # here we give a warning, because function parameters can be default assigned
             print("[ Warning ] line " + str(node.children[1].line) + ", position " + str(
-                node.children[1].line) + " : " + "In function call, given less arguments than expected")
+                node.children[1].column) + " : " + "In function call, given less arguments than expected")
         else: # als het aantal parameters klopt (dan gaan we op types checken)
             for i in range(len(node.children[1].children)):
                 if not symbol_lookup[1].inputTypes[i] == node.children[1].children[i].type:
                     print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
-                        node.children[1].children[i].line) + " : " + "In function call, passing of incompatible type")
+                        node.children[1].children[i].column) + " : " + "In function call, passing of incompatible type")
 
     elif node.token == "PRINTF" or node.token == "SCANF":
         text = node.children[0].value
@@ -1603,16 +1603,28 @@ def semanticAnalysisVisitor(node):
                     addNext = False
                     params.append(param)
 
-            if len(params) != aantalTypes:
-                #TODO: hier zeggen van dat er te weining / te veel types zijn vergeleken met de parameters
+            if len(params) < aantalTypes:
                 print("[ Error ] line " + str(node.line) + ", position " + str(
-                    node.line) + " : " + "In function call, passing of incompatible type")
+                    node.column) + " : " + "In function call, given more arguments than expected")
+                exit(1)
+            elif len(params) > aantalTypes:
+                print("[ Error ] line " + str(node.line) + ", position " + str(
+                    node.column) + " : " + "In function call, given less arguments than expected")
                 exit(1)
             else:
-                #TODO: Hier nog controleren dat de types gelijk aan die van de parameters (normaal moeten deze in dezelfde volgorde zijn)
-                print("[ Warning ] line " + str(node.line) + ", position " + str(
-                    node.line) + " : " + "In function call, passing of incompatible type")
-                pass
+                for i in range(len(params)):
+                    if params[i] == "%d":
+                        if not type(node.children[i+1].value) == int or node.token == "INT":
+                            print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
+                                node.children[i+1].column) + " : " + "In function call, passing of incompatible type")
+                    elif params[i] == "%f":
+                        if not type(node.children[i+1].value) == float or node.token == "FLOAT":
+                            print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
+                                node.children[i+1].column) + " : " + "In function call, passing of incompatible type")
+                    elif params[i] == "%c":
+                        if not type(node.children[i+1].value) == str or node.token == "CHAR":
+                            print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
+                                node.children[i+1].column) + " : " + "In function call, passing of incompatible type")
 
     if len(node.children) > 0:
         for child in node.children:
