@@ -1614,15 +1614,21 @@ def semanticAnalysisVisitor(node):
             else:
                 for i in range(len(params)):
                     if params[i] == "%d":
-                        if not type(node.children[i+1].value) == int or node.token == "INT":
+                        if type(node.children[i+1].value) == int or node.token == "INT":
+                            pass
+                        else:
                             print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
                                 node.children[i+1].column) + " : " + "In function call, passing of incompatible type")
                     elif params[i] == "%f":
-                        if not type(node.children[i+1].value) == float or node.token == "FLOAT":
+                        if type(node.children[i+1].value) == float or node.token == "FLOAT":
+                            pass
+                        else:
                             print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
                                 node.children[i+1].column) + " : " + "In function call, passing of incompatible type")
                     elif params[i] == "%c":
-                        if not type(node.children[i+1].value) == str or node.token == "CHAR":
+                        if type(node.children[i+1].value) == str or node.token == "CHAR":
+                            pass
+                        else:
                             print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
                                 node.children[i+1].column) + " : " + "In function call, passing of incompatible type")
 
