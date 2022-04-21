@@ -42,8 +42,8 @@ class LLVM:
             elif child.value == "RETURN":
                 self.returnFunction(node)
             elif child.token == "PRINTF":
-                self.
-            print(child.value)
+                self.printf(child)
+            # print(child.value)
             self.generateLLVM(child)
 
 
@@ -176,7 +176,7 @@ class LLVM:
 
         # We nemen de laatst toegevoegde functie waar nog een return aan toegevoegd moet worden
 
-        last = self.functions[len(self.functions)-1]
+        func = self.functions[len(self.functions)-1]
 
 
         returnval = node.children[len(node.children) - 1].children[0]
@@ -184,13 +184,48 @@ class LLVM:
             # TODO: zoek in de table naar zijn register
             pass
         else:
-            last[0] += "ret " + types[returnval.token][0] + " " + str(returnval.value) + "\n"
+            func.line += "  ret " + types[returnval.token][0] + " " + str(returnval.value) + "\n}"
 
         #Na de return mag de functie gesloten worden
-        last[2] = "closed"
+        func.isOpen = False
 
-    def printf(node):
-        pass
+    def printf(self, node):
+        line = ""
+        func = self.functions[len(self.functions) - 1]
+        #check eerst of er geen functie meer openstaat
+        if func.isOpen:
+            line = func.line
+
+        text = node.children[0].value + " \\00"
+        stringnumber = "@.str"
+        exists = False
+        #check if string is in self.strings anders maak nieuwe aan
+        for number, textt in self.strings:
+            if textt == text:
+                stringnumber = number
+                exists = True
+                break
+
+        if not exists and len(self.strings) > 0:
+            stringnumber = "@.str" + str(len(self.strings))
+            self.strings.append((stringnumber, text))
+
+        register = func.registerCounter
+
+        if len(node.children) > 1:
+            for i in range(1, len(node.children)):
+
+                line += "  %" + str(register) + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([5 x i8], [5 x i8]*"
+
+
+                if node.children[i].value == "IDENTIFIER":
+                    # TODO: zoek in de table naar zijn register
+                    pass
+                else:
+                    pass
+
+        print("")
+
 
     def load(self, type, register):
 
