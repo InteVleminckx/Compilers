@@ -20,15 +20,29 @@ class LLVM:
         self.attributes = list()
         self.file = None
         self.functions = list()
+        self.isPrintf = False
 
-    def toLLVM(self):
+    def toLLVM(self, inputfile):
 
-        self.file = open("tempFolder/llvmCode1.ll", "w")
+        afterSlash = re.search("[^/]+$", inputfile)
+        pos = afterSlash.start()
+        inputfile = inputfile[pos:]
+        filename = str(inputfile[:len(inputfile) - 2]) + ".ll"
+        self.file = open("llvm_files/" + filename, "w")
 
         if self.tree.root is None:
             return
 
         self.generateLLVM(self.tree.root)
+
+        for strings in self.strings:
+            self.file.write(self.printStrings(*strings))
+
+        for function in self.functions:
+            self.file.write(function.line)
+
+        if self.isPrintf:
+            self.file.write(self.printfFunction())
 
         self.file.close()
 
@@ -45,7 +59,6 @@ class LLVM:
                 self.printf(child)
             # print(child.value)
             self.generateLLVM(child)
-
 
     # def addition(self, value, var, register, float=False):
     #     """
@@ -150,14 +163,14 @@ class LLVM:
         register = 1
 
         #TODO: de attribute moet hier nog in komen
-        line = "define dso_local " + types[return_type][0] + " @" + name + "() {\n"
+        line = "\ndefine dso_local " + types[return_type][0] + " @" + name + "() {\n"
 
         #Alloceer een register voor deze return
         if return_type != "void":
             line += self.allocate(register, return_type)
             #store deze waarde ook
             #TODO: controleer dit nog later
-            line += self.store(0, register, return_type)
+            line += self.store(0, register, return_type, False, True)
             register += 1
 
         #TODO: parameters moeten nog worden toegevoegd maar momenteel doen we dit nog niet
@@ -184,23 +197,57 @@ class LLVM:
             # TODO: zoek in de table naar zijn register
             pass
         else:
-            func.line += "  ret " + types[returnval.token][0] + " " + str(returnval.value) + "\n}"
+            func.line += "  ret " + types[returnval.token][0] + " " + str(returnval.value) + "\n}\n\n"
 
         #Na de return mag de functie gesloten worden
         func.isOpen = False
 
     def printf(self, node):
+        self.isPrintf = True
         line = ""
         func = self.functions[len(self.functions) - 1]
         #check eerst of er geen functie meer openstaat
         if func.isOpen:
             line = func.line
+        text = node.children[0].value
+        register = func.registerCounter
+        params = []
+        # We gaan de text parsen
+        addNext = False
+        for chr in text:
+            if chr == '%':
+                addNext = True
+            elif addNext:
+                param = "%" + chr
+                addNext = False
+                params.append(param)
+        
+        #Als de lengte nul is betekent dat we gewoon een string hebben
 
-        text = node.children[0].value + " \\00"
+        textsize = len(text)
+        addsize = 0
+        strname = text
+        #We controleren of er een \n bij de tekst staat, moest dit niet zo zijn dan doen we nog +1
+        if len(text) > 1:
+            if text[len(text) - 2:len(text)] != "\\n":
+                addsize += 1
+            else:
+                text += "\\0A"
+        textsize += addsize
+        text += "\\00"
+
+        #TODO: vraag mss brent want dit is wel arig dat dit verkeerd wordt gegenereerd door clang
+        textsize += 2
+
+        inbound = "[" + str(textsize) + " x i8]"
+
+        line += "  %" + str(register) + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds (" + inbound + ", " \
+                "" + inbound + "* "
+
         stringnumber = "@.str"
         exists = False
-        #check if string is in self.strings anders maak nieuwe aan
-        for number, textt in self.strings:
+        # check if string is in self.strings anders maak nieuwe aan
+        for number, textt, inbound1 in self.strings:
             if textt == text:
                 stringnumber = number
                 exists = True
@@ -208,31 +255,89 @@ class LLVM:
 
         if not exists and len(self.strings) > 0:
             stringnumber = "@.str" + str(len(self.strings))
-            self.strings.append((stringnumber, text))
+            self.strings.append((stringnumber, text, inbound))
 
-        register = func.registerCounter
+        elif len(self.strings) == 0:
+            self.strings.append((stringnumber, text, inbound))
 
-        if len(node.children) > 1:
-            for i in range(1, len(node.children)):
-
-                line += "  %" + str(register) + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([5 x i8], [5 x i8]*"
-
-
-                if node.children[i].value == "IDENTIFIER":
-                    # TODO: zoek in de table naar zijn register
-                    pass
+        line += stringnumber + ", i64 0, i64 0)"
+        if len(params) == 0:
+            line += ")\n"
+        else:
+            
+            for i, child in enumerate(node.children):
+                if (i == 0):
+                    continue
                 else:
-                    pass
+                    if i <= len(node.children) - 1:
+                        line += ", "
+                    if node.children[i].token == "INT":
+                        line += "i32 " + str(node.children[i].value)
+                    elif node.children[i].token == "FLOAT":
+                        line += "double " + str(node.children[i].value)
+                    elif node.children[i].token == "CHAR":
+                        number = ord(str(node.children[i].value)[1])
+                        line += "i32 " + str(number)
+                    elif node.children[i].token == "STRING":
+                        text = node.children[i].value
+                        textsize = len(text)
+                        addsize = 0
+                        strname = text
+                        # We controleren of er een \n bij de tekst staat, moest dit niet zo zijn dan doen we nog +1
+                        if len(text) > 1:
+                            if text[len(text) - 2:len(text)] != "\\n":
+                                addsize += 1
+                            else:
+                                text += "\\0A"
+                        textsize += addsize
+                        text += "\\00"
 
-        print("")
+                        inbound = "[" + str(textsize) + " x i8]"
+
+                        line += "i8* getelementptr inbounds (" + inbound + ", " + inbound + "* "
+
+
+                        stringnumber = "@.str"
+                        exists = False
+                        # check if string is in self.strings anders maak nieuwe aan
+                        for number, textt, inbound1 in self.strings:
+                            if textt == text:
+                                stringnumber = number
+                                exists = True
+                                break
+
+                        if not exists and len(self.strings) > 0:
+                            stringnumber = "@.str" + str(len(self.strings))
+                            self.strings.append((stringnumber, text, inbound))
+
+                        elif len(self.strings) == 0:
+                            self.strings.append((stringnumber, text, inbound))
+
+                        line += stringnumber + ", i64 0, i64 0)"
+
+            line += ")\n"
+
+        func.registerCounter = register + 1
+        func.line = line
+
+    def printfFunction(self):
+        #TODO: De attribute moet hier ook nog worden toegevoegd
+        return "declare dso_local i32 @printf(i8*, ...) "
+
+    def printStrings(self, number, text, inboud):
+        return number + " = private unnamed_addr constant " + inboud + " c\"" + text + "\", align 1\n"
 
 
     def load(self, type, register):
 
         return registerCount, "%" + str(registerCount) + " = load " + types[type][0] + ", " + types[type][0] + "* " \
                                                                                                                "%" + str(register) + ", " + types[type][1] + "\n"
-    def store(self,fromRegister, toRegister, type):
-        return "store " + types[type][0] + " %" + str(fromRegister) + ", " + types[type][0] + "* %" + str(toRegister) + "" \
+    def store(self, fromRegister, toRegister, type, isReg1, isReg2):
+
+        reg1 = "%" + str(fromRegister) if isReg1 else str(fromRegister)
+        reg2 = "%" + str(toRegister) if isReg2 else str(toRegister)
+
+        return "  store " + types[type][0] + " " + reg1 + ", " + types[type][0] + "* " + reg2 + "" \
                                                                                                                         ", " + types[type][1] + "\n"
 
     def allocate(self, register, type):

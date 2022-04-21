@@ -69,7 +69,7 @@ class AST:
             len(self.parentsList[len(self.parentsList) - 1].children) - 1] = None
         return node
 
-    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, isOverwritten=False, pointer=None, reference=None, unaryParenth=False, printText=None):
+    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, isOverwritten=False, pointer=None, reference=None, unaryParenth=False, printText=None, place=None):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
         for parent in self.parentsList:
             hasUnfilledChildren = False
@@ -89,6 +89,11 @@ class AST:
             self.root = node
             if not var_list.count(token):
                 self.parentsList.append(node)
+
+
+        if place is not None:
+            curParent = self.parentsList[len(self.parentsList) - 1]
+            curParent.children[place] = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten, pointer, reference)
 
         else:
             curParent = self.parentsList[len(self.parentsList) - 1]
@@ -505,18 +510,24 @@ class ASTprinter(mathGrammerListener):
     def enterPrint_stmt(self, ctx: mathGrammerParser.Print_stmtContext):
 
         text = str(ctx.getChild(2))
-
+        strings = False
         text = text[1:len(text)-1]
         if ctx.getChild(3).children is None:
+            strings = True
             ast.createNode(ctx.getChild(0), "PRINTF", 1, ctx.start.line, ctx.start.column)
 
         else:
             childs = int(1 + len(ctx.getChild(3).children)/2)
-
             ast.createNode(ctx.getChild(0), "PRINTF", childs, ctx.start.line, ctx.start.column)
 
         ast.createNode(text, "PRINTTEXT", 0, ctx.start.line, ctx.start.column)
-
+        if not strings:
+            for i, child in enumerate(ctx.getChild(3).children):
+                text = str(child)
+                if len(text) > 1:
+                    if text[0] == "\"" and text[len(text) - 1] == "\"":
+                        text = text[1:len(text) - 1]
+                        ast.createNode(text, "STRING", 0, ctx.start.line, ctx.start.column, place=int((i - 1) / 2) + 1)
 
     # Exit a parse tree produced by mathGrammerParser#print_stmt.
     def exitPrint_stmt(self, ctx: mathGrammerParser.Print_stmtContext):
@@ -1223,11 +1234,13 @@ def folding(node):
             "+": value_c0 + value_c1,
             "-": value_c0 - value_c1,
             "*": value_c0 * value_c1,
-            "/": value_c0 / value_c1,
-            "%": value_c0 % value_c1
+            "/": None,
+            "%": None
         }
 
-
+        if value_c1 != 0:
+            bin_operations["/"] = (value_c0 / value_c1)
+            bin_operations["%"] = (value_c0 % value_c1)
 
         # Finding the value recursivly
         node.value = bin_operations[str(node.value)]

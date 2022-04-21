@@ -64,7 +64,7 @@ def main(argv):
     # codeGenerator(a)
     # codeGenerationVisitor()
     llvm = LLVM(a)
-    llvm.toLLVM()
+    llvm.toLLVM(argv[1])
 
 if __name__ == '__main__':
     main(sys.argv)

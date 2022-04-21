@@ -12,7 +12,7 @@ else:
 def serializedATN():
     with StringIO() as buf:
         buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\61")
-        buf.write("\u01f5\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7")
+        buf.write("\u01f8\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7")
         buf.write("\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4\f\t\f\4\r\t\r\4\16")
         buf.write("\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22\4\23\t\23")
         buf.write("\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31")
@@ -23,226 +23,228 @@ def serializedATN():
         buf.write("\3h\13\3\3\4\3\4\3\4\3\4\3\4\7\4o\n\4\f\4\16\4r\13\4\3")
         buf.write("\4\3\4\3\5\3\5\3\5\7\5y\n\5\f\5\16\5|\13\5\3\5\5\5\177")
         buf.write("\n\5\3\6\3\6\3\6\5\6\u0084\n\6\3\7\3\7\3\7\3\7\3\7\3\7")
-        buf.write("\3\b\3\b\3\b\3\b\3\b\3\b\3\t\3\t\7\t\u0094\n\t\f\t\16")
-        buf.write("\t\u0097\13\t\3\n\3\n\3\n\3\n\3\n\3\n\3\n\5\n\u00a0\n")
-        buf.write("\n\3\13\3\13\3\13\3\13\3\13\3\13\3\13\3\13\3\13\3\13\3")
-        buf.write("\13\5\13\u00ad\n\13\3\f\3\f\3\f\7\f\u00b2\n\f\f\f\16\f")
-        buf.write("\u00b5\13\f\3\f\3\f\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3")
-        buf.write("\r\3\r\3\r\3\r\3\r\3\r\5\r\u00c7\n\r\3\16\3\16\3\16\3")
-        buf.write("\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16")
-        buf.write("\5\16\u00d7\n\16\3\17\3\17\3\17\3\17\3\17\3\17\3\17\3")
-        buf.write("\17\3\17\3\17\5\17\u00e3\n\17\3\20\3\20\3\20\3\20\5\20")
-        buf.write("\u00e9\n\20\3\21\3\21\3\21\3\21\3\21\3\21\3\21\5\21\u00f2")
-        buf.write("\n\21\3\22\3\22\3\22\3\22\3\22\5\22\u00f9\n\22\3\23\3")
-        buf.write("\23\3\23\3\23\3\23\3\23\7\23\u0101\n\23\f\23\16\23\u0104")
-        buf.write("\13\23\3\24\3\24\3\24\3\24\3\24\5\24\u010b\n\24\3\25\3")
-        buf.write("\25\3\25\3\25\3\25\3\25\3\25\5\25\u0114\n\25\3\26\3\26")
-        buf.write("\3\26\3\26\3\26\3\26\3\26\3\26\3\26\3\26\5\26\u0120\n")
-        buf.write("\26\3\27\3\27\3\27\3\27\3\27\3\27\7\27\u0128\n\27\f\27")
-        buf.write("\16\27\u012b\13\27\3\30\3\30\3\30\3\30\3\30\3\30\3\30")
-        buf.write("\3\30\3\30\3\30\3\30\3\30\3\30\6\30\u013a\n\30\r\30\16")
-        buf.write("\30\u013b\3\30\3\30\3\30\3\30\3\30\3\30\3\30\3\30\3\30")
-        buf.write("\3\30\3\30\7\30\u0149\n\30\f\30\16\30\u014c\13\30\3\31")
-        buf.write("\3\31\3\31\3\31\3\31\3\31\7\31\u0154\n\31\f\31\16\31\u0157")
-        buf.write("\13\31\3\32\3\32\3\32\7\32\u015c\n\32\f\32\16\32\u015f")
-        buf.write("\13\32\3\33\3\33\3\33\3\33\5\33\u0165\n\33\3\34\3\34\3")
-        buf.write("\35\3\35\3\35\3\35\3\35\3\35\3\35\3\35\3\35\3\35\3\35")
-        buf.write("\5\35\u0174\n\35\3\36\3\36\3\36\3\36\3\36\3\36\3\36\3")
-        buf.write("\36\3\36\3\36\3\36\5\36\u0181\n\36\3\37\3\37\3\37\3\37")
-        buf.write("\3\37\7\37\u0188\n\37\f\37\16\37\u018b\13\37\3 \3 \3 ")
-        buf.write("\3 \3 \5 \u0192\n \3!\3!\3!\3!\3!\5!\u0199\n!\3\"\3\"")
-        buf.write("\3\"\3\"\3\"\3\"\7\"\u01a1\n\"\f\"\16\"\u01a4\13\"\3#")
-        buf.write("\3#\3#\3#\3#\3#\7#\u01ac\n#\f#\16#\u01af\13#\3$\3$\3$")
-        buf.write("\3$\7$\u01b5\n$\f$\16$\u01b8\13$\3$\3$\3$\3$\3$\3$\5$")
-        buf.write("\u01c0\n$\3%\3%\3&\3&\3\'\3\'\3\'\7\'\u01c9\n\'\f\'\16")
-        buf.write("\'\u01cc\13\'\3(\3(\3(\7(\u01d1\n(\f(\16(\u01d4\13(\3")
-        buf.write(")\3)\3)\5)\u01d9\n)\3*\3*\3*\3*\3*\3*\3*\3*\3*\5*\u01e4")
-        buf.write("\n*\3+\3+\3+\5+\u01e9\n+\3+\3+\3,\3,\3,\7,\u01f0\n,\f")
-        buf.write(",\16,\u01f3\13,\3,\3p\t$,.\60<BD-\2\4\6\b\n\f\16\20\22")
-        buf.write("\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@BDFHJLNPR")
-        buf.write("TV\2\6\3\2\30\33\3\2&\'\3\2!#\3\2$%\2\u0211\2Y\3\2\2\2")
-        buf.write("\4f\3\2\2\2\6i\3\2\2\2\b~\3\2\2\2\n\u0083\3\2\2\2\f\u0085")
-        buf.write("\3\2\2\2\16\u008b\3\2\2\2\20\u0095\3\2\2\2\22\u009f\3")
-        buf.write("\2\2\2\24\u00ac\3\2\2\2\26\u00ae\3\2\2\2\30\u00c6\3\2")
-        buf.write("\2\2\32\u00d6\3\2\2\2\34\u00e2\3\2\2\2\36\u00e8\3\2\2")
-        buf.write("\2 \u00f1\3\2\2\2\"\u00f8\3\2\2\2$\u00fa\3\2\2\2&\u010a")
-        buf.write("\3\2\2\2(\u0113\3\2\2\2*\u011f\3\2\2\2,\u0121\3\2\2\2")
-        buf.write(".\u012c\3\2\2\2\60\u014d\3\2\2\2\62\u0158\3\2\2\2\64\u0164")
-        buf.write("\3\2\2\2\66\u0166\3\2\2\28\u0173\3\2\2\2:\u0180\3\2\2")
-        buf.write("\2<\u0182\3\2\2\2>\u0191\3\2\2\2@\u0198\3\2\2\2B\u019a")
-        buf.write("\3\2\2\2D\u01a5\3\2\2\2F\u01bf\3\2\2\2H\u01c1\3\2\2\2")
-        buf.write("J\u01c3\3\2\2\2L\u01c5\3\2\2\2N\u01cd\3\2\2\2P\u01d8\3")
-        buf.write("\2\2\2R\u01e3\3\2\2\2T\u01e5\3\2\2\2V\u01ec\3\2\2\2XZ")
-        buf.write("\5\4\3\2YX\3\2\2\2YZ\3\2\2\2Z^\3\2\2\2[]\5\b\5\2\\[\3")
-        buf.write("\2\2\2]`\3\2\2\2^\\\3\2\2\2^_\3\2\2\2_a\3\2\2\2`^\3\2")
-        buf.write("\2\2ab\7\2\2\3b\3\3\2\2\2ce\5\6\4\2dc\3\2\2\2eh\3\2\2")
-        buf.write("\2fd\3\2\2\2fg\3\2\2\2g\5\3\2\2\2hf\3\2\2\2ij\7\4\2\2")
-        buf.write("jk\7\5\2\2kp\7+\2\2lo\13\2\2\2mo\7\3\2\2nl\3\2\2\2nm\3")
-        buf.write("\2\2\2or\3\2\2\2pq\3\2\2\2pn\3\2\2\2qs\3\2\2\2rp\3\2\2")
-        buf.write("\2st\7+\2\2t\7\3\2\2\2u\177\5\n\6\2vz\7\n\2\2wy\5\b\5")
-        buf.write("\2xw\3\2\2\2y|\3\2\2\2zx\3\2\2\2z{\3\2\2\2{}\3\2\2\2|")
-        buf.write("z\3\2\2\2}\177\7\13\2\2~u\3\2\2\2~v\3\2\2\2\177\t\3\2")
-        buf.write("\2\2\u0080\u0084\5\24\13\2\u0081\u0084\5\22\n\2\u0082")
+        buf.write("\3\b\3\b\3\b\3\b\3\b\3\b\3\t\3\t\3\t\5\t\u0095\n\t\7\t")
+        buf.write("\u0097\n\t\f\t\16\t\u009a\13\t\3\n\3\n\3\n\3\n\3\n\3\n")
+        buf.write("\3\n\5\n\u00a3\n\n\3\13\3\13\3\13\3\13\3\13\3\13\3\13")
+        buf.write("\3\13\3\13\3\13\3\13\5\13\u00b0\n\13\3\f\3\f\3\f\7\f\u00b5")
+        buf.write("\n\f\f\f\16\f\u00b8\13\f\3\f\3\f\3\r\3\r\3\r\3\r\3\r\3")
+        buf.write("\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\3\r\5\r\u00ca\n\r\3\16")
+        buf.write("\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16")
+        buf.write("\3\16\3\16\5\16\u00da\n\16\3\17\3\17\3\17\3\17\3\17\3")
+        buf.write("\17\3\17\3\17\3\17\3\17\5\17\u00e6\n\17\3\20\3\20\3\20")
+        buf.write("\3\20\5\20\u00ec\n\20\3\21\3\21\3\21\3\21\3\21\3\21\3")
+        buf.write("\21\5\21\u00f5\n\21\3\22\3\22\3\22\3\22\3\22\5\22\u00fc")
+        buf.write("\n\22\3\23\3\23\3\23\3\23\3\23\3\23\7\23\u0104\n\23\f")
+        buf.write("\23\16\23\u0107\13\23\3\24\3\24\3\24\3\24\3\24\5\24\u010e")
+        buf.write("\n\24\3\25\3\25\3\25\3\25\3\25\3\25\3\25\5\25\u0117\n")
+        buf.write("\25\3\26\3\26\3\26\3\26\3\26\3\26\3\26\3\26\3\26\3\26")
+        buf.write("\5\26\u0123\n\26\3\27\3\27\3\27\3\27\3\27\3\27\7\27\u012b")
+        buf.write("\n\27\f\27\16\27\u012e\13\27\3\30\3\30\3\30\3\30\3\30")
+        buf.write("\3\30\3\30\3\30\3\30\3\30\3\30\3\30\3\30\6\30\u013d\n")
+        buf.write("\30\r\30\16\30\u013e\3\30\3\30\3\30\3\30\3\30\3\30\3\30")
+        buf.write("\3\30\3\30\3\30\3\30\7\30\u014c\n\30\f\30\16\30\u014f")
+        buf.write("\13\30\3\31\3\31\3\31\3\31\3\31\3\31\7\31\u0157\n\31\f")
+        buf.write("\31\16\31\u015a\13\31\3\32\3\32\3\32\7\32\u015f\n\32\f")
+        buf.write("\32\16\32\u0162\13\32\3\33\3\33\3\33\3\33\5\33\u0168\n")
+        buf.write("\33\3\34\3\34\3\35\3\35\3\35\3\35\3\35\3\35\3\35\3\35")
+        buf.write("\3\35\3\35\3\35\5\35\u0177\n\35\3\36\3\36\3\36\3\36\3")
+        buf.write("\36\3\36\3\36\3\36\3\36\3\36\3\36\5\36\u0184\n\36\3\37")
+        buf.write("\3\37\3\37\3\37\3\37\7\37\u018b\n\37\f\37\16\37\u018e")
+        buf.write("\13\37\3 \3 \3 \3 \3 \5 \u0195\n \3!\3!\3!\3!\3!\5!\u019c")
+        buf.write("\n!\3\"\3\"\3\"\3\"\3\"\3\"\7\"\u01a4\n\"\f\"\16\"\u01a7")
+        buf.write("\13\"\3#\3#\3#\3#\3#\3#\7#\u01af\n#\f#\16#\u01b2\13#\3")
+        buf.write("$\3$\3$\3$\7$\u01b8\n$\f$\16$\u01bb\13$\3$\3$\3$\3$\3")
+        buf.write("$\3$\5$\u01c3\n$\3%\3%\3&\3&\3\'\3\'\3\'\7\'\u01cc\n\'")
+        buf.write("\f\'\16\'\u01cf\13\'\3(\3(\3(\7(\u01d4\n(\f(\16(\u01d7")
+        buf.write("\13(\3)\3)\3)\5)\u01dc\n)\3*\3*\3*\3*\3*\3*\3*\3*\3*\5")
+        buf.write("*\u01e7\n*\3+\3+\3+\5+\u01ec\n+\3+\3+\3,\3,\3,\7,\u01f3")
+        buf.write("\n,\f,\16,\u01f6\13,\3,\3p\t$,.\60<BD-\2\4\6\b\n\f\16")
+        buf.write("\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\668:<>@BDF")
+        buf.write("HJLNPRTV\2\6\3\2\30\33\3\2&\'\3\2!#\3\2$%\2\u0215\2Y\3")
+        buf.write("\2\2\2\4f\3\2\2\2\6i\3\2\2\2\b~\3\2\2\2\n\u0083\3\2\2")
+        buf.write("\2\f\u0085\3\2\2\2\16\u008b\3\2\2\2\20\u0098\3\2\2\2\22")
+        buf.write("\u00a2\3\2\2\2\24\u00af\3\2\2\2\26\u00b1\3\2\2\2\30\u00c9")
+        buf.write("\3\2\2\2\32\u00d9\3\2\2\2\34\u00e5\3\2\2\2\36\u00eb\3")
+        buf.write("\2\2\2 \u00f4\3\2\2\2\"\u00fb\3\2\2\2$\u00fd\3\2\2\2&")
+        buf.write("\u010d\3\2\2\2(\u0116\3\2\2\2*\u0122\3\2\2\2,\u0124\3")
+        buf.write("\2\2\2.\u012f\3\2\2\2\60\u0150\3\2\2\2\62\u015b\3\2\2")
+        buf.write("\2\64\u0167\3\2\2\2\66\u0169\3\2\2\28\u0176\3\2\2\2:\u0183")
+        buf.write("\3\2\2\2<\u0185\3\2\2\2>\u0194\3\2\2\2@\u019b\3\2\2\2")
+        buf.write("B\u019d\3\2\2\2D\u01a8\3\2\2\2F\u01c2\3\2\2\2H\u01c4\3")
+        buf.write("\2\2\2J\u01c6\3\2\2\2L\u01c8\3\2\2\2N\u01d0\3\2\2\2P\u01db")
+        buf.write("\3\2\2\2R\u01e6\3\2\2\2T\u01e8\3\2\2\2V\u01ef\3\2\2\2")
+        buf.write("XZ\5\4\3\2YX\3\2\2\2YZ\3\2\2\2Z^\3\2\2\2[]\5\b\5\2\\[")
+        buf.write("\3\2\2\2]`\3\2\2\2^\\\3\2\2\2^_\3\2\2\2_a\3\2\2\2`^\3")
+        buf.write("\2\2\2ab\7\2\2\3b\3\3\2\2\2ce\5\6\4\2dc\3\2\2\2eh\3\2")
+        buf.write("\2\2fd\3\2\2\2fg\3\2\2\2g\5\3\2\2\2hf\3\2\2\2ij\7\4\2")
+        buf.write("\2jk\7\5\2\2kp\7+\2\2lo\13\2\2\2mo\7\3\2\2nl\3\2\2\2n")
+        buf.write("m\3\2\2\2or\3\2\2\2pq\3\2\2\2pn\3\2\2\2qs\3\2\2\2rp\3")
+        buf.write("\2\2\2st\7+\2\2t\7\3\2\2\2u\177\5\n\6\2vz\7\n\2\2wy\5")
+        buf.write("\b\5\2xw\3\2\2\2y|\3\2\2\2zx\3\2\2\2z{\3\2\2\2{}\3\2\2")
+        buf.write("\2|z\3\2\2\2}\177\7\13\2\2~u\3\2\2\2~v\3\2\2\2\177\t\3")
+        buf.write("\2\2\2\u0080\u0084\5\24\13\2\u0081\u0084\5\22\n\2\u0082")
         buf.write("\u0084\5 \21\2\u0083\u0080\3\2\2\2\u0083\u0081\3\2\2\2")
         buf.write("\u0083\u0082\3\2\2\2\u0084\13\3\2\2\2\u0085\u0086\7\22")
         buf.write("\2\2\u0086\u0087\7\b\2\2\u0087\u0088\7-\2\2\u0088\u0089")
         buf.write("\5\20\t\2\u0089\u008a\7\t\2\2\u008a\r\3\2\2\2\u008b\u008c")
         buf.write("\7\21\2\2\u008c\u008d\7\b\2\2\u008d\u008e\7-\2\2\u008e")
         buf.write("\u008f\5\20\t\2\u008f\u0090\7\t\2\2\u0090\17\3\2\2\2\u0091")
-        buf.write("\u0092\7\7\2\2\u0092\u0094\5L\'\2\u0093\u0091\3\2\2\2")
-        buf.write("\u0094\u0097\3\2\2\2\u0095\u0093\3\2\2\2\u0095\u0096\3")
-        buf.write("\2\2\2\u0096\21\3\2\2\2\u0097\u0095\3\2\2\2\u0098\u0099")
-        buf.write("\5\"\22\2\u0099\u009a\5(\25\2\u009a\u009b\5\26\f\2\u009b")
-        buf.write("\u00a0\3\2\2\2\u009c\u009d\5(\25\2\u009d\u009e\5\26\f")
-        buf.write("\2\u009e\u00a0\3\2\2\2\u009f\u0098\3\2\2\2\u009f\u009c")
-        buf.write("\3\2\2\2\u00a0\23\3\2\2\2\u00a1\u00ad\5\26\f\2\u00a2\u00ad")
-        buf.write("\5\36\20\2\u00a3\u00ad\5\32\16\2\u00a4\u00ad\5\30\r\2")
-        buf.write("\u00a5\u00ad\5\34\17\2\u00a6\u00a7\5\16\b\2\u00a7\u00a8")
-        buf.write("\7\6\2\2\u00a8\u00ad\3\2\2\2\u00a9\u00aa\5\f\7\2\u00aa")
-        buf.write("\u00ab\7\6\2\2\u00ab\u00ad\3\2\2\2\u00ac\u00a1\3\2\2\2")
-        buf.write("\u00ac\u00a2\3\2\2\2\u00ac\u00a3\3\2\2\2\u00ac\u00a4\3")
-        buf.write("\2\2\2\u00ac\u00a5\3\2\2\2\u00ac\u00a6\3\2\2\2\u00ac\u00a9")
-        buf.write("\3\2\2\2\u00ad\25\3\2\2\2\u00ae\u00b3\7\n\2\2\u00af\u00b2")
-        buf.write("\5 \21\2\u00b0\u00b2\5\24\13\2\u00b1\u00af\3\2\2\2\u00b1")
-        buf.write("\u00b0\3\2\2\2\u00b2\u00b5\3\2\2\2\u00b3\u00b1\3\2\2\2")
-        buf.write("\u00b3\u00b4\3\2\2\2\u00b4\u00b6\3\2\2\2\u00b5\u00b3\3")
-        buf.write("\2\2\2\u00b6\u00b7\7\13\2\2\u00b7\27\3\2\2\2\u00b8\u00b9")
-        buf.write("\7\20\2\2\u00b9\u00ba\7\b\2\2\u00ba\u00bb\5L\'\2\u00bb")
-        buf.write("\u00bc\7\t\2\2\u00bc\u00bd\5\24\13\2\u00bd\u00c7\3\2\2")
-        buf.write("\2\u00be\u00bf\7\23\2\2\u00bf\u00c0\7\b\2\2\u00c0\u00c1")
-        buf.write("\5 \21\2\u00c1\u00c2\5\36\20\2\u00c2\u00c3\5L\'\2\u00c3")
-        buf.write("\u00c4\7\t\2\2\u00c4\u00c5\5\24\13\2\u00c5\u00c7\3\2\2")
-        buf.write("\2\u00c6\u00b8\3\2\2\2\u00c6\u00be\3\2\2\2\u00c7\31\3")
-        buf.write("\2\2\2\u00c8\u00c9\7\16\2\2\u00c9\u00ca\7\b\2\2\u00ca")
-        buf.write("\u00cb\5L\'\2\u00cb\u00cc\7\t\2\2\u00cc\u00cd\5\24\13")
-        buf.write("\2\u00cd\u00d7\3\2\2\2\u00ce\u00cf\7\16\2\2\u00cf\u00d0")
-        buf.write("\7\b\2\2\u00d0\u00d1\5L\'\2\u00d1\u00d2\7\t\2\2\u00d2")
-        buf.write("\u00d3\5\24\13\2\u00d3\u00d4\7\17\2\2\u00d4\u00d5\5\24")
-        buf.write("\13\2\u00d5\u00d7\3\2\2\2\u00d6\u00c8\3\2\2\2\u00d6\u00ce")
-        buf.write("\3\2\2\2\u00d7\33\3\2\2\2\u00d8\u00d9\7\25\2\2\u00d9\u00e3")
-        buf.write("\7\6\2\2\u00da\u00db\7\24\2\2\u00db\u00e3\7\6\2\2\u00dc")
-        buf.write("\u00dd\7\26\2\2\u00dd\u00e3\7\6\2\2\u00de\u00df\7\26\2")
-        buf.write("\2\u00df\u00e0\5L\'\2\u00e0\u00e1\7\6\2\2\u00e1\u00e3")
-        buf.write("\3\2\2\2\u00e2\u00d8\3\2\2\2\u00e2\u00da\3\2\2\2\u00e2")
-        buf.write("\u00dc\3\2\2\2\u00e2\u00de\3\2\2\2\u00e3\35\3\2\2\2\u00e4")
-        buf.write("\u00e5\5L\'\2\u00e5\u00e6\7\6\2\2\u00e6\u00e9\3\2\2\2")
-        buf.write("\u00e7\u00e9\7\6\2\2\u00e8\u00e4\3\2\2\2\u00e8\u00e7\3")
-        buf.write("\2\2\2\u00e9\37\3\2\2\2\u00ea\u00eb\5\"\22\2\u00eb\u00ec")
-        buf.write("\7\6\2\2\u00ec\u00f2\3\2\2\2\u00ed\u00ee\5\"\22\2\u00ee")
-        buf.write("\u00ef\5$\23\2\u00ef\u00f0\7\6\2\2\u00f0\u00f2\3\2\2\2")
-        buf.write("\u00f1\u00ea\3\2\2\2\u00f1\u00ed\3\2\2\2\u00f2!\3\2\2")
-        buf.write("\2\u00f3\u00f9\3\2\2\2\u00f4\u00f9\5\66\34\2\u00f5\u00f9")
-        buf.write("\7\37\2\2\u00f6\u00f7\7\37\2\2\u00f7\u00f9\5\"\22\2\u00f8")
-        buf.write("\u00f3\3\2\2\2\u00f8\u00f4\3\2\2\2\u00f8\u00f5\3\2\2\2")
-        buf.write("\u00f8\u00f6\3\2\2\2\u00f9#\3\2\2\2\u00fa\u00fb\b\23\1")
-        buf.write("\2\u00fb\u00fc\5&\24\2\u00fc\u0102\3\2\2\2\u00fd\u00fe")
-        buf.write("\f\3\2\2\u00fe\u00ff\7\7\2\2\u00ff\u0101\5&\24\2\u0100")
-        buf.write("\u00fd\3\2\2\2\u0101\u0104\3\2\2\2\u0102\u0100\3\2\2\2")
-        buf.write("\u0102\u0103\3\2\2\2\u0103%\3\2\2\2\u0104\u0102\3\2\2")
-        buf.write("\2\u0105\u010b\5(\25\2\u0106\u0107\5(\25\2\u0107\u0108")
-        buf.write("\7\27\2\2\u0108\u0109\5*\26\2\u0109\u010b\3\2\2\2\u010a")
-        buf.write("\u0105\3\2\2\2\u010a\u0106\3\2\2\2\u010b\'\3\2\2\2\u010c")
-        buf.write("\u010d\58\35\2\u010d\u010e\5.\30\2\u010e\u0114\3\2\2\2")
-        buf.write("\u010f\u0110\5:\36\2\u0110\u0111\5.\30\2\u0111\u0114\3")
-        buf.write("\2\2\2\u0112\u0114\5.\30\2\u0113\u010c\3\2\2\2\u0113\u010f")
-        buf.write("\3\2\2\2\u0113\u0112\3\2\2\2\u0114)\3\2\2\2\u0115\u0120")
-        buf.write("\5L\'\2\u0116\u0117\7\n\2\2\u0117\u0118\5,\27\2\u0118")
-        buf.write("\u0119\7\13\2\2\u0119\u0120\3\2\2\2\u011a\u011b\7\n\2")
-        buf.write("\2\u011b\u011c\5,\27\2\u011c\u011d\7\7\2\2\u011d\u011e")
-        buf.write("\7\13\2\2\u011e\u0120\3\2\2\2\u011f\u0115\3\2\2\2\u011f")
-        buf.write("\u0116\3\2\2\2\u011f\u011a\3\2\2\2\u0120+\3\2\2\2\u0121")
-        buf.write("\u0122\b\27\1\2\u0122\u0123\5*\26\2\u0123\u0129\3\2\2")
-        buf.write("\2\u0124\u0125\f\3\2\2\u0125\u0126\7\7\2\2\u0126\u0128")
-        buf.write("\5*\26\2\u0127\u0124\3\2\2\2\u0128\u012b\3\2\2\2\u0129")
-        buf.write("\u0127\3\2\2\2\u0129\u012a\3\2\2\2\u012a-\3\2\2\2\u012b")
-        buf.write("\u0129\3\2\2\2\u012c\u012d\b\30\1\2\u012d\u012e\7\60\2")
-        buf.write("\2\u012e\u014a\3\2\2\2\u012f\u0130\f\7\2\2\u0130\u0131")
-        buf.write("\7\b\2\2\u0131\u0132\5\62\32\2\u0132\u0133\7\t\2\2\u0133")
-        buf.write("\u0149\3\2\2\2\u0134\u0139\f\6\2\2\u0135\u0136\7\f\2\2")
-        buf.write("\u0136\u0137\5L\'\2\u0137\u0138\7\r\2\2\u0138\u013a\3")
-        buf.write("\2\2\2\u0139\u0135\3\2\2\2\u013a\u013b\3\2\2\2\u013b\u0139")
-        buf.write("\3\2\2\2\u013b\u013c\3\2\2\2\u013c\u0149\3\2\2\2\u013d")
-        buf.write("\u013e\f\5\2\2\u013e\u013f\7\f\2\2\u013f\u0149\7\r\2\2")
-        buf.write("\u0140\u0141\f\4\2\2\u0141\u0142\7\b\2\2\u0142\u0143\5")
-        buf.write("\60\31\2\u0143\u0144\7\t\2\2\u0144\u0149\3\2\2\2\u0145")
-        buf.write("\u0146\f\3\2\2\u0146\u0147\7\b\2\2\u0147\u0149\7\t\2\2")
-        buf.write("\u0148\u012f\3\2\2\2\u0148\u0134\3\2\2\2\u0148\u013d\3")
-        buf.write("\2\2\2\u0148\u0140\3\2\2\2\u0148\u0145\3\2\2\2\u0149\u014c")
-        buf.write("\3\2\2\2\u014a\u0148\3\2\2\2\u014a\u014b\3\2\2\2\u014b")
-        buf.write("/\3\2\2\2\u014c\u014a\3\2\2\2\u014d\u014e\b\31\1\2\u014e")
-        buf.write("\u014f\7\60\2\2\u014f\u0155\3\2\2\2\u0150\u0151\f\3\2")
-        buf.write("\2\u0151\u0152\7\7\2\2\u0152\u0154\7\60\2\2\u0153\u0150")
-        buf.write("\3\2\2\2\u0154\u0157\3\2\2\2\u0155\u0153\3\2\2\2\u0155")
-        buf.write("\u0156\3\2\2\2\u0156\61\3\2\2\2\u0157\u0155\3\2\2\2\u0158")
-        buf.write("\u015d\5\64\33\2\u0159\u015a\7\7\2\2\u015a\u015c\5\64")
-        buf.write("\33\2\u015b\u0159\3\2\2\2\u015c\u015f\3\2\2\2\u015d\u015b")
-        buf.write("\3\2\2\2\u015d\u015e\3\2\2\2\u015e\63\3\2\2\2\u015f\u015d")
-        buf.write("\3\2\2\2\u0160\u0161\5\"\22\2\u0161\u0162\5(\25\2\u0162")
-        buf.write("\u0165\3\2\2\2\u0163\u0165\5\"\22\2\u0164\u0160\3\2\2")
-        buf.write("\2\u0164\u0163\3\2\2\2\u0165\65\3\2\2\2\u0166\u0167\t")
-        buf.write("\2\2\2\u0167\67\3\2\2\2\u0168\u0174\5H%\2\u0169\u016a")
-        buf.write("\5H%\2\u016a\u016b\5<\37\2\u016b\u0174\3\2\2\2\u016c\u016d")
-        buf.write("\5H%\2\u016d\u016e\58\35\2\u016e\u0174\3\2\2\2\u016f\u0170")
-        buf.write("\5H%\2\u0170\u0171\5<\37\2\u0171\u0172\58\35\2\u0172\u0174")
-        buf.write("\3\2\2\2\u0173\u0168\3\2\2\2\u0173\u0169\3\2\2\2\u0173")
-        buf.write("\u016c\3\2\2\2\u0173\u016f\3\2\2\2\u01749\3\2\2\2\u0175")
-        buf.write("\u0181\5J&\2\u0176\u0177\5J&\2\u0177\u0178\5<\37\2\u0178")
-        buf.write("\u0181\3\2\2\2\u0179\u017a\5J&\2\u017a\u017b\5:\36\2\u017b")
-        buf.write("\u0181\3\2\2\2\u017c\u017d\5J&\2\u017d\u017e\5<\37\2\u017e")
-        buf.write("\u017f\5:\36\2\u017f\u0181\3\2\2\2\u0180\u0175\3\2\2\2")
-        buf.write("\u0180\u0176\3\2\2\2\u0180\u0179\3\2\2\2\u0180\u017c\3")
-        buf.write("\2\2\2\u0181;\3\2\2\2\u0182\u0183\b\37\1\2\u0183\u0184")
-        buf.write("\7\37\2\2\u0184\u0189\3\2\2\2\u0185\u0186\f\3\2\2\u0186")
-        buf.write("\u0188\7\37\2\2\u0187\u0185\3\2\2\2\u0188\u018b\3\2\2")
-        buf.write("\2\u0189\u0187\3\2\2\2\u0189\u018a\3\2\2\2\u018a=\3\2")
-        buf.write("\2\2\u018b\u0189\3\2\2\2\u018c\u018d\5@!\2\u018d\u018e")
-        buf.write("\7,\2\2\u018e\u018f\5> \2\u018f\u0192\3\2\2\2\u0190\u0192")
-        buf.write("\5@!\2\u0191\u018c\3\2\2\2\u0191\u0190\3\2\2\2\u0192?")
-        buf.write("\3\2\2\2\u0193\u0194\5B\"\2\u0194\u0195\7+\2\2\u0195\u0196")
-        buf.write("\5B\"\2\u0196\u0199\3\2\2\2\u0197\u0199\5B\"\2\u0198\u0193")
-        buf.write("\3\2\2\2\u0198\u0197\3\2\2\2\u0199A\3\2\2\2\u019a\u019b")
-        buf.write("\b\"\1\2\u019b\u019c\5D#\2\u019c\u01a2\3\2\2\2\u019d\u019e")
-        buf.write("\f\4\2\2\u019e\u019f\t\3\2\2\u019f\u01a1\5D#\2\u01a0\u019d")
-        buf.write("\3\2\2\2\u01a1\u01a4\3\2\2\2\u01a2\u01a0\3\2\2\2\u01a2")
-        buf.write("\u01a3\3\2\2\2\u01a3C\3\2\2\2\u01a4\u01a2\3\2\2\2\u01a5")
-        buf.write("\u01a6\b#\1\2\u01a6\u01a7\5F$\2\u01a7\u01ad\3\2\2\2\u01a8")
-        buf.write("\u01a9\f\4\2\2\u01a9\u01aa\t\4\2\2\u01aa\u01ac\5F$\2\u01ab")
-        buf.write("\u01a8\3\2\2\2\u01ac\u01af\3\2\2\2\u01ad\u01ab\3\2\2\2")
-        buf.write("\u01ad\u01ae\3\2\2\2\u01aeE\3\2\2\2\u01af\u01ad\3\2\2")
-        buf.write("\2\u01b0\u01b5\7&\2\2\u01b1\u01b5\7\'\2\2\u01b2\u01b5")
-        buf.write("\5H%\2\u01b3\u01b5\5J&\2\u01b4\u01b0\3\2\2\2\u01b4\u01b1")
-        buf.write("\3\2\2\2\u01b4\u01b2\3\2\2\2\u01b4\u01b3\3\2\2\2\u01b5")
-        buf.write("\u01b8\3\2\2\2\u01b6\u01b4\3\2\2\2\u01b6\u01b7\3\2\2\2")
-        buf.write("\u01b7\u01b9\3\2\2\2\u01b8\u01b6\3\2\2\2\u01b9\u01c0\5")
-        buf.write("R*\2\u01ba\u01bb\t\5\2\2\u01bb\u01c0\5R*\2\u01bc\u01bd")
-        buf.write("\5R*\2\u01bd\u01be\t\5\2\2\u01be\u01c0\3\2\2\2\u01bf\u01b6")
-        buf.write("\3\2\2\2\u01bf\u01ba\3\2\2\2\u01bf\u01bc\3\2\2\2\u01c0")
-        buf.write("G\3\2\2\2\u01c1\u01c2\7!\2\2\u01c2I\3\2\2\2\u01c3\u01c4")
-        buf.write("\7 \2\2\u01c4K\3\2\2\2\u01c5\u01ca\5N(\2\u01c6\u01c7\7")
-        buf.write("(\2\2\u01c7\u01c9\5N(\2\u01c8\u01c6\3\2\2\2\u01c9\u01cc")
-        buf.write("\3\2\2\2\u01ca\u01c8\3\2\2\2\u01ca\u01cb\3\2\2\2\u01cb")
-        buf.write("M\3\2\2\2\u01cc\u01ca\3\2\2\2\u01cd\u01d2\5P)\2\u01ce")
-        buf.write("\u01cf\7)\2\2\u01cf\u01d1\5P)\2\u01d0\u01ce\3\2\2\2\u01d1")
-        buf.write("\u01d4\3\2\2\2\u01d2\u01d0\3\2\2\2\u01d2\u01d3\3\2\2\2")
-        buf.write("\u01d3O\3\2\2\2\u01d4\u01d2\3\2\2\2\u01d5\u01d6\7*\2\2")
-        buf.write("\u01d6\u01d9\5P)\2\u01d7\u01d9\5> \2\u01d8\u01d5\3\2\2")
-        buf.write("\2\u01d8\u01d7\3\2\2\2\u01d9Q\3\2\2\2\u01da\u01e4\7\34")
-        buf.write("\2\2\u01db\u01e4\7\35\2\2\u01dc\u01e4\7\36\2\2\u01dd\u01de")
-        buf.write("\7\b\2\2\u01de\u01df\5L\'\2\u01df\u01e0\7\t\2\2\u01e0")
-        buf.write("\u01e4\3\2\2\2\u01e1\u01e4\7\60\2\2\u01e2\u01e4\5T+\2")
-        buf.write("\u01e3\u01da\3\2\2\2\u01e3\u01db\3\2\2\2\u01e3\u01dc\3")
-        buf.write("\2\2\2\u01e3\u01dd\3\2\2\2\u01e3\u01e1\3\2\2\2\u01e3\u01e2")
-        buf.write("\3\2\2\2\u01e4S\3\2\2\2\u01e5\u01e6\7\60\2\2\u01e6\u01e8")
-        buf.write("\7\b\2\2\u01e7\u01e9\5V,\2\u01e8\u01e7\3\2\2\2\u01e8\u01e9")
-        buf.write("\3\2\2\2\u01e9\u01ea\3\2\2\2\u01ea\u01eb\7\t\2\2\u01eb")
-        buf.write("U\3\2\2\2\u01ec\u01f1\5L\'\2\u01ed\u01ee\7\7\2\2\u01ee")
-        buf.write("\u01f0\5L\'\2\u01ef\u01ed\3\2\2\2\u01f0\u01f3\3\2\2\2")
-        buf.write("\u01f1\u01ef\3\2\2\2\u01f1\u01f2\3\2\2\2\u01f2W\3\2\2")
-        buf.write("\2\u01f3\u01f1\3\2\2\2\60Y^fnpz~\u0083\u0095\u009f\u00ac")
-        buf.write("\u00b1\u00b3\u00c6\u00d6\u00e2\u00e8\u00f1\u00f8\u0102")
-        buf.write("\u010a\u0113\u011f\u0129\u013b\u0148\u014a\u0155\u015d")
-        buf.write("\u0164\u0173\u0180\u0189\u0191\u0198\u01a2\u01ad\u01b4")
-        buf.write("\u01b6\u01bf\u01ca\u01d2\u01d8\u01e3\u01e8\u01f1")
+        buf.write("\u0094\7\7\2\2\u0092\u0095\5L\'\2\u0093\u0095\7-\2\2\u0094")
+        buf.write("\u0092\3\2\2\2\u0094\u0093\3\2\2\2\u0095\u0097\3\2\2\2")
+        buf.write("\u0096\u0091\3\2\2\2\u0097\u009a\3\2\2\2\u0098\u0096\3")
+        buf.write("\2\2\2\u0098\u0099\3\2\2\2\u0099\21\3\2\2\2\u009a\u0098")
+        buf.write("\3\2\2\2\u009b\u009c\5\"\22\2\u009c\u009d\5(\25\2\u009d")
+        buf.write("\u009e\5\26\f\2\u009e\u00a3\3\2\2\2\u009f\u00a0\5(\25")
+        buf.write("\2\u00a0\u00a1\5\26\f\2\u00a1\u00a3\3\2\2\2\u00a2\u009b")
+        buf.write("\3\2\2\2\u00a2\u009f\3\2\2\2\u00a3\23\3\2\2\2\u00a4\u00b0")
+        buf.write("\5\26\f\2\u00a5\u00b0\5\36\20\2\u00a6\u00b0\5\32\16\2")
+        buf.write("\u00a7\u00b0\5\30\r\2\u00a8\u00b0\5\34\17\2\u00a9\u00aa")
+        buf.write("\5\16\b\2\u00aa\u00ab\7\6\2\2\u00ab\u00b0\3\2\2\2\u00ac")
+        buf.write("\u00ad\5\f\7\2\u00ad\u00ae\7\6\2\2\u00ae\u00b0\3\2\2\2")
+        buf.write("\u00af\u00a4\3\2\2\2\u00af\u00a5\3\2\2\2\u00af\u00a6\3")
+        buf.write("\2\2\2\u00af\u00a7\3\2\2\2\u00af\u00a8\3\2\2\2\u00af\u00a9")
+        buf.write("\3\2\2\2\u00af\u00ac\3\2\2\2\u00b0\25\3\2\2\2\u00b1\u00b6")
+        buf.write("\7\n\2\2\u00b2\u00b5\5 \21\2\u00b3\u00b5\5\24\13\2\u00b4")
+        buf.write("\u00b2\3\2\2\2\u00b4\u00b3\3\2\2\2\u00b5\u00b8\3\2\2\2")
+        buf.write("\u00b6\u00b4\3\2\2\2\u00b6\u00b7\3\2\2\2\u00b7\u00b9\3")
+        buf.write("\2\2\2\u00b8\u00b6\3\2\2\2\u00b9\u00ba\7\13\2\2\u00ba")
+        buf.write("\27\3\2\2\2\u00bb\u00bc\7\20\2\2\u00bc\u00bd\7\b\2\2\u00bd")
+        buf.write("\u00be\5L\'\2\u00be\u00bf\7\t\2\2\u00bf\u00c0\5\24\13")
+        buf.write("\2\u00c0\u00ca\3\2\2\2\u00c1\u00c2\7\23\2\2\u00c2\u00c3")
+        buf.write("\7\b\2\2\u00c3\u00c4\5 \21\2\u00c4\u00c5\5\36\20\2\u00c5")
+        buf.write("\u00c6\5L\'\2\u00c6\u00c7\7\t\2\2\u00c7\u00c8\5\24\13")
+        buf.write("\2\u00c8\u00ca\3\2\2\2\u00c9\u00bb\3\2\2\2\u00c9\u00c1")
+        buf.write("\3\2\2\2\u00ca\31\3\2\2\2\u00cb\u00cc\7\16\2\2\u00cc\u00cd")
+        buf.write("\7\b\2\2\u00cd\u00ce\5L\'\2\u00ce\u00cf\7\t\2\2\u00cf")
+        buf.write("\u00d0\5\24\13\2\u00d0\u00da\3\2\2\2\u00d1\u00d2\7\16")
+        buf.write("\2\2\u00d2\u00d3\7\b\2\2\u00d3\u00d4\5L\'\2\u00d4\u00d5")
+        buf.write("\7\t\2\2\u00d5\u00d6\5\24\13\2\u00d6\u00d7\7\17\2\2\u00d7")
+        buf.write("\u00d8\5\24\13\2\u00d8\u00da\3\2\2\2\u00d9\u00cb\3\2\2")
+        buf.write("\2\u00d9\u00d1\3\2\2\2\u00da\33\3\2\2\2\u00db\u00dc\7")
+        buf.write("\25\2\2\u00dc\u00e6\7\6\2\2\u00dd\u00de\7\24\2\2\u00de")
+        buf.write("\u00e6\7\6\2\2\u00df\u00e0\7\26\2\2\u00e0\u00e6\7\6\2")
+        buf.write("\2\u00e1\u00e2\7\26\2\2\u00e2\u00e3\5L\'\2\u00e3\u00e4")
+        buf.write("\7\6\2\2\u00e4\u00e6\3\2\2\2\u00e5\u00db\3\2\2\2\u00e5")
+        buf.write("\u00dd\3\2\2\2\u00e5\u00df\3\2\2\2\u00e5\u00e1\3\2\2\2")
+        buf.write("\u00e6\35\3\2\2\2\u00e7\u00e8\5L\'\2\u00e8\u00e9\7\6\2")
+        buf.write("\2\u00e9\u00ec\3\2\2\2\u00ea\u00ec\7\6\2\2\u00eb\u00e7")
+        buf.write("\3\2\2\2\u00eb\u00ea\3\2\2\2\u00ec\37\3\2\2\2\u00ed\u00ee")
+        buf.write("\5\"\22\2\u00ee\u00ef\7\6\2\2\u00ef\u00f5\3\2\2\2\u00f0")
+        buf.write("\u00f1\5\"\22\2\u00f1\u00f2\5$\23\2\u00f2\u00f3\7\6\2")
+        buf.write("\2\u00f3\u00f5\3\2\2\2\u00f4\u00ed\3\2\2\2\u00f4\u00f0")
+        buf.write("\3\2\2\2\u00f5!\3\2\2\2\u00f6\u00fc\3\2\2\2\u00f7\u00fc")
+        buf.write("\5\66\34\2\u00f8\u00fc\7\37\2\2\u00f9\u00fa\7\37\2\2\u00fa")
+        buf.write("\u00fc\5\"\22\2\u00fb\u00f6\3\2\2\2\u00fb\u00f7\3\2\2")
+        buf.write("\2\u00fb\u00f8\3\2\2\2\u00fb\u00f9\3\2\2\2\u00fc#\3\2")
+        buf.write("\2\2\u00fd\u00fe\b\23\1\2\u00fe\u00ff\5&\24\2\u00ff\u0105")
+        buf.write("\3\2\2\2\u0100\u0101\f\3\2\2\u0101\u0102\7\7\2\2\u0102")
+        buf.write("\u0104\5&\24\2\u0103\u0100\3\2\2\2\u0104\u0107\3\2\2\2")
+        buf.write("\u0105\u0103\3\2\2\2\u0105\u0106\3\2\2\2\u0106%\3\2\2")
+        buf.write("\2\u0107\u0105\3\2\2\2\u0108\u010e\5(\25\2\u0109\u010a")
+        buf.write("\5(\25\2\u010a\u010b\7\27\2\2\u010b\u010c\5*\26\2\u010c")
+        buf.write("\u010e\3\2\2\2\u010d\u0108\3\2\2\2\u010d\u0109\3\2\2\2")
+        buf.write("\u010e\'\3\2\2\2\u010f\u0110\58\35\2\u0110\u0111\5.\30")
+        buf.write("\2\u0111\u0117\3\2\2\2\u0112\u0113\5:\36\2\u0113\u0114")
+        buf.write("\5.\30\2\u0114\u0117\3\2\2\2\u0115\u0117\5.\30\2\u0116")
+        buf.write("\u010f\3\2\2\2\u0116\u0112\3\2\2\2\u0116\u0115\3\2\2\2")
+        buf.write("\u0117)\3\2\2\2\u0118\u0123\5L\'\2\u0119\u011a\7\n\2\2")
+        buf.write("\u011a\u011b\5,\27\2\u011b\u011c\7\13\2\2\u011c\u0123")
+        buf.write("\3\2\2\2\u011d\u011e\7\n\2\2\u011e\u011f\5,\27\2\u011f")
+        buf.write("\u0120\7\7\2\2\u0120\u0121\7\13\2\2\u0121\u0123\3\2\2")
+        buf.write("\2\u0122\u0118\3\2\2\2\u0122\u0119\3\2\2\2\u0122\u011d")
+        buf.write("\3\2\2\2\u0123+\3\2\2\2\u0124\u0125\b\27\1\2\u0125\u0126")
+        buf.write("\5*\26\2\u0126\u012c\3\2\2\2\u0127\u0128\f\3\2\2\u0128")
+        buf.write("\u0129\7\7\2\2\u0129\u012b\5*\26\2\u012a\u0127\3\2\2\2")
+        buf.write("\u012b\u012e\3\2\2\2\u012c\u012a\3\2\2\2\u012c\u012d\3")
+        buf.write("\2\2\2\u012d-\3\2\2\2\u012e\u012c\3\2\2\2\u012f\u0130")
+        buf.write("\b\30\1\2\u0130\u0131\7\60\2\2\u0131\u014d\3\2\2\2\u0132")
+        buf.write("\u0133\f\7\2\2\u0133\u0134\7\b\2\2\u0134\u0135\5\62\32")
+        buf.write("\2\u0135\u0136\7\t\2\2\u0136\u014c\3\2\2\2\u0137\u013c")
+        buf.write("\f\6\2\2\u0138\u0139\7\f\2\2\u0139\u013a\5L\'\2\u013a")
+        buf.write("\u013b\7\r\2\2\u013b\u013d\3\2\2\2\u013c\u0138\3\2\2\2")
+        buf.write("\u013d\u013e\3\2\2\2\u013e\u013c\3\2\2\2\u013e\u013f\3")
+        buf.write("\2\2\2\u013f\u014c\3\2\2\2\u0140\u0141\f\5\2\2\u0141\u0142")
+        buf.write("\7\f\2\2\u0142\u014c\7\r\2\2\u0143\u0144\f\4\2\2\u0144")
+        buf.write("\u0145\7\b\2\2\u0145\u0146\5\60\31\2\u0146\u0147\7\t\2")
+        buf.write("\2\u0147\u014c\3\2\2\2\u0148\u0149\f\3\2\2\u0149\u014a")
+        buf.write("\7\b\2\2\u014a\u014c\7\t\2\2\u014b\u0132\3\2\2\2\u014b")
+        buf.write("\u0137\3\2\2\2\u014b\u0140\3\2\2\2\u014b\u0143\3\2\2\2")
+        buf.write("\u014b\u0148\3\2\2\2\u014c\u014f\3\2\2\2\u014d\u014b\3")
+        buf.write("\2\2\2\u014d\u014e\3\2\2\2\u014e/\3\2\2\2\u014f\u014d")
+        buf.write("\3\2\2\2\u0150\u0151\b\31\1\2\u0151\u0152\7\60\2\2\u0152")
+        buf.write("\u0158\3\2\2\2\u0153\u0154\f\3\2\2\u0154\u0155\7\7\2\2")
+        buf.write("\u0155\u0157\7\60\2\2\u0156\u0153\3\2\2\2\u0157\u015a")
+        buf.write("\3\2\2\2\u0158\u0156\3\2\2\2\u0158\u0159\3\2\2\2\u0159")
+        buf.write("\61\3\2\2\2\u015a\u0158\3\2\2\2\u015b\u0160\5\64\33\2")
+        buf.write("\u015c\u015d\7\7\2\2\u015d\u015f\5\64\33\2\u015e\u015c")
+        buf.write("\3\2\2\2\u015f\u0162\3\2\2\2\u0160\u015e\3\2\2\2\u0160")
+        buf.write("\u0161\3\2\2\2\u0161\63\3\2\2\2\u0162\u0160\3\2\2\2\u0163")
+        buf.write("\u0164\5\"\22\2\u0164\u0165\5(\25\2\u0165\u0168\3\2\2")
+        buf.write("\2\u0166\u0168\5\"\22\2\u0167\u0163\3\2\2\2\u0167\u0166")
+        buf.write("\3\2\2\2\u0168\65\3\2\2\2\u0169\u016a\t\2\2\2\u016a\67")
+        buf.write("\3\2\2\2\u016b\u0177\5H%\2\u016c\u016d\5H%\2\u016d\u016e")
+        buf.write("\5<\37\2\u016e\u0177\3\2\2\2\u016f\u0170\5H%\2\u0170\u0171")
+        buf.write("\58\35\2\u0171\u0177\3\2\2\2\u0172\u0173\5H%\2\u0173\u0174")
+        buf.write("\5<\37\2\u0174\u0175\58\35\2\u0175\u0177\3\2\2\2\u0176")
+        buf.write("\u016b\3\2\2\2\u0176\u016c\3\2\2\2\u0176\u016f\3\2\2\2")
+        buf.write("\u0176\u0172\3\2\2\2\u01779\3\2\2\2\u0178\u0184\5J&\2")
+        buf.write("\u0179\u017a\5J&\2\u017a\u017b\5<\37\2\u017b\u0184\3\2")
+        buf.write("\2\2\u017c\u017d\5J&\2\u017d\u017e\5:\36\2\u017e\u0184")
+        buf.write("\3\2\2\2\u017f\u0180\5J&\2\u0180\u0181\5<\37\2\u0181\u0182")
+        buf.write("\5:\36\2\u0182\u0184\3\2\2\2\u0183\u0178\3\2\2\2\u0183")
+        buf.write("\u0179\3\2\2\2\u0183\u017c\3\2\2\2\u0183\u017f\3\2\2\2")
+        buf.write("\u0184;\3\2\2\2\u0185\u0186\b\37\1\2\u0186\u0187\7\37")
+        buf.write("\2\2\u0187\u018c\3\2\2\2\u0188\u0189\f\3\2\2\u0189\u018b")
+        buf.write("\7\37\2\2\u018a\u0188\3\2\2\2\u018b\u018e\3\2\2\2\u018c")
+        buf.write("\u018a\3\2\2\2\u018c\u018d\3\2\2\2\u018d=\3\2\2\2\u018e")
+        buf.write("\u018c\3\2\2\2\u018f\u0190\5@!\2\u0190\u0191\7,\2\2\u0191")
+        buf.write("\u0192\5> \2\u0192\u0195\3\2\2\2\u0193\u0195\5@!\2\u0194")
+        buf.write("\u018f\3\2\2\2\u0194\u0193\3\2\2\2\u0195?\3\2\2\2\u0196")
+        buf.write("\u0197\5B\"\2\u0197\u0198\7+\2\2\u0198\u0199\5B\"\2\u0199")
+        buf.write("\u019c\3\2\2\2\u019a\u019c\5B\"\2\u019b\u0196\3\2\2\2")
+        buf.write("\u019b\u019a\3\2\2\2\u019cA\3\2\2\2\u019d\u019e\b\"\1")
+        buf.write("\2\u019e\u019f\5D#\2\u019f\u01a5\3\2\2\2\u01a0\u01a1\f")
+        buf.write("\4\2\2\u01a1\u01a2\t\3\2\2\u01a2\u01a4\5D#\2\u01a3\u01a0")
+        buf.write("\3\2\2\2\u01a4\u01a7\3\2\2\2\u01a5\u01a3\3\2\2\2\u01a5")
+        buf.write("\u01a6\3\2\2\2\u01a6C\3\2\2\2\u01a7\u01a5\3\2\2\2\u01a8")
+        buf.write("\u01a9\b#\1\2\u01a9\u01aa\5F$\2\u01aa\u01b0\3\2\2\2\u01ab")
+        buf.write("\u01ac\f\4\2\2\u01ac\u01ad\t\4\2\2\u01ad\u01af\5F$\2\u01ae")
+        buf.write("\u01ab\3\2\2\2\u01af\u01b2\3\2\2\2\u01b0\u01ae\3\2\2\2")
+        buf.write("\u01b0\u01b1\3\2\2\2\u01b1E\3\2\2\2\u01b2\u01b0\3\2\2")
+        buf.write("\2\u01b3\u01b8\7&\2\2\u01b4\u01b8\7\'\2\2\u01b5\u01b8")
+        buf.write("\5H%\2\u01b6\u01b8\5J&\2\u01b7\u01b3\3\2\2\2\u01b7\u01b4")
+        buf.write("\3\2\2\2\u01b7\u01b5\3\2\2\2\u01b7\u01b6\3\2\2\2\u01b8")
+        buf.write("\u01bb\3\2\2\2\u01b9\u01b7\3\2\2\2\u01b9\u01ba\3\2\2\2")
+        buf.write("\u01ba\u01bc\3\2\2\2\u01bb\u01b9\3\2\2\2\u01bc\u01c3\5")
+        buf.write("R*\2\u01bd\u01be\t\5\2\2\u01be\u01c3\5R*\2\u01bf\u01c0")
+        buf.write("\5R*\2\u01c0\u01c1\t\5\2\2\u01c1\u01c3\3\2\2\2\u01c2\u01b9")
+        buf.write("\3\2\2\2\u01c2\u01bd\3\2\2\2\u01c2\u01bf\3\2\2\2\u01c3")
+        buf.write("G\3\2\2\2\u01c4\u01c5\7!\2\2\u01c5I\3\2\2\2\u01c6\u01c7")
+        buf.write("\7 \2\2\u01c7K\3\2\2\2\u01c8\u01cd\5N(\2\u01c9\u01ca\7")
+        buf.write("(\2\2\u01ca\u01cc\5N(\2\u01cb\u01c9\3\2\2\2\u01cc\u01cf")
+        buf.write("\3\2\2\2\u01cd\u01cb\3\2\2\2\u01cd\u01ce\3\2\2\2\u01ce")
+        buf.write("M\3\2\2\2\u01cf\u01cd\3\2\2\2\u01d0\u01d5\5P)\2\u01d1")
+        buf.write("\u01d2\7)\2\2\u01d2\u01d4\5P)\2\u01d3\u01d1\3\2\2\2\u01d4")
+        buf.write("\u01d7\3\2\2\2\u01d5\u01d3\3\2\2\2\u01d5\u01d6\3\2\2\2")
+        buf.write("\u01d6O\3\2\2\2\u01d7\u01d5\3\2\2\2\u01d8\u01d9\7*\2\2")
+        buf.write("\u01d9\u01dc\5P)\2\u01da\u01dc\5> \2\u01db\u01d8\3\2\2")
+        buf.write("\2\u01db\u01da\3\2\2\2\u01dcQ\3\2\2\2\u01dd\u01e7\7\34")
+        buf.write("\2\2\u01de\u01e7\7\35\2\2\u01df\u01e7\7\36\2\2\u01e0\u01e1")
+        buf.write("\7\b\2\2\u01e1\u01e2\5L\'\2\u01e2\u01e3\7\t\2\2\u01e3")
+        buf.write("\u01e7\3\2\2\2\u01e4\u01e7\7\60\2\2\u01e5\u01e7\5T+\2")
+        buf.write("\u01e6\u01dd\3\2\2\2\u01e6\u01de\3\2\2\2\u01e6\u01df\3")
+        buf.write("\2\2\2\u01e6\u01e0\3\2\2\2\u01e6\u01e4\3\2\2\2\u01e6\u01e5")
+        buf.write("\3\2\2\2\u01e7S\3\2\2\2\u01e8\u01e9\7\60\2\2\u01e9\u01eb")
+        buf.write("\7\b\2\2\u01ea\u01ec\5V,\2\u01eb\u01ea\3\2\2\2\u01eb\u01ec")
+        buf.write("\3\2\2\2\u01ec\u01ed\3\2\2\2\u01ed\u01ee\7\t\2\2\u01ee")
+        buf.write("U\3\2\2\2\u01ef\u01f4\5L\'\2\u01f0\u01f1\7\7\2\2\u01f1")
+        buf.write("\u01f3\5L\'\2\u01f2\u01f0\3\2\2\2\u01f3\u01f6\3\2\2\2")
+        buf.write("\u01f4\u01f2\3\2\2\2\u01f4\u01f5\3\2\2\2\u01f5W\3\2\2")
+        buf.write("\2\u01f6\u01f4\3\2\2\2\61Y^fnpz~\u0083\u0094\u0098\u00a2")
+        buf.write("\u00af\u00b4\u00b6\u00c9\u00d9\u00e5\u00eb\u00f4\u00fb")
+        buf.write("\u0105\u010d\u0116\u0122\u012c\u013e\u014b\u014d\u0158")
+        buf.write("\u0160\u0167\u0176\u0183\u018c\u0194\u019b\u01a5\u01b0")
+        buf.write("\u01b7\u01b9\u01c2\u01cd\u01d5\u01db\u01e6\u01eb\u01f4")
         return buf.getvalue()
 
 
@@ -929,6 +931,12 @@ class mathGrammerParser ( Parser ):
                 return self.getTypedRuleContext(mathGrammerParser.Log_op1Context,i)
 
 
+        def TEXT(self, i:int=None):
+            if i is None:
+                return self.getTokens(mathGrammerParser.TEXT)
+            else:
+                return self.getToken(mathGrammerParser.TEXT, i)
+
         def getRuleIndex(self):
             return mathGrammerParser.RULE_print_values
 
@@ -956,15 +964,27 @@ class mathGrammerParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 147
+            self.state = 150
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while _la==mathGrammerParser.COMMA:
                 self.state = 143
                 self.match(mathGrammerParser.COMMA)
-                self.state = 144
-                self.log_op1()
-                self.state = 149
+                self.state = 146
+                self._errHandler.sync(self)
+                token = self._input.LA(1)
+                if token in [mathGrammerParser.LPARENTH, mathGrammerParser.CHAR, mathGrammerParser.INT, mathGrammerParser.FLOAT, mathGrammerParser.AMPERSAND, mathGrammerParser.MUL_SIGN, mathGrammerParser.DOUBLE_PLUS, mathGrammerParser.DOUBLE_MINUS, mathGrammerParser.PLUS, mathGrammerParser.MIN, mathGrammerParser.LOG_NOT, mathGrammerParser.IDENTIFIER]:
+                    self.state = 144
+                    self.log_op1()
+                    pass
+                elif token in [mathGrammerParser.TEXT]:
+                    self.state = 145
+                    self.match(mathGrammerParser.TEXT)
+                    pass
+                else:
+                    raise NoViableAltException(self)
+
+                self.state = 152
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
@@ -1021,24 +1041,24 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.Function_defContext(self, self._ctx, self.state)
         self.enterRule(localctx, 16, self.RULE_function_def)
         try:
-            self.state = 157
+            self.state = 160
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,9,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,10,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 150
+                self.state = 153
                 self.decl_spec()
-                self.state = 151
+                self.state = 154
                 self.declarator()
-                self.state = 152
+                self.state = 155
                 self.comp_stat()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 154
+                self.state = 157
                 self.declarator()
-                self.state = 155
+                self.state = 158
                 self.comp_stat()
                 pass
 
@@ -1115,46 +1135,46 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.StatContext(self, self._ctx, self.state)
         self.enterRule(localctx, 18, self.RULE_stat)
         try:
-            self.state = 170
+            self.state = 173
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [mathGrammerParser.LBRACKET_CURLY]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 159
+                self.state = 162
                 self.comp_stat()
                 pass
             elif token in [mathGrammerParser.SEMICOLON, mathGrammerParser.LPARENTH, mathGrammerParser.CHAR, mathGrammerParser.INT, mathGrammerParser.FLOAT, mathGrammerParser.AMPERSAND, mathGrammerParser.MUL_SIGN, mathGrammerParser.DOUBLE_PLUS, mathGrammerParser.DOUBLE_MINUS, mathGrammerParser.PLUS, mathGrammerParser.MIN, mathGrammerParser.LOG_NOT, mathGrammerParser.IDENTIFIER]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 160
+                self.state = 163
                 self.expr_statement()
                 pass
             elif token in [mathGrammerParser.IF]:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 161
+                self.state = 164
                 self.sel_statement()
                 pass
             elif token in [mathGrammerParser.WHILE, mathGrammerParser.FOR]:
                 self.enterOuterAlt(localctx, 4)
-                self.state = 162
+                self.state = 165
                 self.it_statement()
                 pass
             elif token in [mathGrammerParser.BREAK, mathGrammerParser.CONTINUE, mathGrammerParser.RETURN]:
                 self.enterOuterAlt(localctx, 5)
-                self.state = 163
+                self.state = 166
                 self.j_statement()
                 pass
             elif token in [mathGrammerParser.PRINTF]:
                 self.enterOuterAlt(localctx, 6)
-                self.state = 164
+                self.state = 167
                 self.print_stmt()
-                self.state = 165
+                self.state = 168
                 self.match(mathGrammerParser.SEMICOLON)
                 pass
             elif token in [mathGrammerParser.SCANF]:
                 self.enterOuterAlt(localctx, 7)
-                self.state = 167
+                self.state = 170
                 self.scan_stmt()
-                self.state = 168
+                self.state = 171
                 self.match(mathGrammerParser.SEMICOLON)
                 pass
             else:
@@ -1223,31 +1243,31 @@ class mathGrammerParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 172
+            self.state = 175
             self.match(mathGrammerParser.LBRACKET_CURLY)
-            self.state = 177
+            self.state = 180
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << mathGrammerParser.SEMICOLON) | (1 << mathGrammerParser.LPARENTH) | (1 << mathGrammerParser.LBRACKET_CURLY) | (1 << mathGrammerParser.IF) | (1 << mathGrammerParser.WHILE) | (1 << mathGrammerParser.PRINTF) | (1 << mathGrammerParser.SCANF) | (1 << mathGrammerParser.FOR) | (1 << mathGrammerParser.BREAK) | (1 << mathGrammerParser.CONTINUE) | (1 << mathGrammerParser.RETURN) | (1 << mathGrammerParser.CHAR_KEY) | (1 << mathGrammerParser.INT_KEY) | (1 << mathGrammerParser.FLOAT_KEY) | (1 << mathGrammerParser.VOID) | (1 << mathGrammerParser.CHAR) | (1 << mathGrammerParser.INT) | (1 << mathGrammerParser.FLOAT) | (1 << mathGrammerParser.CONST) | (1 << mathGrammerParser.AMPERSAND) | (1 << mathGrammerParser.MUL_SIGN) | (1 << mathGrammerParser.DOUBLE_PLUS) | (1 << mathGrammerParser.DOUBLE_MINUS) | (1 << mathGrammerParser.PLUS) | (1 << mathGrammerParser.MIN) | (1 << mathGrammerParser.LOG_NOT) | (1 << mathGrammerParser.IDENTIFIER))) != 0):
-                self.state = 175
+                self.state = 178
                 self._errHandler.sync(self)
-                la_ = self._interp.adaptivePredict(self._input,11,self._ctx)
+                la_ = self._interp.adaptivePredict(self._input,12,self._ctx)
                 if la_ == 1:
-                    self.state = 173
+                    self.state = 176
                     self.declaration()
                     pass
 
                 elif la_ == 2:
-                    self.state = 174
+                    self.state = 177
                     self.stat()
                     pass
 
 
-                self.state = 179
+                self.state = 182
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
-            self.state = 180
+            self.state = 183
             self.match(mathGrammerParser.RBRACKET_CURLY)
         except RecognitionException as re:
             localctx.exception = re
@@ -1318,37 +1338,37 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.It_statementContext(self, self._ctx, self.state)
         self.enterRule(localctx, 22, self.RULE_it_statement)
         try:
-            self.state = 196
+            self.state = 199
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [mathGrammerParser.WHILE]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 182
-                self.match(mathGrammerParser.WHILE)
-                self.state = 183
-                self.match(mathGrammerParser.LPARENTH)
-                self.state = 184
-                self.log_op1()
                 self.state = 185
-                self.match(mathGrammerParser.RPARENTH)
+                self.match(mathGrammerParser.WHILE)
                 self.state = 186
+                self.match(mathGrammerParser.LPARENTH)
+                self.state = 187
+                self.log_op1()
+                self.state = 188
+                self.match(mathGrammerParser.RPARENTH)
+                self.state = 189
                 self.stat()
                 pass
             elif token in [mathGrammerParser.FOR]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 188
-                self.match(mathGrammerParser.FOR)
-                self.state = 189
-                self.match(mathGrammerParser.LPARENTH)
-                self.state = 190
-                self.declaration()
                 self.state = 191
-                self.expr_statement()
+                self.match(mathGrammerParser.FOR)
                 self.state = 192
-                self.log_op1()
+                self.match(mathGrammerParser.LPARENTH)
                 self.state = 193
-                self.match(mathGrammerParser.RPARENTH)
+                self.declaration()
                 self.state = 194
+                self.expr_statement()
+                self.state = 195
+                self.log_op1()
+                self.state = 196
+                self.match(mathGrammerParser.RPARENTH)
+                self.state = 197
                 self.stat()
                 pass
             else:
@@ -1418,38 +1438,38 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.Sel_statementContext(self, self._ctx, self.state)
         self.enterRule(localctx, 24, self.RULE_sel_statement)
         try:
-            self.state = 212
+            self.state = 215
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,14,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,15,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 198
-                self.match(mathGrammerParser.IF)
-                self.state = 199
-                self.match(mathGrammerParser.LPARENTH)
-                self.state = 200
-                self.log_op1()
                 self.state = 201
-                self.match(mathGrammerParser.RPARENTH)
+                self.match(mathGrammerParser.IF)
                 self.state = 202
+                self.match(mathGrammerParser.LPARENTH)
+                self.state = 203
+                self.log_op1()
+                self.state = 204
+                self.match(mathGrammerParser.RPARENTH)
+                self.state = 205
                 self.stat()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 204
-                self.match(mathGrammerParser.IF)
-                self.state = 205
-                self.match(mathGrammerParser.LPARENTH)
-                self.state = 206
-                self.log_op1()
                 self.state = 207
-                self.match(mathGrammerParser.RPARENTH)
+                self.match(mathGrammerParser.IF)
                 self.state = 208
-                self.stat()
+                self.match(mathGrammerParser.LPARENTH)
                 self.state = 209
-                self.match(mathGrammerParser.ELSE)
+                self.log_op1()
                 self.state = 210
+                self.match(mathGrammerParser.RPARENTH)
+                self.state = 211
+                self.stat()
+                self.state = 212
+                self.match(mathGrammerParser.ELSE)
+                self.state = 213
                 self.stat()
                 pass
 
@@ -1511,40 +1531,40 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.J_statementContext(self, self._ctx, self.state)
         self.enterRule(localctx, 26, self.RULE_j_statement)
         try:
-            self.state = 224
+            self.state = 227
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,15,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,16,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 214
+                self.state = 217
                 self.match(mathGrammerParser.CONTINUE)
-                self.state = 215
+                self.state = 218
                 self.match(mathGrammerParser.SEMICOLON)
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 216
+                self.state = 219
                 self.match(mathGrammerParser.BREAK)
-                self.state = 217
+                self.state = 220
                 self.match(mathGrammerParser.SEMICOLON)
                 pass
 
             elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 218
+                self.state = 221
                 self.match(mathGrammerParser.RETURN)
-                self.state = 219
+                self.state = 222
                 self.match(mathGrammerParser.SEMICOLON)
                 pass
 
             elif la_ == 4:
                 self.enterOuterAlt(localctx, 4)
-                self.state = 220
+                self.state = 223
                 self.match(mathGrammerParser.RETURN)
-                self.state = 221
+                self.state = 224
                 self.log_op1()
-                self.state = 222
+                self.state = 225
                 self.match(mathGrammerParser.SEMICOLON)
                 pass
 
@@ -1597,19 +1617,19 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.Expr_statementContext(self, self._ctx, self.state)
         self.enterRule(localctx, 28, self.RULE_expr_statement)
         try:
-            self.state = 230
+            self.state = 233
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [mathGrammerParser.LPARENTH, mathGrammerParser.CHAR, mathGrammerParser.INT, mathGrammerParser.FLOAT, mathGrammerParser.AMPERSAND, mathGrammerParser.MUL_SIGN, mathGrammerParser.DOUBLE_PLUS, mathGrammerParser.DOUBLE_MINUS, mathGrammerParser.PLUS, mathGrammerParser.MIN, mathGrammerParser.LOG_NOT, mathGrammerParser.IDENTIFIER]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 226
+                self.state = 229
                 self.log_op1()
-                self.state = 227
+                self.state = 230
                 self.match(mathGrammerParser.SEMICOLON)
                 pass
             elif token in [mathGrammerParser.SEMICOLON]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 229
+                self.state = 232
                 self.match(mathGrammerParser.SEMICOLON)
                 pass
             else:
@@ -1667,24 +1687,24 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.DeclarationContext(self, self._ctx, self.state)
         self.enterRule(localctx, 30, self.RULE_declaration)
         try:
-            self.state = 239
+            self.state = 242
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,17,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,18,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 232
+                self.state = 235
                 self.decl_spec()
-                self.state = 233
+                self.state = 236
                 self.match(mathGrammerParser.SEMICOLON)
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 235
+                self.state = 238
                 self.decl_spec()
-                self.state = 236
+                self.state = 239
                 self.init_decl_list(0)
-                self.state = 237
+                self.state = 240
                 self.match(mathGrammerParser.SEMICOLON)
                 pass
 
@@ -1741,9 +1761,9 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.Decl_specContext(self, self._ctx, self.state)
         self.enterRule(localctx, 32, self.RULE_decl_spec)
         try:
-            self.state = 246
+            self.state = 249
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,18,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,19,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
 
@@ -1751,21 +1771,21 @@ class mathGrammerParser ( Parser ):
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 242
+                self.state = 245
                 self.ttype()
                 pass
 
             elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 243
+                self.state = 246
                 self.match(mathGrammerParser.CONST)
                 pass
 
             elif la_ == 4:
                 self.enterOuterAlt(localctx, 4)
-                self.state = 244
+                self.state = 247
                 self.match(mathGrammerParser.CONST)
-                self.state = 245
+                self.state = 248
                 self.decl_spec()
                 pass
 
@@ -1825,12 +1845,12 @@ class mathGrammerParser ( Parser ):
         self.enterRecursionRule(localctx, 34, self.RULE_init_decl_list, _p)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 249
+            self.state = 252
             self.init_declarator()
             self._ctx.stop = self._input.LT(-1)
-            self.state = 256
+            self.state = 259
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,19,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,20,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
                     if self._parseListeners is not None:
@@ -1838,17 +1858,17 @@ class mathGrammerParser ( Parser ):
                     _prevctx = localctx
                     localctx = mathGrammerParser.Init_decl_listContext(self, _parentctx, _parentState)
                     self.pushNewRecursionContext(localctx, _startState, self.RULE_init_decl_list)
-                    self.state = 251
+                    self.state = 254
                     if not self.precpred(self._ctx, 1):
                         from antlr4.error.Errors import FailedPredicateException
                         raise FailedPredicateException(self, "self.precpred(self._ctx, 1)")
-                    self.state = 252
+                    self.state = 255
                     self.match(mathGrammerParser.COMMA)
-                    self.state = 253
+                    self.state = 256
                     self.init_declarator() 
-                self.state = 258
+                self.state = 261
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,19,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,20,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -1902,22 +1922,22 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.Init_declaratorContext(self, self._ctx, self.state)
         self.enterRule(localctx, 36, self.RULE_init_declarator)
         try:
-            self.state = 264
+            self.state = 267
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,20,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,21,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 259
+                self.state = 262
                 self.declarator()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 260
+                self.state = 263
                 self.declarator()
-                self.state = 261
+                self.state = 264
                 self.match(mathGrammerParser.EQ_OP_S)
-                self.state = 262
+                self.state = 265
                 self.initializer()
                 pass
 
@@ -1975,26 +1995,26 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.DeclaratorContext(self, self._ctx, self.state)
         self.enterRule(localctx, 38, self.RULE_declarator)
         try:
-            self.state = 273
+            self.state = 276
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [mathGrammerParser.MUL_SIGN]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 266
+                self.state = 269
                 self.pointer()
-                self.state = 267
+                self.state = 270
                 self.direct_declarator(0)
                 pass
             elif token in [mathGrammerParser.AMPERSAND]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 269
+                self.state = 272
                 self.reference()
-                self.state = 270
+                self.state = 273
                 self.direct_declarator(0)
                 pass
             elif token in [mathGrammerParser.IDENTIFIER]:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 272
+                self.state = 275
                 self.direct_declarator(0)
                 pass
             else:
@@ -2058,34 +2078,34 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.InitializerContext(self, self._ctx, self.state)
         self.enterRule(localctx, 40, self.RULE_initializer)
         try:
-            self.state = 285
+            self.state = 288
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,22,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,23,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 275
+                self.state = 278
                 self.log_op1()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 276
+                self.state = 279
                 self.match(mathGrammerParser.LBRACKET_CURLY)
-                self.state = 277
+                self.state = 280
                 self.initializer_list(0)
-                self.state = 278
+                self.state = 281
                 self.match(mathGrammerParser.RBRACKET_CURLY)
                 pass
 
             elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 280
-                self.match(mathGrammerParser.LBRACKET_CURLY)
-                self.state = 281
-                self.initializer_list(0)
-                self.state = 282
-                self.match(mathGrammerParser.COMMA)
                 self.state = 283
+                self.match(mathGrammerParser.LBRACKET_CURLY)
+                self.state = 284
+                self.initializer_list(0)
+                self.state = 285
+                self.match(mathGrammerParser.COMMA)
+                self.state = 286
                 self.match(mathGrammerParser.RBRACKET_CURLY)
                 pass
 
@@ -2145,12 +2165,12 @@ class mathGrammerParser ( Parser ):
         self.enterRecursionRule(localctx, 42, self.RULE_initializer_list, _p)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 288
+            self.state = 291
             self.initializer()
             self._ctx.stop = self._input.LT(-1)
-            self.state = 295
+            self.state = 298
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,23,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,24,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
                     if self._parseListeners is not None:
@@ -2158,17 +2178,17 @@ class mathGrammerParser ( Parser ):
                     _prevctx = localctx
                     localctx = mathGrammerParser.Initializer_listContext(self, _parentctx, _parentState)
                     self.pushNewRecursionContext(localctx, _startState, self.RULE_initializer_list)
-                    self.state = 290
+                    self.state = 293
                     if not self.precpred(self._ctx, 1):
                         from antlr4.error.Errors import FailedPredicateException
                         raise FailedPredicateException(self, "self.precpred(self._ctx, 1)")
-                    self.state = 291
+                    self.state = 294
                     self.match(mathGrammerParser.COMMA)
-                    self.state = 292
+                    self.state = 295
                     self.initializer() 
-                self.state = 297
+                self.state = 300
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,23,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,24,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -2254,107 +2274,107 @@ class mathGrammerParser ( Parser ):
         self.enterRecursionRule(localctx, 44, self.RULE_direct_declarator, _p)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 299
+            self.state = 302
             self.match(mathGrammerParser.IDENTIFIER)
             self._ctx.stop = self._input.LT(-1)
-            self.state = 328
+            self.state = 331
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,26,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,27,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
                     if self._parseListeners is not None:
                         self.triggerExitRuleEvent()
                     _prevctx = localctx
-                    self.state = 326
+                    self.state = 329
                     self._errHandler.sync(self)
-                    la_ = self._interp.adaptivePredict(self._input,25,self._ctx)
+                    la_ = self._interp.adaptivePredict(self._input,26,self._ctx)
                     if la_ == 1:
                         localctx = mathGrammerParser.Direct_declaratorContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_direct_declarator)
-                        self.state = 301
+                        self.state = 304
                         if not self.precpred(self._ctx, 5):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 5)")
-                        self.state = 302
+                        self.state = 305
                         self.match(mathGrammerParser.LPARENTH)
-                        self.state = 303
+                        self.state = 306
                         self.parameter_type_list()
-                        self.state = 304
+                        self.state = 307
                         self.match(mathGrammerParser.RPARENTH)
                         pass
 
                     elif la_ == 2:
                         localctx = mathGrammerParser.Direct_declaratorContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_direct_declarator)
-                        self.state = 306
+                        self.state = 309
                         if not self.precpred(self._ctx, 4):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 4)")
-                        self.state = 311 
+                        self.state = 314 
                         self._errHandler.sync(self)
                         _alt = 1
                         while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                             if _alt == 1:
-                                self.state = 307
+                                self.state = 310
                                 self.match(mathGrammerParser.LBRACKET_SQUARE)
-                                self.state = 308
+                                self.state = 311
                                 self.log_op1()
-                                self.state = 309
+                                self.state = 312
                                 self.match(mathGrammerParser.RBRACKET_SQUARE)
 
                             else:
                                 raise NoViableAltException(self)
-                            self.state = 313 
+                            self.state = 316 
                             self._errHandler.sync(self)
-                            _alt = self._interp.adaptivePredict(self._input,24,self._ctx)
+                            _alt = self._interp.adaptivePredict(self._input,25,self._ctx)
 
                         pass
 
                     elif la_ == 3:
                         localctx = mathGrammerParser.Direct_declaratorContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_direct_declarator)
-                        self.state = 315
+                        self.state = 318
                         if not self.precpred(self._ctx, 3):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 3)")
-                        self.state = 316
+                        self.state = 319
                         self.match(mathGrammerParser.LBRACKET_SQUARE)
-                        self.state = 317
+                        self.state = 320
                         self.match(mathGrammerParser.RBRACKET_SQUARE)
                         pass
 
                     elif la_ == 4:
                         localctx = mathGrammerParser.Direct_declaratorContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_direct_declarator)
-                        self.state = 318
+                        self.state = 321
                         if not self.precpred(self._ctx, 2):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 2)")
-                        self.state = 319
+                        self.state = 322
                         self.match(mathGrammerParser.LPARENTH)
-                        self.state = 320
+                        self.state = 323
                         self.identifier_list(0)
-                        self.state = 321
+                        self.state = 324
                         self.match(mathGrammerParser.RPARENTH)
                         pass
 
                     elif la_ == 5:
                         localctx = mathGrammerParser.Direct_declaratorContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_direct_declarator)
-                        self.state = 323
+                        self.state = 326
                         if not self.precpred(self._ctx, 1):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 1)")
-                        self.state = 324
+                        self.state = 327
                         self.match(mathGrammerParser.LPARENTH)
-                        self.state = 325
+                        self.state = 328
                         self.match(mathGrammerParser.RPARENTH)
                         pass
 
              
-                self.state = 330
+                self.state = 333
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,26,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,27,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -2410,12 +2430,12 @@ class mathGrammerParser ( Parser ):
         self.enterRecursionRule(localctx, 46, self.RULE_identifier_list, _p)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 332
+            self.state = 335
             self.match(mathGrammerParser.IDENTIFIER)
             self._ctx.stop = self._input.LT(-1)
-            self.state = 339
+            self.state = 342
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,27,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,28,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
                     if self._parseListeners is not None:
@@ -2423,17 +2443,17 @@ class mathGrammerParser ( Parser ):
                     _prevctx = localctx
                     localctx = mathGrammerParser.Identifier_listContext(self, _parentctx, _parentState)
                     self.pushNewRecursionContext(localctx, _startState, self.RULE_identifier_list)
-                    self.state = 334
+                    self.state = 337
                     if not self.precpred(self._ctx, 1):
                         from antlr4.error.Errors import FailedPredicateException
                         raise FailedPredicateException(self, "self.precpred(self._ctx, 1)")
-                    self.state = 335
+                    self.state = 338
                     self.match(mathGrammerParser.COMMA)
-                    self.state = 336
+                    self.state = 339
                     self.match(mathGrammerParser.IDENTIFIER) 
-                self.state = 341
+                self.state = 344
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,27,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,28,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -2491,17 +2511,17 @@ class mathGrammerParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 342
+            self.state = 345
             self.parameter_decl()
-            self.state = 347
+            self.state = 350
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while _la==mathGrammerParser.COMMA:
-                self.state = 343
+                self.state = 346
                 self.match(mathGrammerParser.COMMA)
-                self.state = 344
+                self.state = 347
                 self.parameter_decl()
-                self.state = 349
+                self.state = 352
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
@@ -2554,20 +2574,20 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.Parameter_declContext(self, self._ctx, self.state)
         self.enterRule(localctx, 50, self.RULE_parameter_decl)
         try:
-            self.state = 354
+            self.state = 357
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,29,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,30,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 350
+                self.state = 353
                 self.decl_spec()
-                self.state = 351
+                self.state = 354
                 self.declarator()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 353
+                self.state = 356
                 self.decl_spec()
                 pass
 
@@ -2627,7 +2647,7 @@ class mathGrammerParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 356
+            self.state = 359
             _la = self._input.LA(1)
             if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << mathGrammerParser.CHAR_KEY) | (1 << mathGrammerParser.INT_KEY) | (1 << mathGrammerParser.FLOAT_KEY) | (1 << mathGrammerParser.VOID))) != 0)):
                 self._errHandler.recoverInline(self)
@@ -2687,38 +2707,38 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.PointerContext(self, self._ctx, self.state)
         self.enterRule(localctx, 54, self.RULE_pointer)
         try:
-            self.state = 369
+            self.state = 372
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,30,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,31,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 358
+                self.state = 361
                 self.pointersign()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 359
+                self.state = 362
                 self.pointersign()
-                self.state = 360
+                self.state = 363
                 self.type_qualifier_list(0)
                 pass
 
             elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 362
+                self.state = 365
                 self.pointersign()
-                self.state = 363
+                self.state = 366
                 self.pointer()
                 pass
 
             elif la_ == 4:
                 self.enterOuterAlt(localctx, 4)
-                self.state = 365
+                self.state = 368
                 self.pointersign()
-                self.state = 366
+                self.state = 369
                 self.type_qualifier_list(0)
-                self.state = 367
+                self.state = 370
                 self.pointer()
                 pass
 
@@ -2776,38 +2796,38 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.ReferenceContext(self, self._ctx, self.state)
         self.enterRule(localctx, 56, self.RULE_reference)
         try:
-            self.state = 382
+            self.state = 385
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,31,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,32,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 371
+                self.state = 374
                 self.ampersandsign()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 372
+                self.state = 375
                 self.ampersandsign()
-                self.state = 373
+                self.state = 376
                 self.type_qualifier_list(0)
                 pass
 
             elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 375
+                self.state = 378
                 self.ampersandsign()
-                self.state = 376
+                self.state = 379
                 self.reference()
                 pass
 
             elif la_ == 4:
                 self.enterOuterAlt(localctx, 4)
-                self.state = 378
+                self.state = 381
                 self.ampersandsign()
-                self.state = 379
+                self.state = 382
                 self.type_qualifier_list(0)
-                self.state = 380
+                self.state = 383
                 self.reference()
                 pass
 
@@ -2863,12 +2883,12 @@ class mathGrammerParser ( Parser ):
         self.enterRecursionRule(localctx, 58, self.RULE_type_qualifier_list, _p)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 385
+            self.state = 388
             self.match(mathGrammerParser.CONST)
             self._ctx.stop = self._input.LT(-1)
-            self.state = 391
+            self.state = 394
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,32,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,33,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
                     if self._parseListeners is not None:
@@ -2876,15 +2896,15 @@ class mathGrammerParser ( Parser ):
                     _prevctx = localctx
                     localctx = mathGrammerParser.Type_qualifier_listContext(self, _parentctx, _parentState)
                     self.pushNewRecursionContext(localctx, _startState, self.RULE_type_qualifier_list)
-                    self.state = 387
+                    self.state = 390
                     if not self.precpred(self._ctx, 1):
                         from antlr4.error.Errors import FailedPredicateException
                         raise FailedPredicateException(self, "self.precpred(self._ctx, 1)")
-                    self.state = 388
+                    self.state = 391
                     self.match(mathGrammerParser.CONST) 
-                self.state = 393
+                self.state = 396
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,32,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,33,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -2938,22 +2958,22 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.Comp_exprContext(self, self._ctx, self.state)
         self.enterRule(localctx, 60, self.RULE_comp_expr)
         try:
-            self.state = 399
+            self.state = 402
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,33,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,34,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 394
+                self.state = 397
                 self.comp_expr1()
-                self.state = 395
+                self.state = 398
                 self.match(mathGrammerParser.EQ_OP)
-                self.state = 396
+                self.state = 399
                 self.comp_expr()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 398
+                self.state = 401
                 self.comp_expr1()
                 pass
 
@@ -3009,22 +3029,22 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.Comp_expr1Context(self, self._ctx, self.state)
         self.enterRule(localctx, 62, self.RULE_comp_expr1)
         try:
-            self.state = 406
+            self.state = 409
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,34,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,35,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 401
+                self.state = 404
                 self.expr(0)
-                self.state = 402
+                self.state = 405
                 self.match(mathGrammerParser.COMP_OP)
-                self.state = 403
+                self.state = 406
                 self.expr(0)
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 405
+                self.state = 408
                 self.expr(0)
                 pass
 
@@ -3088,12 +3108,12 @@ class mathGrammerParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 409
+            self.state = 412
             self.factor(0)
             self._ctx.stop = self._input.LT(-1)
-            self.state = 416
+            self.state = 419
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,35,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,36,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
                     if self._parseListeners is not None:
@@ -3101,22 +3121,22 @@ class mathGrammerParser ( Parser ):
                     _prevctx = localctx
                     localctx = mathGrammerParser.ExprContext(self, _parentctx, _parentState)
                     self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                    self.state = 411
+                    self.state = 414
                     if not self.precpred(self._ctx, 2):
                         from antlr4.error.Errors import FailedPredicateException
                         raise FailedPredicateException(self, "self.precpred(self._ctx, 2)")
-                    self.state = 412
+                    self.state = 415
                     _la = self._input.LA(1)
                     if not(_la==mathGrammerParser.PLUS or _la==mathGrammerParser.MIN):
                         self._errHandler.recoverInline(self)
                     else:
                         self._errHandler.reportMatch(self)
                         self.consume()
-                    self.state = 413
+                    self.state = 416
                     self.factor(0) 
-                self.state = 418
+                self.state = 421
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,35,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,36,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -3180,12 +3200,12 @@ class mathGrammerParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 420
+            self.state = 423
             self.term()
             self._ctx.stop = self._input.LT(-1)
-            self.state = 427
+            self.state = 430
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,36,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,37,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
                     if self._parseListeners is not None:
@@ -3193,22 +3213,22 @@ class mathGrammerParser ( Parser ):
                     _prevctx = localctx
                     localctx = mathGrammerParser.FactorContext(self, _parentctx, _parentState)
                     self.pushNewRecursionContext(localctx, _startState, self.RULE_factor)
-                    self.state = 422
+                    self.state = 425
                     if not self.precpred(self._ctx, 2):
                         from antlr4.error.Errors import FailedPredicateException
                         raise FailedPredicateException(self, "self.precpred(self._ctx, 2)")
-                    self.state = 423
+                    self.state = 426
                     _la = self._input.LA(1)
                     if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << mathGrammerParser.MUL_SIGN) | (1 << mathGrammerParser.DIV_SIGN) | (1 << mathGrammerParser.MOD_SIGN))) != 0)):
                         self._errHandler.recoverInline(self)
                     else:
                         self._errHandler.reportMatch(self)
                         self.consume()
-                    self.state = 424
+                    self.state = 427
                     self.term() 
-                self.state = 429
+                self.state = 432
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,36,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,37,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -3288,63 +3308,63 @@ class mathGrammerParser ( Parser ):
         self.enterRule(localctx, 68, self.RULE_term)
         self._la = 0 # Token type
         try:
-            self.state = 445
+            self.state = 448
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,39,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,40,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 436
+                self.state = 439
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << mathGrammerParser.AMPERSAND) | (1 << mathGrammerParser.MUL_SIGN) | (1 << mathGrammerParser.PLUS) | (1 << mathGrammerParser.MIN))) != 0):
-                    self.state = 434
+                    self.state = 437
                     self._errHandler.sync(self)
                     token = self._input.LA(1)
                     if token in [mathGrammerParser.PLUS]:
-                        self.state = 430
+                        self.state = 433
                         self.match(mathGrammerParser.PLUS)
                         pass
                     elif token in [mathGrammerParser.MIN]:
-                        self.state = 431
+                        self.state = 434
                         self.match(mathGrammerParser.MIN)
                         pass
                     elif token in [mathGrammerParser.MUL_SIGN]:
-                        self.state = 432
+                        self.state = 435
                         self.pointersign()
                         pass
                     elif token in [mathGrammerParser.AMPERSAND]:
-                        self.state = 433
+                        self.state = 436
                         self.ampersandsign()
                         pass
                     else:
                         raise NoViableAltException(self)
 
-                    self.state = 438
+                    self.state = 441
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)
 
-                self.state = 439
+                self.state = 442
                 self.var()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 440
+                self.state = 443
                 _la = self._input.LA(1)
                 if not(_la==mathGrammerParser.DOUBLE_PLUS or _la==mathGrammerParser.DOUBLE_MINUS):
                     self._errHandler.recoverInline(self)
                 else:
                     self._errHandler.reportMatch(self)
                     self.consume()
-                self.state = 441
+                self.state = 444
                 self.var()
                 pass
 
             elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 442
+                self.state = 445
                 self.var()
-                self.state = 443
+                self.state = 446
                 _la = self._input.LA(1)
                 if not(_la==mathGrammerParser.DOUBLE_PLUS or _la==mathGrammerParser.DOUBLE_MINUS):
                     self._errHandler.recoverInline(self)
@@ -3399,7 +3419,7 @@ class mathGrammerParser ( Parser ):
         self.enterRule(localctx, 70, self.RULE_pointersign)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 447
+            self.state = 450
             self.match(mathGrammerParser.MUL_SIGN)
         except RecognitionException as re:
             localctx.exception = re
@@ -3446,7 +3466,7 @@ class mathGrammerParser ( Parser ):
         self.enterRule(localctx, 72, self.RULE_ampersandsign)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 449
+            self.state = 452
             self.match(mathGrammerParser.AMPERSAND)
         except RecognitionException as re:
             localctx.exception = re
@@ -3503,20 +3523,20 @@ class mathGrammerParser ( Parser ):
         self.enterRule(localctx, 74, self.RULE_log_op1)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 451
+            self.state = 454
             self.log_op2()
-            self.state = 456
+            self.state = 459
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,40,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,41,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
-                    self.state = 452
+                    self.state = 455
                     self.match(mathGrammerParser.LOG_OR)
-                    self.state = 453
+                    self.state = 456
                     self.log_op2() 
-                self.state = 458
+                self.state = 461
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,40,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,41,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -3573,20 +3593,20 @@ class mathGrammerParser ( Parser ):
         self.enterRule(localctx, 76, self.RULE_log_op2)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 459
+            self.state = 462
             self.log_op3()
-            self.state = 464
+            self.state = 467
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,41,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,42,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
-                    self.state = 460
+                    self.state = 463
                     self.match(mathGrammerParser.LOG_AND)
-                    self.state = 461
+                    self.state = 464
                     self.log_op3() 
-                self.state = 466
+                self.state = 469
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,41,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,42,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -3640,19 +3660,19 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.Log_op3Context(self, self._ctx, self.state)
         self.enterRule(localctx, 78, self.RULE_log_op3)
         try:
-            self.state = 470
+            self.state = 473
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [mathGrammerParser.LOG_NOT]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 467
+                self.state = 470
                 self.match(mathGrammerParser.LOG_NOT)
-                self.state = 468
+                self.state = 471
                 self.log_op3()
                 pass
             elif token in [mathGrammerParser.LPARENTH, mathGrammerParser.CHAR, mathGrammerParser.INT, mathGrammerParser.FLOAT, mathGrammerParser.AMPERSAND, mathGrammerParser.MUL_SIGN, mathGrammerParser.DOUBLE_PLUS, mathGrammerParser.DOUBLE_MINUS, mathGrammerParser.PLUS, mathGrammerParser.MIN, mathGrammerParser.IDENTIFIER]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 469
+                self.state = 472
                 self.comp_expr()
                 pass
             else:
@@ -3725,46 +3745,46 @@ class mathGrammerParser ( Parser ):
         localctx = mathGrammerParser.VarContext(self, self._ctx, self.state)
         self.enterRule(localctx, 80, self.RULE_var)
         try:
-            self.state = 481
+            self.state = 484
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,43,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,44,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 472
+                self.state = 475
                 self.match(mathGrammerParser.CHAR)
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 473
+                self.state = 476
                 self.match(mathGrammerParser.INT)
                 pass
 
             elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 474
+                self.state = 477
                 self.match(mathGrammerParser.FLOAT)
                 pass
 
             elif la_ == 4:
                 self.enterOuterAlt(localctx, 4)
-                self.state = 475
+                self.state = 478
                 self.match(mathGrammerParser.LPARENTH)
-                self.state = 476
+                self.state = 479
                 self.log_op1()
-                self.state = 477
+                self.state = 480
                 self.match(mathGrammerParser.RPARENTH)
                 pass
 
             elif la_ == 5:
                 self.enterOuterAlt(localctx, 5)
-                self.state = 479
+                self.state = 482
                 self.match(mathGrammerParser.IDENTIFIER)
                 pass
 
             elif la_ == 6:
                 self.enterOuterAlt(localctx, 6)
-                self.state = 480
+                self.state = 483
                 self.func_call()
                 pass
 
@@ -3825,19 +3845,19 @@ class mathGrammerParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 483
-            self.match(mathGrammerParser.IDENTIFIER)
-            self.state = 484
-            self.match(mathGrammerParser.LPARENTH)
             self.state = 486
+            self.match(mathGrammerParser.IDENTIFIER)
+            self.state = 487
+            self.match(mathGrammerParser.LPARENTH)
+            self.state = 489
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << mathGrammerParser.LPARENTH) | (1 << mathGrammerParser.CHAR) | (1 << mathGrammerParser.INT) | (1 << mathGrammerParser.FLOAT) | (1 << mathGrammerParser.AMPERSAND) | (1 << mathGrammerParser.MUL_SIGN) | (1 << mathGrammerParser.DOUBLE_PLUS) | (1 << mathGrammerParser.DOUBLE_MINUS) | (1 << mathGrammerParser.PLUS) | (1 << mathGrammerParser.MIN) | (1 << mathGrammerParser.LOG_NOT) | (1 << mathGrammerParser.IDENTIFIER))) != 0):
-                self.state = 485
+                self.state = 488
                 self.func_call_par_list()
 
 
-            self.state = 488
+            self.state = 491
             self.match(mathGrammerParser.RPARENTH)
         except RecognitionException as re:
             localctx.exception = re
@@ -3895,17 +3915,17 @@ class mathGrammerParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 490
+            self.state = 493
             self.log_op1()
-            self.state = 495
+            self.state = 498
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while _la==mathGrammerParser.COMMA:
-                self.state = 491
+                self.state = 494
                 self.match(mathGrammerParser.COMMA)
-                self.state = 492
+                self.state = 495
                 self.log_op1()
-                self.state = 497
+                self.state = 500
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 

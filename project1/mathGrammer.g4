@@ -35,7 +35,7 @@ print_stmt
         ;
 
 print_values
-        : (COMMA log_op1)*
+        : (COMMA (log_op1 | TEXT))*
         ;
 
 function_def
