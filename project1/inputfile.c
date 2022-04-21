@@ -27,10 +27,16 @@
 #include <stdio.h>
 
 int b = 5;
-int **c = 10;
-float ***y = 20;
-int &r = 30;
-int *yy = &b;
+//int **c = 10;
+//float ***y = 20;
+//int &r = 30;
+//int *yy = &b;
+
+int mul(int x, int y) {
+    return x * y;
+}
+
+int a = mul(5, 6);
 
 //void mul(const int x, int y){
 //    int a = 5;

@@ -1458,8 +1458,33 @@ def setupSymbolTables(tree, node=None):
 
         wasNewBlockOpened = False # nodig om te weten wanneer we de scope moeten sluiten
         if node.token == "NEW_BLOCK" or node.token == "IF" or node.token == "ELSE" or node.token == "WHILE" or\
-                (node.token == "BRANCH" and node.children[0].token == "DECLARATION") or \
-                (node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE"):
+                (node.token == "BRANCH" and node.children[0].token == "DECLARATION"):
+
+            s = SymbolTable()
+            s.enclosingSTable = tree.symbolTableStack[-1]
+            s.astNode = node
+            node.symbolTablePointer = s
+            tree.symbolTableStack.append(s)
+            tree.symbolTableList.append(s)
+            wasNewBlockOpened = True
+
+        if node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE":
+
+            value = node.children[3]  # de "FUNC_DEF" node
+            type = node.children[0].children[0].token
+            isConst = False
+            isOverwritten = False
+            inputTypes = [node.children[0].children[0].token]
+            outputTypes = []
+            functionParameters = []
+            for i in range(len(node.children[2].children)):
+                outputTypes.append(node.children[2].children[i].type)
+                functionParameters.append(node.children[2].children[i].value)
+
+            # semanticAnalysis(node.children[1].children[0])
+
+            tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters)
+            tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
 
             s = SymbolTable()
             s.enclosingSTable = tree.symbolTableStack[-1]
@@ -1505,23 +1530,23 @@ def setupSymbolTables(tree, node=None):
             tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference)
             tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
 
-        elif node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE": # functie(naam) toevoegen aan symbol table
-
-            value = node.children[3] # de "FUNC_DEF" node
-            type = node.children[0].children[0].token
-            isConst = False
-            isOverwritten = False
-            inputTypes = [node.children[0].children[0].token]
-            outputTypes = []
-            functionParameters = []
-            for i in range(len(node.children[2].children)):
-                outputTypes.append(node.children[2].children[i].type)
-                functionParameters.append(node.children[2].children[i].value)
-
-            # semanticAnalysis(node.children[1].children[0])
-
-            tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters)
-            tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
+        # elif node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE": # functie(naam) toevoegen aan symbol table
+        #
+        #     value = node.children[3] # de "FUNC_DEF" node
+        #     type = node.children[0].children[0].token
+        #     isConst = False
+        #     isOverwritten = False
+        #     inputTypes = [node.children[0].children[0].token]
+        #     outputTypes = []
+        #     functionParameters = []
+        #     for i in range(len(node.children[2].children)):
+        #         outputTypes.append(node.children[2].children[i].type)
+        #         functionParameters.append(node.children[2].children[i].value)
+        #
+        #     # semanticAnalysis(node.children[1].children[0])
+        #
+        #     tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters)
+        #     tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
 
         elif node.token == "IDENTIFIER" and not node.parent.token == "=":
             if not node.type == "":
@@ -1637,10 +1662,26 @@ def semanticAnalysisVisitor(node):
                         node.line) + " : " + "Assignment of incompatible types")
 
     elif node.token == "FUNC_CALL":
-        table = tableLookup(node.children[0].children[0])
+        table = tableLookup(node.children[0].children[0]) # we look up the name of the function
         symbol_lookup = symbolLookup(node.children[0].children[0].value, table)
         if symbol_lookup[0] is False:
-            pass
+            # Undefined reference.
+            print("[ Error ] line " + str(node.children[0].children[0].line) + ", position " + str(
+                node.children[0].children[0].column) + " : " + "Undefined or Uninitialized Reference.")
+            exit(1)
+        if len(node.children[1].children) > len(symbol_lookup[1].inputTypes):
+            print("[ Error ] line " + str(node.children[1].line) + ", position " + str(
+                node.children[1].line) + " : " + "In function call, given more arguments than expected")
+            exit(1)
+        elif len(node.children[1].children) < len(symbol_lookup[1].inputTypes): # here we give a warning, because function parameters can be default assigned
+            print("[ Warning ] line " + str(node.children[1].line) + ", position " + str(
+                node.children[1].line) + " : " + "In function call, given less arguments than expected")
+        else: # als het aantal parameters klopt (dan gaan we op types checken)
+            for i in range(len(node.children[1].children)):
+                if not symbol_lookup[1].inputTypes[i] == node.children[1].children[i].type:
+                    print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
+                        node.children[1].children[i].line) + " : " + "In function call, passing of incompatible type")
+
 
     elif node.token == "PRINTF" or node.token == "SCANF":
         pass
@@ -1678,6 +1719,7 @@ def evaluateExpressionType(node=None):
         symbol_lookup = symbolLookup(node.value, table)
 
         if symbol_lookup[0]:
+            # TODO functie check of inputTypes leeg is
             return symbol_lookup[1].type
         else:
             if type(node.value) == float or node.token == "FLOAT":
