@@ -1,13 +1,18 @@
 class Value:
-    def __init__(self, type=None, value=None, isConst=False, isOverwritten=False, inputTypes=None, outputTypes=None, functionParameters = None):
+    def __init__(self, type=None, value=None, isConst=False,
+                 isOverwritten=False, inputTypes=None, outputTypes=None,
+                 functionParameters = None, pointer = None, reference = None):
         self.type = type
         self.value = value
         self.isConst = isConst # bool
         self.isOverwritten = isOverwritten # bool
         self.inputTypes = inputTypes # parameter type (e.g. for functions)
         self.outputTypes = outputTypes # return type (e.g. for functions)
-        self.functionParamaters = functionParameters
-        self.register = []
+        self.functionParameters = functionParameters
+        self.register = None
+
+        self.pointer = pointer
+        self.reference = reference
 
 
 class SymbolTable:

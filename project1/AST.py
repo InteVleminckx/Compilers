@@ -9,14 +9,14 @@ import re
 var_list = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
 
 
-def createNodeItem(token, value, parent,line=0,column=0 ,type="", isConst=False, isOverwritten=False):
-    node = Node(token, value, parent, line, column, type, isConst, isOverwritten)
+def createNodeItem(token, value, parent,line=0,column=0 ,type="", isConst=False, isOverwritten=False, pointer=None, reference=None):
+    node = Node(token, value, parent, line, column, type, isConst, isOverwritten, pointer, reference)
     return node
 
 
 class Node:
 
-    def __init__(self, token, value, parent,line, column, type, isConst, isOverwritten=None):
+    def __init__(self, token, value, parent,line, column, type, isConst, isOverwritten=None, pointer=None, reference=None):
         self.value = value
         self.token = token
         self.parent = parent
@@ -25,10 +25,13 @@ class Node:
         self.children = []
 
         self.type = type
-        self.isConst = isConst
-        self.isOverwritten = isOverwritten
+        self.isConst = isConst # whether the variable was declared const
+        self.isOverwritten = isOverwritten # whether the variable was assigned another value after initial declaration
 
         self.symbolTablePointer = None
+
+        self.pointer = pointer # 0 means not a pointer, 1 means one *, 2 means **, ...
+        self.reference = reference # 0 means no reference, 1 means one &, ...
 
     def getValue(self):
         return self.value
@@ -48,10 +51,15 @@ class AST:
         self.nextType = ""
         self.nextOverwrite = False # for debugging purposes, can be removed (but then all references to this should be removed)
 
-        globalTable = SymbolTable()
-        globalTable.astNode = self.root #
+        self.pointerAmount = 0
+        self.referenceAmount = 0
+
+        globalTable = SymbolTable() # global table (for global scope) premade
+        globalTable.astNode = self.root
         self.symbolTableList = [globalTable]
         self.symbolTableStack = [globalTable]
+
+        self.includes = []
 
     def returnLastBranch(self):
         node = self.parentsList[len(self.parentsList)-1].children[len(self.parentsList[len(self.parentsList)-1].children)-1]
@@ -60,7 +68,7 @@ class AST:
             len(self.parentsList[len(self.parentsList) - 1].children) - 1] = None
         return node
 
-    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, isOverwritten=False, unaryParenth=False):
+    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, isOverwritten=False, pointer=None, reference=None, unaryParenth=False):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
         for parent in self.parentsList:
             hasUnfilledChildren = False
@@ -74,7 +82,7 @@ class AST:
 
         # We maken een node aan en pre-fillen al de children
         if self.root is None:
-            node = createNodeItem(token, value, None,line,column, type, isConst, isOverwritten)
+            node = createNodeItem(token, value, None,line,column, type, isConst, isOverwritten, pointer, reference)
             for i in range(numberOfChilds):
                 node.children.append(None)
             self.root = node
@@ -104,7 +112,7 @@ class AST:
                     for unary in self.unaries:
                         curParent = self.parentsList[len(self.parentsList) - 1]
 
-                        node = createNodeItem(unary[0], unary[1], curParent,line,column, type, isConst, isOverwritten)
+                        node = createNodeItem(unary[0], unary[1], curParent,line,column, type, isConst, isOverwritten, pointer, reference)
                         node.children.append(None)
                         for i in range(len(curParent.children)):
                             if curParent.children[i] is None:
@@ -120,7 +128,7 @@ class AST:
                     self.parentsList.pop()
 
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
-                node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten)
+                node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten, pointer, reference)
                 for i in range(numberOfChilds):
                     node.children.append(None)
                 for i in range(len(curParent.children)):
@@ -281,7 +289,7 @@ class ASTprinter(mathGrammerListener):
         # print("enterTerm")
 
         if ctx.getChildCount() > 1:
-            #Geeft aan er een for loop is of niet, anders doet het zijn normale gang
+            #Geeft aan of er een for loop is of niet, anders doet het zijn normale gang
             isFor = False
 
             #We controleren if we net een for statement gepushed hebben
@@ -422,11 +430,13 @@ class ASTprinter(mathGrammerListener):
                     curStatement.iteration[1] = (ctx.FLOAT(), "FLOAT", 0, ctx.start.line, ctx.start.column)
                 elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
                     curStatement.iteration[1] = (ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
-                                   ast.nextConst, ast.nextOverwrite)
+                                   ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
                     if ast.nextConst:
                         ast.nextConst = False
                     ast.nextType = ""
                     ast.nextOverwrite = False
+                    ast.pointerAmount = 0
+                    ast.referenceAmount = 0
 
         if not isFor:
 
@@ -437,11 +447,13 @@ class ASTprinter(mathGrammerListener):
             elif ctx.FLOAT() and ctx.getChildCount() == 1:
                 ast.createNode(ctx.FLOAT(), "FLOAT", 0, ctx.start.line, ctx.start.column)
             elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
-                ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
+                ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
                 if ast.nextConst:
                     ast.nextConst = False
                 ast.nextType = ""
                 ast.nextOverwrite = False
+                ast.pointerAmount = 0
+                ast.referenceAmount = 0
 
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
@@ -582,11 +594,13 @@ class ASTprinter(mathGrammerListener):
                     if len(self.stack_scopes[-1].parameters) > 0:
                         if self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] is not None:
                             #We maken de identifier node aan
-                            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
+                            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
                             if ast.nextConst:
                                 ast.nextConst = False
                             ast.nextType = ""
                             ast.nextOverwrite = False
+                            ast.pointerAmount = 0
+                            ast.referenceAmount = 0
                             return
 
                     ast.createNode("NAME", "NAME", 1, ctx.start.line, ctx.start.column)
@@ -594,7 +608,7 @@ class ASTprinter(mathGrammerListener):
                     self.stack_scopes[-1].createdFunctionName = True
                     return
 
-            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite)
+            ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
 
             if self.createArray[0]:
                 ast.createNode("INDICES", "INDICES", self.createArray[1], ctx.start.line, ctx.start.column)
@@ -604,6 +618,8 @@ class ASTprinter(mathGrammerListener):
                 ast.nextConst = False
             ast.nextType = ""
             ast.nextOverwrite = False
+            ast.pointerAmount = 0
+            ast.referenceAmount = 0
 
         elif ctx.getChildCount() == 3:
             if str(ctx.getChild(1)) == "[":
@@ -670,7 +686,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#reference.
     def enterReference(self, ctx: mathGrammerParser.ReferenceContext):
-        pass
+        ast.referenceAmount += 1
 
     # Exit a parse tree produced by mathGrammerParser#reference.
     def exitReference(self, ctx: mathGrammerParser.ReferenceContext):
@@ -686,7 +702,7 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#pointersign.
     def enterPointersign(self, ctx: mathGrammerParser.PointersignContext):
-        pass
+        ast.pointerAmount += 1
 
     # Exit a parse tree produced by mathGrammerParser#pointersign.
     def exitPointersign(self, ctx: mathGrammerParser.PointersignContext):
@@ -852,7 +868,10 @@ class ASTprinter(mathGrammerListener):
         elif ctx.BREAK():
             ast.createNode("BREAK", "BREAK", 0, ctx.start.line, ctx.start.column)
         elif ctx.RETURN():
-            ast.createNode("RETURN", "RETURN", 1, ctx.start.line, ctx.start.column)
+            if ctx.getChild(1).getText() == ";":
+                ast.createNode("RETURN", "RETURN", 0, ctx.start.line, ctx.start.column)
+            else:
+                ast.createNode("RETURN", "RETURN", 1, ctx.start.line, ctx.start.column)
 
     # Exit a parse tree produced by mathGrammerParser#j_statement.
     def exitJ_statement(self, ctx: mathGrammerParser.J_statementContext):
@@ -1430,12 +1449,42 @@ def setupSymbolTables(tree, node=None):
             for child in tree.root.children:
                 setupSymbolTables(tree, child)
     else:
+        # handle the include statements here
+        if node.token == "IMPORT":
+            for i in node.children:
+                tree.includes.append(i.value)
+
         ## geval 1: we openen een nieuw block ##
 
         wasNewBlockOpened = False # nodig om te weten wanneer we de scope moeten sluiten
         if node.token == "NEW_BLOCK" or node.token == "IF" or node.token == "ELSE" or node.token == "WHILE" or\
-                (node.token == "BRANCH" and node.children[0].token == "DECLARATION") or \
-                (node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE"):
+                (node.token == "BRANCH" and node.children[0].token == "DECLARATION"):
+
+            s = SymbolTable()
+            s.enclosingSTable = tree.symbolTableStack[-1]
+            s.astNode = node
+            node.symbolTablePointer = s
+            tree.symbolTableStack.append(s)
+            tree.symbolTableList.append(s)
+            wasNewBlockOpened = True
+
+        if node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE":
+
+            value = node.children[3]  # de "FUNC_DEF" node
+            type = node.children[0].children[0].token
+            isConst = False
+            isOverwritten = False
+            inputTypes = [node.children[0].children[0].token]
+            outputTypes = []
+            functionParameters = []
+            for i in range(len(node.children[2].children)):
+                outputTypes.append(node.children[2].children[i].type)
+                functionParameters.append(node.children[2].children[i].value)
+
+            # semanticAnalysis(node.children[1].children[0])
+
+            tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters)
+            tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
 
             s = SymbolTable()
             s.enclosingSTable = tree.symbolTableStack[-1]
@@ -1466,10 +1515,10 @@ def setupSymbolTables(tree, node=None):
 
             semanticAnalysis(node, node.children[0], node.children[1])
 
-            tableValue = Value(type, value, isConst, isOverwritten)
+            tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.children[0].pointer, node.children[0].reference)
             tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
 
-        elif node.parent.token == "PARAMETERS" and not node.token == "=": # parametervariabelen van een functie toevoegen aan symbol table
+        elif node.parent.token == "PARAMETERS" and not node.token == "=" and not node.parent.parent.token == "FUNC_CALL": # parametervariabelen van een functie toevoegen aan symbol table
 
             value = node
             type = node.type
@@ -1478,26 +1527,26 @@ def setupSymbolTables(tree, node=None):
 
             # semanticAnalysis(node, node.children[0], node.children[1])
 
-            tableValue = Value(type, value, isConst, isOverwritten)
+            tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference)
             tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
 
-        elif node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE": # functie(naam) toevoegen aan symbol table
-
-            value = node.children[3] # de "FUNC_DEF" node
-            type = node.children[0].children[0].token
-            isConst = False
-            isOverwritten = False
-            inputTypes = [node.children[0].children[0].token]
-            outputTypes = []
-            functionParameters = []
-            for i in range(len(node.children[2].children)):
-                outputTypes.append(node.children[2].children[i].type)
-                functionParameters.append(node.children[2].children[i].value)
-
-            # semanticAnalysis(node.children[1].children[0])
-
-            tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters)
-            tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
+        # elif node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE": # functie(naam) toevoegen aan symbol table
+        #
+        #     value = node.children[3] # de "FUNC_DEF" node
+        #     type = node.children[0].children[0].token
+        #     isConst = False
+        #     isOverwritten = False
+        #     inputTypes = [node.children[0].children[0].token]
+        #     outputTypes = []
+        #     functionParameters = []
+        #     for i in range(len(node.children[2].children)):
+        #         outputTypes.append(node.children[2].children[i].type)
+        #         functionParameters.append(node.children[2].children[i].value)
+        #
+        #     # semanticAnalysis(node.children[1].children[0])
+        #
+        #     tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters)
+        #     tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
 
         elif node.token == "IDENTIFIER" and not node.parent.token == "=":
             if not node.type == "":
@@ -1508,7 +1557,7 @@ def setupSymbolTables(tree, node=None):
 
                 semanticAnalysis(node, node, node) # child1 is the node itself, we need to check that reference (if it is one)
 
-                tableValue = Value(type, value, isConst, isOverwritten)
+                tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference)
                 tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
             else:
                 semanticAnalysis(node)
@@ -1568,10 +1617,6 @@ def semanticAnalysis(node, child1=None, child2=None):
                     node.column) + " : " + "Duplicate declaration")
                 exit(1)
 
-            # Assignment to an rvalue.
-            # if 5 == 4:
-            #     print("[ Error ] line " + str(node.line) + ", position " + str(node.column) + " : " + "Assignment to an rvalue")
-
             # Assignment to a const variable.
             if symbol_lookup[1].isConst:
                 print("[ Error ] line " + str(node.line) + ", position " + str(node.column) + " : " + "Assignment to a const variable")
@@ -1580,9 +1625,6 @@ def semanticAnalysis(node, child1=None, child2=None):
 def semanticAnalysisVisitor(node):
 
     if node.token == "=":
-
-        # table = tableLookup(node.children[0])
-        # symbol_lookup = symbolLookup(node.children[0].value, table)
 
         table_child2 = tableLookup(node.children[1])
         symbol_lookup_child2 = symbolLookup(node.children[1].value, table_child2)
@@ -1606,16 +1648,43 @@ def semanticAnalysisVisitor(node):
                     print("[ Warning ] line " + str(node.line) + ", position " + str(
                         node.column) + " : " + "Assignment of incompatible types")
         else: # for a whole expression
+            if node.children[0].isOverwritten: # van de vorm 'x = ...'
+                table = tableLookup(node.children[0])
+                symbol_lookup = symbolLookup(node.children[0].value, table)
+                if symbol_lookup[0]:
+                    if symbol_lookup[1].type != evaluateExpressionType(node.children[1]):
+                        print("[ Warning ] line " + str(node.line) + ", position " + str(
+                            node.line) + " : " + "Assignment of incompatible types")
 
-            if node.children[0].type != evaluateExpressionType(node.children[1]):
-                print("[ Warning ] line " + str(node.line) + ", position " + str(
-                    node.line) + " : " + "Assignment of incompatible types")
+            else: # van de vorm 'type x = ...'
+                if node.children[0].type != evaluateExpressionType(node.children[1]):
+                    print("[ Warning ] line " + str(node.line) + ", position " + str(
+                        node.line) + " : " + "Assignment of incompatible types")
 
     elif node.token == "FUNC_CALL":
-        table = tableLookup(node.children[0].children[0])
+        table = tableLookup(node.children[0].children[0]) # we look up the name of the function
         symbol_lookup = symbolLookup(node.children[0].children[0].value, table)
         if symbol_lookup[0] is False:
-            pass
+            # Undefined reference.
+            print("[ Error ] line " + str(node.children[0].children[0].line) + ", position " + str(
+                node.children[0].children[0].column) + " : " + "Undefined or Uninitialized Reference.")
+            exit(1)
+        if len(node.children[1].children) > len(symbol_lookup[1].inputTypes):
+            print("[ Error ] line " + str(node.children[1].line) + ", position " + str(
+                node.children[1].line) + " : " + "In function call, given more arguments than expected")
+            exit(1)
+        elif len(node.children[1].children) < len(symbol_lookup[1].inputTypes): # here we give a warning, because function parameters can be default assigned
+            print("[ Warning ] line " + str(node.children[1].line) + ", position " + str(
+                node.children[1].line) + " : " + "In function call, given less arguments than expected")
+        else: # als het aantal parameters klopt (dan gaan we op types checken)
+            for i in range(len(node.children[1].children)):
+                if not symbol_lookup[1].inputTypes[i] == node.children[1].children[i].type:
+                    print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
+                        node.children[1].children[i].line) + " : " + "In function call, passing of incompatible type")
+
+
+    elif node.token == "PRINTF" or node.token == "SCANF":
+        pass
 
 
     if len(node.children) > 0:
@@ -1650,6 +1719,7 @@ def evaluateExpressionType(node=None):
         symbol_lookup = symbolLookup(node.value, table)
 
         if symbol_lookup[0]:
+            # TODO functie check of inputTypes leeg is
             return symbol_lookup[1].type
         else:
             if type(node.value) == float or node.token == "FLOAT":
