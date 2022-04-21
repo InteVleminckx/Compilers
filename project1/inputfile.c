@@ -26,7 +26,8 @@
 #include <stdio.h>
 #include <stdio.h>
 
-int b = 5;
+//int b = 5;
+//int c = 10;
 //int **c = 10;
 //float ***y = 20;
 //int &r = 30;

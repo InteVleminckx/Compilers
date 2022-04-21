@@ -1518,7 +1518,7 @@ def setupSymbolTables(tree, node=None):
             tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.children[0].pointer, node.children[0].reference)
             tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
 
-        elif node.parent.token == "PARAMETERS" and not node.token == "=": # parametervariabelen van een functie toevoegen aan symbol table
+        elif node.parent.token == "PARAMETERS" and not node.token == "=" and not node.parent.parent.token == "FUNC_CALL": # parametervariabelen van een functie toevoegen aan symbol table
 
             value = node
             type = node.type
