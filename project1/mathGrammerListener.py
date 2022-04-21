@@ -53,12 +53,30 @@ class mathGrammerListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by mathGrammerParser#scan_stmt.
+    def enterScan_stmt(self, ctx:mathGrammerParser.Scan_stmtContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#scan_stmt.
+    def exitScan_stmt(self, ctx:mathGrammerParser.Scan_stmtContext):
+        pass
+
+
     # Enter a parse tree produced by mathGrammerParser#print_stmt.
     def enterPrint_stmt(self, ctx:mathGrammerParser.Print_stmtContext):
         pass
 
     # Exit a parse tree produced by mathGrammerParser#print_stmt.
     def exitPrint_stmt(self, ctx:mathGrammerParser.Print_stmtContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#print_values.
+    def enterPrint_values(self, ctx:mathGrammerParser.Print_valuesContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#print_values.
+    def exitPrint_values(self, ctx:mathGrammerParser.Print_valuesContext):
         pass
 
 
@@ -311,6 +329,15 @@ class mathGrammerListener(ParseTreeListener):
 
     # Exit a parse tree produced by mathGrammerParser#pointersign.
     def exitPointersign(self, ctx:mathGrammerParser.PointersignContext):
+        pass
+
+
+    # Enter a parse tree produced by mathGrammerParser#ampersandsign.
+    def enterAmpersandsign(self, ctx:mathGrammerParser.AmpersandsignContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#ampersandsign.
+    def exitAmpersandsign(self, ctx:mathGrammerParser.AmpersandsignContext):
         pass
 
 

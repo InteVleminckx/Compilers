@@ -22,8 +22,20 @@ extern_decl
         | declaration
         ;
 
+//print_stmt
+//        : PRINTF LPARENTH log_op1 RPARENTH
+//        ;
+
+scan_stmt
+        : SCANF LPARENTH TEXT print_values RPARENTH
+        ;
+
 print_stmt
-        : PRINTF LPARENTH log_op1 RPARENTH
+        : PRINTF LPARENTH TEXT print_values RPARENTH
+        ;
+
+print_values
+        : (COMMA log_op1)*
         ;
 
 function_def
@@ -40,6 +52,7 @@ stat
         | it_statement
         | j_statement
         | print_stmt SEMICOLON
+        | scan_stmt SEMICOLON
         // | declaration_list // dit veroorzaakt een vreemde boom
         ;
 
@@ -284,6 +297,11 @@ PRINTF
         : 'printf'
         ;
 
+SCANF
+        : 'scanf'
+        ;
+
+
 FOR
         : 'for'
         ;
@@ -392,6 +410,9 @@ EQ_OP
         | '!='
         ;
 
+TEXT
+    : '"'(.*?)'"'
+    ;
 
 SINGLE_COMMENT
         : '//' ~[\r\n]* -> skip

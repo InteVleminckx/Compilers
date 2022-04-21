@@ -63,7 +63,8 @@ def main(argv):
     createGraph(a, argv[1], 1)
     # codeGenerator(a)
     # codeGenerationVisitor()
-    # toLLVM(a)
+    llvm = LLVM(a)
+    llvm.toLLVM()
 
 if __name__ == '__main__':
     main(sys.argv)

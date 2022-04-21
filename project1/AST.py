@@ -32,6 +32,7 @@ class Node:
 
         self.pointer = pointer # 0 means not a pointer, 1 means one *, 2 means **, ...
         self.reference = reference # 0 means no reference, 1 means one &, ...
+        self.textPrint = ""
 
     def getValue(self):
         return self.value
@@ -68,7 +69,7 @@ class AST:
             len(self.parentsList[len(self.parentsList) - 1].children) - 1] = None
         return node
 
-    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, isOverwritten=False, pointer=None, reference=None, unaryParenth=False):
+    def createNode(self, value, token, numberOfChilds, line, column,type="", isConst=False, isOverwritten=False, pointer=None, reference=None, unaryParenth=False, printText=None):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
         for parent in self.parentsList:
             hasUnfilledChildren = False
@@ -129,6 +130,11 @@ class AST:
 
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
                 node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten, pointer, reference)
+
+                if token == "PRINTF" or token == "SCANF":
+                    node.textPrint = printText
+
+
                 for i in range(numberOfChilds):
                     node.children.append(None)
                 for i in range(len(curParent.children)):
@@ -477,12 +483,51 @@ class ASTprinter(mathGrammerListener):
     def exitExtern_decl(self, ctx: mathGrammerParser.Extern_declContext):
         pass
 
+    # Enter a parse tree produced by mathGrammerParser#scan_stmt.
+    def enterScan_stmt(self, ctx:mathGrammerParser.Scan_stmtContext):
+        text = str(ctx.getChild(2))
+        text = text[1:len(text) - 1]
+        if ctx.getChild(3).children is None:
+            ast.createNode(ctx.getChild(0), "SCANF", 1, ctx.start.line, ctx.start.column)
+
+        else:
+            ast.createNode(ctx.getChild(0), "SCANF", 2, ctx.start.line, ctx.start.column)
+
+
+        ast.createNode(text, "PRINTTEXT", 0, ctx.start.line, ctx.start.column)
+
+    # Exit a parse tree produced by mathGrammerParser#scan_stmt.
+    def exitScan_stmt(self, ctx:mathGrammerParser.Scan_stmtContext):
+        pass
+
+
     # Enter a parse tree produced by mathGrammerParser#print_stmt.
     def enterPrint_stmt(self, ctx: mathGrammerParser.Print_stmtContext):
-        ast.createNode(ctx.getChild(0), "PRINTF", 1, ctx.start.line, ctx.start.column)
+
+        text = str(ctx.getChild(2))
+
+        text = text[1:len(text)-1]
+        if ctx.getChild(3).children is None:
+            ast.createNode(ctx.getChild(0), "PRINTF", 1, ctx.start.line, ctx.start.column)
+
+        else:
+            childs = int(1 + len(ctx.getChild(3).children)/2)
+
+            ast.createNode(ctx.getChild(0), "PRINTF", childs, ctx.start.line, ctx.start.column)
+
+        ast.createNode(text, "PRINTTEXT", 0, ctx.start.line, ctx.start.column)
+
 
     # Exit a parse tree produced by mathGrammerParser#print_stmt.
     def exitPrint_stmt(self, ctx: mathGrammerParser.Print_stmtContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#print_values.
+    def enterPrint_values(self, ctx:mathGrammerParser.Print_valuesContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#print_values.
+    def exitPrint_values(self, ctx:mathGrammerParser.Print_valuesContext):
         pass
 
     # Enter a parse tree produced by mathGrammerParser#function_def.
@@ -682,6 +727,14 @@ class ASTprinter(mathGrammerListener):
 
     # Exit a parse tree produced by mathGrammerParser#pointer.
     def exitPointer(self, ctx: mathGrammerParser.PointerContext):
+        pass
+
+    # Enter a parse tree produced by mathGrammerParser#ampersandsign.
+    def enterAmpersandsign(self, ctx:mathGrammerParser.AmpersandsignContext):
+        ast.referenceAmount += 1
+
+    # Exit a parse tree produced by mathGrammerParser#ampersandsign.
+    def exitAmpersandsign(self, ctx:mathGrammerParser.AmpersandsignContext):
         pass
 
     # Enter a parse tree produced by mathGrammerParser#reference.
@@ -1103,164 +1156,6 @@ def optimizationVisitor(tree, table=False): # TODO verwijderen?
 
     return newTree
 
-# def prepConstanFolding(child):
-#
-#     if child.token == "=":
-#         new = constantFolding(child.children[1])
-#         child.children[1].value = new[0]
-#         child.children[1].token = new[1]
-#         child.children[1].children = []
-#     elif child.token == "PRINTF":
-#         new = constantFolding(child.children[0])
-#         child.children[0].value = new[0]
-#         child.children[0].token = new[1]
-#         child.children[0].children = []
-
-
-#########################################################################################################################
-# Replaces every binary operation node that has two literal nodes as children with a literal node containing the result #
-# of the operation.                                                                                                     #
-# Similar for unary operations, it also replace every unary operation node that has a literal node as its               #
-# child with a literal node containing the result of the operation.                                                     #
-#########################################################################################################################
-# def constantFolding(tree):
-#     # We need to look first in what situation we are.
-#     # We look first at the token of the current node.
-#     # We can split these up in different parts.
-#     # 1) If the token is an Integer, Float. Then it cannot have any children so this is a base case
-#     #    and we cannot go any further in the ast.
-#     # 2) When the token is an operation like: BIN_OP1, BIN_OP2, etc. then we need to check the children
-#     #    of this node and check their token
-#     # So we start with point one. We can split these in 2 statements, so we can return the correct type.
-#
-#     if tree.token == "INT":
-#         return int(str(tree.value)), "INT"  # value and token of this node
-#
-#     elif tree.token == "FLOAT":
-#         return float(str(tree.value)), "FLOAT"  # value and token of this node
-#
-#     elif tree.token == "CHAR":
-#         return str(tree.value), "CHAR"
-#     # When we didn't match the conditions for point one, we go to point 2.
-#
-#     else:
-#
-#         # We need to check what kind operation we need to operate.
-#         # First we check if it is a binary operation like +,-,*,/,%
-#
-#         value = None
-#         token = None
-#
-#         value_c0, value_c0_t = constantFolding(tree.children[0])
-#         value_c1, value_c1_t = constantFolding(tree.children[1]) if len(tree.children) == 2 else (None,None)
-#
-#         if tree.token == "BIN_OP1" or tree.token == "BIN_OP2":
-#
-#             if value_c0 is not None and value_c1 is not None:
-#                 value_c0 = int(ord(value_c0[1])) if isinstance(value_c0, str) else value_c0
-#                 value_c1 = int(ord(value_c1[1])) if isinstance(value_c1, str) else value_c1
-#
-#             # Semantic Error
-#             if value_c0_t != value_c1_t:
-#                 print("[ Warning ] line " + str(tree.children[0].line) + ", position " + str(
-#                     tree.children[0].column) + " : " + "Operation of incompatible types")
-#
-#             bin_operations = {
-#                 "+": value_c0 + value_c1,
-#                 "-": value_c0 - value_c1,
-#                 "*": value_c0 * value_c1,
-#                 "/": value_c0 / value_c1,
-#                 "%": value_c0 % value_c1
-#             }
-#
-#             # Finding the value recursivly
-#             value = bin_operations[str(tree.value)]
-#             # Checking what type the value is, it is a int or a float.
-#             token = "INT" if isinstance(value, int) else "FLOAT"
-#
-#
-#         # We check if it is a logaritmise operation like ||, &&, !
-#         elif tree.token == "LOG_OR" or tree.token == "LOG_AND" or tree.token == "LOG_NOT":
-#
-#             log_operations = {
-#                 "||": value_c0 == 0 and value_c1 == 0,
-#                 "&&": value_c0 == 0 or value_c1 == 0,
-#                 "!": value_c0 != 0
-#             }
-#
-#             # Checking if the value needs to be zero or one.
-#             value = 0 if log_operations[str(tree.value)] else 1
-#             # Because this always has value zero or one, the type always gonna be a integer.
-#             token = "INT"
-#
-#
-#         # We check if it is a comparison operation like <,>,<=,>=,==,!=
-#         elif tree.token == "COMP_OP" or tree.token == "EQ_OP":
-#
-#             comp_operations = {
-#                 ">": value_c0 > value_c1,
-#                 "<": value_c0 < value_c1,
-#                 "<=": value_c0 <= value_c1,
-#                 ">=": value_c0 >= value_c1,
-#                 "==": value_c0 == value_c1,
-#                 "!=": value_c0 != value_c1
-#             }
-#
-#             # Checking if the value needs to be zero or one.
-#             value = 1 if comp_operations[str(tree.value)] else 0
-#             # Because this always has value zero or one, the type always gonna be a interger.
-#             token = "INT"
-#
-#
-#         # We check if it is a unary operation like +,-
-#         elif tree.token == "UN_OP":
-#             # The value is just the return value of his child.
-#             value = -value_c0 if str(tree.value) == "-" else value_c0
-#             # Checking what type the value is, it is an int or a float.
-#             token = "INT" if isinstance(value, int) else "FLOAT"
-#
-#         # At this moment we fold the full branch of this node and need to replace this node
-#         # with the new value and token.
-#         return value, token
-
-
-#########################################################################################################################
-# Replaces indentifiers in expressions with their value, if it is know at compile-time, before performing costant       #
-# folding.                                                                                                              #
-#########################################################################################################################
-# def constantPropagation(tree, node=None):
-#     """
-#     :param tree: The AST where constant propagation needs to be applied on.
-#     :return: A reconstructed AST, constructed by applying constant propagation on the input AST.
-#     """
-#
-#     if node is None:  # Hebben we de root
-#         # count = 0
-#         if len(tree.root.children) > 0:
-#             for child in tree.root.children:
-#                 constantPropagation(tree, child)
-#                 prepConstanFolding(child)
-#
-#     else:
-#         if node.token == "=":
-#             constantPropagation(tree, node.children[1])
-#
-#         elif node.token == "IDENTIFIER":
-#             table = tableLookup(node)
-#             symbol_lookup = symbolLookup(node.value, table)
-#             if symbol_lookup[0] is True:
-#                 s_list = symbol_lookup[1]
-#                 if s_list.isConst or (symbol_lookup[2] and not s_list.isOverwritten):
-#                     # parent = node.parent
-#                     node.value = s_list.value.value
-#                     node.token = s_list.value.token
-#                     # node.token = s_list.type
-#                     # s_list.value = node
-#         else:
-#             if len(node.children) > 0:
-#                 for child in node.children:
-#                     constantPropagation(tree, child)
-
 def optimize(tree):
     if tree.root is not None:
         propagation(tree.root)
@@ -1279,7 +1174,7 @@ def propagation(node):
     if node.token == "IDENTIFIER":
 
         # We controleren wel eerst of de identifier niet de linkerkant is van de expressie want die mag niet vervangen worden
-        if (node == node.parent.children[0] and node.parent.token == "=") or node.parent.token == "NAME":
+        if (node == node.parent.children[0] and node.parent.token == "=") or node.parent.token == "NAME" or node.parent.token == "++" or node.parent.token == "--":
             # Dan returnen we gewoon
             return
 
@@ -1332,8 +1227,12 @@ def folding(node):
             "%": value_c0 % value_c1
         }
 
+
+
         # Finding the value recursivly
         node.value = bin_operations[str(node.value)]
+        if bin_operations["%"] == 0 and node.children[0].token == "INT" and node.children[1].token == "INT":
+            node.value = int(node.value)
         # Checking what type the value is, it is a int or a float.
         node.token = "INT" if isinstance(node.value, int) else "FLOAT"
         node.children.clear()
@@ -1378,7 +1277,9 @@ def folding(node):
     # We check if it is a unary operation like +,-
     elif node.token == "UN_OP":
         # print(node.token)
-
+        if node.parent.parent is not None:
+            if node.parent.parent.token == "CONDITION":
+                return
         # The value is just the return value of his child.
         node.value = -value_c0 if str(node.value) == "-" else value_c0
         # Checking what type the value is, it is an int or a float.
@@ -1684,8 +1585,32 @@ def semanticAnalysisVisitor(node):
 
 
     elif node.token == "PRINTF" or node.token == "SCANF":
-        pass
+        text = node.children[0].value
 
+        if len(node.children) > 1:
+            aantalTypes = len(node.children) - 1
+
+            params = []
+            #We gaan de text parsen
+            addNext = False
+            for chr in text:
+                if chr == '%':
+                    addNext = True
+                elif addNext:
+                    param = "%" + chr
+                    addNext = False
+                    params.append(param)
+
+            if len(params) != aantalTypes:
+                #TODO: hier zeggen van dat er te weining / te veel types zijn vergeleken met de parameters
+                print("[ Error ] line " + str(node.line) + ", position " + str(
+                    node.line) + " : " + "In function call, passing of incompatible type")
+                exit(1)
+            else:
+                #TODO: Hier nog controleren dat de types gelijk aan die van de parameters (normaal moeten deze in dezelfde volgorde zijn)
+                print("[ Warning ] line " + str(node.line) + ", position " + str(
+                    node.line) + " : " + "In function call, passing of incompatible type")
+                pass
 
     if len(node.children) > 0:
         for child in node.children:

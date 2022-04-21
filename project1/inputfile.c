@@ -1,105 +1,108 @@
-//int a = 5*(-3/10 + (-9/10));
-//1 || 0;
-//5+6+7+8+9+10;
-//5+(!10);
-//char c = 'c';
-//const float b=!e;
-//printf(a);
-//printf(1+2/3);
-///* a */
-///*
-// * a
-//*/
+int a = 5;
+int b = ****a;
 
-//int a = 5;
-//int b = 10.0;
-//char c = 'a';
+////int a = 5*(-3/10 + (-9/10));
+////1 || 0;
+////5+6+7+8+9+10;
+////5+(!10);
+////char c = 'c';
+////const float b=!e;
+////printf(a);
+////printf(1+2/3);
+/////* a */
+/////*
+//// * a
+////*/
 //
-//int d = b;
-//int e = a + b;
+////int a = 5;
+////int b = 10.0;
+////char c = 'a';
+////
+////int d = b;
+////int e = a + b;
+////
+////float h = a + d;
+////int g = c + a;
 //
-//float h = a + d;
-//int g = c + a;
-
-//printf(f);
-
-#include <stdio.h>
-#include <stdio.h>
-
-//int b = 5;
-//int c = 10;
-//int **c = 10;
-//float ***y = 20;
-//int &r = 30;
-//int *yy = &b;
-
-int mul(int x, int y) {
-    return x * y;
-}
-
-int a = mul(5, 6);
-
-//void mul(const int x, int y){
-//    int a = 5;
-//    int b = 6 + a;
-//    y = x + b;
+////printf(f);
+//
+//#include <stdio.h>
+//#include <stdio.h>
+//
+////int b = 5;
+////int c = 10;
+////int **c = 10;
+////float ***y = 20;
+////int &r = 30;
+////int *yy = &b;
+//
+//int mul(int x, int y) {
 //    return x * y;
 //}
 //
-//void function(const int x, int y){
-//    int a = 5;
-//    int b = 6 + a;
-//    y = x + b;
-//    char c = 'c' + 1;
-//    int cc = a + b;
-//    return;
-//}
-
-//int b = 10;
-//while(10 == 10)
-//{
-//    int b = 15;
-//    int c = 5 + b;
-//    char y = 'c';
-//    {
-//        int a = 0;
-//        int b = 15;
-//    }
-//    printf(10);
-//}
+//int a = mul(5, 6);
 //
-//{
+////void mul(const int x, int y){
+////    int a = 5;
+////    int b = 6 + a;
+////    y = x + b;
+////    return x * y;
+////}
+////
+////void function(const int x, int y){
+////    int a = 5;
+////    int b = 6 + a;
+////    y = x + b;
+////    char c = 'c' + 1;
+////    int cc = a + b;
+////    return;
+////}
 //
-//}
-//
-//for (int i = 0; i < 10; ++i){
-//    int uu = 8;
-//    if (i == 0){
-//        printf(i);
-//
-//    }
-//}
-//
-//int a = 10;
-//
-//if (10 == 10){
-//    a++;
-//    while (a < 10){
-//        --a;
-//        for (int j = 10; j > 0; --j){
-//            if (j == 5){
-//                printf('a');
-//            }
-//            else{
-//                printf('b');
-//            }
-//        }
-//    }
-//}
-//
-//if (5 == 5){
-//
-//}
-//else {
-//
-//}
+////int b = 10;
+////while(10 == 10)
+////{
+////    int b = 15;
+////    int c = 5 + b;
+////    char y = 'c';
+////    {
+////        int a = 0;
+////        int b = 15;
+////    }
+////    printf(10);
+////}
+////
+////{
+////
+////}
+////
+////for (int i = 0; i < 10; ++i){
+////    int uu = 8;
+////    if (i == 0){
+////        printf(i);
+////
+////    }
+////}
+////
+////int a = 10;
+////
+////if (10 == 10){
+////    a++;
+////    while (a < 10){
+////        --a;
+////        for (int j = 10; j > 0; --j){
+////            if (j == 5){
+////                printf('a');
+////            }
+////            else{
+////                printf('b');
+////            }
+////        }
+////    }
+////}
+////
+////if (5 == 5){
+////
+////}
+////else {
+////
+////}

@@ -9,7 +9,7 @@ class Value:
         self.inputTypes = inputTypes # parameter type (e.g. for functions)
         self.outputTypes = outputTypes # return type (e.g. for functions)
         self.functionParameters = functionParameters
-        self.register = None
+        self.register = []
 
         self.pointer = pointer
         self.reference = reference

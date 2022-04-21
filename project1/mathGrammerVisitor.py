@@ -34,8 +34,18 @@ class mathGrammerVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by mathGrammerParser#scan_stmt.
+    def visitScan_stmt(self, ctx:mathGrammerParser.Scan_stmtContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by mathGrammerParser#print_stmt.
     def visitPrint_stmt(self, ctx:mathGrammerParser.Print_stmtContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#print_values.
+    def visitPrint_values(self, ctx:mathGrammerParser.Print_valuesContext):
         return self.visitChildren(ctx)
 
 
@@ -176,6 +186,11 @@ class mathGrammerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by mathGrammerParser#pointersign.
     def visitPointersign(self, ctx:mathGrammerParser.PointersignContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by mathGrammerParser#ampersandsign.
+    def visitAmpersandsign(self, ctx:mathGrammerParser.AmpersandsignContext):
         return self.visitChildren(ctx)
 
 
