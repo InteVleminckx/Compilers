@@ -1,6 +1,6 @@
 
 
-#include <stdio.h>
+//#include <stdio.h>
 
 // This should print the number 10 for each basic operation (int and float)
 int main(){

@@ -1600,6 +1600,13 @@ def semanticAnalysisVisitor(node):
                         node.children[1].children[i].column) + " : " + "In function call, passing of incompatible type")
 
     elif node.token == "PRINTF" or node.token == "SCANF":
+
+        if not ast.includes.count("stdio.h"):
+            print("[ Error ] line " + str(node.line) + ", position " + str(
+                node.column) + " : " + "Incompatible implicit declaration of built-in function ‘" + node.token.lower() + "'")
+            print("Note: include ‘<stdio.h>’ (in the beginning of the file).")
+            exit(1)
+
         text = node.children[0].value
 
         if len(node.children) > 1:
