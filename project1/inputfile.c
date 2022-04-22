@@ -1,10 +1,17 @@
-
-
 #include <stdio.h>
 
-int mul(a, b){
-    return 0;
+int a = 10;
+int b = 10;
+
+while (a != b){
+
 }
+
+for (int i = 10; i < a; i++){
+
+
+}
+
 
 // This should print the number 10 for each basic operation (int and float)
 

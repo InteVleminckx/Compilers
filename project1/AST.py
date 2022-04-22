@@ -1278,7 +1278,10 @@ def folding(node):
     elif node.token == "COMP_OP" or node.token == "EQ_OP":
 
         #We hebben hier wel een geval dat de parent een Condition is en dan mag er niet meer gefold worden
-        if node.parent.token == "CONDITION":
+        # if node.parent.token == "CONDITION" and node.parent.parent.children[1].token != "IF":
+        #     return
+
+        if value_c1 is None:
             return
 
         comp_operations = {
@@ -1307,6 +1310,56 @@ def folding(node):
         # Checking what type the value is, it is an int or a float.
         node.token = "INT" if isinstance(node.value, int) else "FLOAT"
         node.children.clear()
+
+    #We controleren eerst of de node nog maar 1 kind heeft als dit het geval is is da kans groot dat er nog enkel een 0 of 1 staat
+    elif node.token == "CONDITION" and node.parent.children[1].token == "IF" and len(node.children) == 1:
+        # dan controleren we of het child geen kind heeft
+        # + nu controleren we gewoon nog of we true of false is, maar moeten eerst nog zien of de value wel een int is
+        if len(node.children[0].children) == 0 and isinstance(node.children[0].value, int):
+            if node.children[0].value == 1:
+                # Als de value 1 is maakt het niet eens uit of er al dan niet een else is
+                # We vervangen dan de branch door een nieuw block met alle nodes die in de if scope zaten.
+                newNode = createNodeItem("NEW_BLOCK", "NEW_BLOCK", node.parent.parent)
+                newNode.children = node.parent.children[1].children
+                newNode.symbolTablePointer = node.parent.children[1].symbolTablePointer
+                newNode.symbolTablePointer.astNode = newNode
+                for i, children in enumerate(node.parent.parent.children):
+                    if children == node.parent:
+                        node.parent.parent.children[i] = newNode
+                        break
+
+            elif node.children[0].value == 0:
+                # Als de value 0 is controleren we eerst nog of er een else statement is
+                # moest dit niet zo zijn kunnen we gewoon heel de branch verwijderen uit de ast want deze wordt nooit bereikt
+                # moest dit wel zo zijn dan vervangen we de branch door een nieuw block met alle nodes die in de else scape zaten.
+                print("")
+                if len(node.parent.children) == 2:
+                    # geval geen else
+                    # We verwijderen gewoon de branch uit de children van de parent want deze wordt toch nooit bereikt
+                    for i, children in enumerate(node.parent.parent.children):
+                        if children == node.parent:
+                            node.parent.parent.children.pop(i)
+                            break
+                else:
+                    #geval else
+                    newNode = createNodeItem("NEW_BLOCK", "NEW_BLOCK", node.parent.parent)
+                    newNode.children = node.parent.children[2].children
+                    newNode.symbolTablePointer = node.parent.children[2].symbolTablePointer
+                    newNode.symbolTablePointer.astNode = newNode
+                    for i, children in enumerate(node.parent.parent.children):
+                        if children == node.parent:
+                            node.parent.parent.children[i] = newNode
+                            break
+
+    elif node.token == "CONDITION" and node.parent.children[1].token != "IF" and len(node.children) == 1:
+        #We gaan controleren of de while loop standaard False is, als dit het geval is verwijderen we de volledige branch
+
+        if len(node.children[0].children) == 0 and isinstance(node.children[0].value, int):
+            if node.children[0].value == 0:
+                for i, children in enumerate(node.parent.parent.children):
+                    if children == node.parent:
+                        node.parent.parent.children.pop(i)
+                        break
 
 def getValuesChildren(child):
     if child.token == "INT" and child.value != "INT":
