@@ -429,7 +429,7 @@ class ASTprinter(mathGrammerListener):
         # Controleren dus eerst of de stack niet leeg is
         if len(self.stack_scopes) > 0:
             curStatement = self.stack_scopes[-1]
-            # We geeft aan dat alle iteratatie nog toegevoegd moeten worden aan het statement
+            # We geven aan dat alle iteraties nog toegevoegd moeten worden aan het statement
             if curStatement.statement == "FOR" and curStatement.iteration[0] is not None \
                 and curStatement.iteration[1] is None:
                 isFor = True
@@ -982,6 +982,8 @@ class ASTprinter(mathGrammerListener):
                     if self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter-1] is None:
                         #Dit betekent dat we geen parameters hebben dus voegen een none node toe
                         ast.createNode("NONE", "NONE", 0, ctx.start.line, ctx.start.column)
+
+                        ast.nextType = ""
 
     # Enter a parse tree produced by mathGrammerParser#parameter_decl.
     def enterParameter_decl(self, ctx:mathGrammerParser.Parameter_declContext):
