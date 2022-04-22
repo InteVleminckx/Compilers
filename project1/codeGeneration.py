@@ -45,6 +45,9 @@ class LLVM:
         if self.isPrintf:
             self.file.write(self.printfFunction())
 
+        if self.isScanf:
+            self.file.write(self.scanfFunction())
+
         self.file.close()
 
 
@@ -58,7 +61,9 @@ class LLVM:
                 self.returnFunction(node)
             if child.token == "PRINTF":
                 self.printf(child)
-            elif child.token == "IF":
+            if child.token == "SCANF":
+                self.scanf(child)
+            if child.token == "IF":
                 self.if_stmt(child)
             if child.token == "WHILE":
                 self.while_stmt(child)
@@ -349,8 +354,119 @@ class LLVM:
 
             self.line += ")\n"
 
-        func.registerCounter = register + 1
-        func.line = line
+        self.registerCount += 1
+        # func.line = line
+
+    def scanf(self, node):
+
+        self.isScanf = True
+        text = node.children[0].value
+        params = []
+        # We gaan de text parsen
+        addNext = False
+        for chr in text:
+            if chr == '%':
+                addNext = True
+            elif addNext:
+                param = "%" + chr
+                addNext = False
+                params.append(param)
+
+        # Als de lengte nul is betekent dat we gewoon een string hebben, wat hier wel onzinnig is
+
+        textsize = len(text)
+        addsize = 0
+        # We controleren of er een \n bij de tekst staat, moest dit niet zo zijn dan doen we nog +1
+        if len(text) > 1:
+            if text[len(text) - 2:len(text)] != "\\n":
+                addsize += 1
+            else:
+                text = text[0:len(text) - 2]
+                text += "\\0A"
+        textsize += addsize
+        text += "\\00"
+
+        inbound = "[" + str(textsize) + " x i8]"
+
+        self.line += "  %" + str(
+            self.registerCount) + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds (" + inbound + ", " \
+                                                                                                            "" + inbound + "* "
+
+        stringnumber = "@.str"
+        exists = False
+        # check if string is in self.strings anders maak nieuwe aan
+        for number, textt, inbound1 in self.strings:
+            if textt == text:
+                stringnumber = number
+                exists = True
+                break
+
+        if not exists and len(self.strings) > 0:
+            stringnumber = "@.str" + str(len(self.strings))
+            self.strings.append((stringnumber, text, inbound))
+
+        elif len(self.strings) == 0:
+            self.strings.append((stringnumber, text, inbound))
+
+        self.line += stringnumber + ", i64 0, i64 0)"
+        if len(params) == 0:
+            self.line += ")\n"
+        else:
+
+            for i, child in enumerate(node.children):
+                if (i == 0):
+                    continue
+                else:
+                    if i <= len(node.children) - 1:
+                        self.line += ", "
+                    if node.children[i].token == "INT":
+                        self.line += "i32 " + str(node.children[i].value)
+                    elif node.children[i].token == "FLOAT":
+                        self.line += "double " + str(node.children[i].value)
+                    elif node.children[i].token == "CHAR":
+                        number = ord(str(node.children[i].value)[1])
+                        self.line += "i32 " + str(number)
+                    elif node.children[i].token == "STRING":
+                        text = node.children[i].value
+                        textsize = len(text)
+                        addsize = 0
+                        strname = text
+                        # We controleren of er een \n bij de tekst staat, moest dit niet zo zijn dan doen we nog +1
+                        if len(text) > 1:
+                            if text[len(text) - 2:len(text)] != "\\n":
+                                addsize += 1
+                            else:
+                                text = text[0:len(text) - 2]
+                                text += "\\0A"
+                        textsize += addsize
+                        text += "\\00"
+
+                        inbound = "[" + str(textsize) + " x i8]"
+
+                        self.line += "i8* getelementptr inbounds (" + inbound + ", " + inbound + "* "
+
+                        stringnumber = "@.str"
+                        exists = False
+                        # check if string is in self.strings anders maak nieuwe aan
+                        for number, textt, inbound1 in self.strings:
+                            if textt == text:
+                                stringnumber = number
+                                exists = True
+                                break
+
+                        if not exists and len(self.strings) > 0:
+                            stringnumber = "@.str" + str(len(self.strings))
+                            self.strings.append((stringnumber, text, inbound))
+
+                        elif len(self.strings) == 0:
+                            self.strings.append((stringnumber, text, inbound))
+
+                        self.line += stringnumber + ", i64 0, i64 0)"
+
+            self.line += ")\n"
+
+        self.registerCount += 1
+        # func.line = line
 
     def if_stmt(self, node):
 
@@ -364,6 +480,9 @@ class LLVM:
 
     def printfFunction(self):
         return "declare dso_local i32 @printf(i8*, ...) "
+
+    def scanfFunction(self):
+        return "declare dso_local i32 @scanf(i8*, ...) "
 
     def printStrings(self, number, text, inboud):
         return number + " = private unnamed_addr constant " + inboud + " c\"" + text + "\", align 1\n"

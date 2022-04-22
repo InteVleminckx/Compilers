@@ -589,10 +589,11 @@ class ASTprinter(mathGrammerListener):
     def enterDecl_spec(self, ctx: mathGrammerParser.Decl_specContext):
 
         if ctx.getChildCount() == 0:
-            if str(type(ctx.parentCtx.parentCtx)) == "<class 'mathGrammerParser.mathGrammerParser.Parameter_type_listContext'>" :
-                print("[ Error ] line " + str(ctx.start.line) + ", position " + str(
-                    ctx.start.column) + " : " + "Function parameters not typed.")
-                exit(1)
+            if ctx.parentCtx.getChildCount() > 1:
+                if str(type(ctx.parentCtx.parentCtx)) == "<class 'mathGrammerParser.mathGrammerParser.Parameter_type_listContext'>" :
+                    print("[ Error ] line " + str(ctx.start.line) + ", position " + str(
+                        ctx.start.column) + " : " + "Function parameters not typed.")
+                    exit(1)
 
         if ctx.getChildCount() == 2:
             ast.nextConst = True
@@ -1522,7 +1523,7 @@ def setupSymbolTables(tree, node=None):
             tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.children[0].pointer, node.children[0].reference)
             tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
 
-        elif node.parent.token == "PARAMETERS" and not node.token == "=" and not node.parent.parent.token == "FUNC_CALL": # parametervariabelen van een functie toevoegen aan symbol table
+        elif node.parent.token == "PARAMETERS" and not (node.token == "=" or node.token == "NONE") and not node.parent.parent.token == "FUNC_CALL": # parametervariabelen van een functie toevoegen aan symbol table
 
             value = node
             type = node.type
@@ -1702,16 +1703,7 @@ def semanticAnalysisVisitor(node):
         if len(node.children) > 1:
             aantalTypes = len(node.children) - 1
 
-            params = []
-            #We gaan de text parsen
-            addNext = False
-            for chr in text:
-                if chr == '%':
-                    addNext = True
-                elif addNext:
-                    param = "%" + chr
-                    addNext = False
-                    params.append(param)
+            params = parseFuncCallParameters(text)
 
             if len(params) < aantalTypes:
                 print("[ Error ] line " + str(node.line) + ", position " + str(
@@ -1730,28 +1722,28 @@ def semanticAnalysisVisitor(node):
                         if symbol_lookup[0]: # if the passed argument is found in a symbol table
                             pass
                         else:
-                            if params[i] == "%d":
+                            if params[i][-1] == "d":
                                 if type(node.children[i+1].value) == int or node.children[i+1].token == "INT":
                                     pass
                                 else:
                                     print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
                                         node.children[
                                             i+1].column) + " : " + "In function call, passing of incompatible type")
-                            elif params[i] == "%f":
+                            elif params[i][-1] == "f":
                                 if type(node.children[i+1].value) == float or node.children[i+1].token == "FLOAT":
                                     pass
                                 else:
                                     print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
                                         node.children[
                                             i+1].column) + " : " + "In function call, passing of incompatible type")
-                            elif params[i] == "%c":
+                            elif params[i][-1] == "c":
                                 if type(node.children[i+1].value) == str or node.children[i+1].token == "CHAR":
                                     pass
                                 else:
                                     print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
                                         node.children[
                                             i+1].column) + " : " + "In function call, passing of incompatible type")
-                            elif params[i] == "%s":
+                            elif params[i][-1] == "s":
                                 if type(node.children[i+1].value) == str or node.children[i+1].token == "STRING":
                                     pass
                                 else:
@@ -1761,13 +1753,13 @@ def semanticAnalysisVisitor(node):
 
                     else: # for a whole expression
                         expectedType = ""
-                        if params[i] == "%d":
+                        if params[i][-1] == "d":
                             expectedType = "INT"
-                        elif params[i] == "%f":
+                        elif params[i][-1] == "f":
                             expectedType = "FLOAT"
-                        elif params[i] == "%c":
+                        elif params[i][-1] == "c":
                             expectedType = "CHAR"
-                        elif params[i] == "%s":
+                        elif params[i][-1] == "s":
                             expectedType = "STRING"
 
                         if expectedType != evaluateExpressionType(node.children[i+1]):
@@ -1831,3 +1823,16 @@ def evaluateExpressionType(node=None):
                 return "CHAR"
 
 # ----------------------------------------------------------------------------------------------------------------------#
+
+def parseFuncCallParameters(text):
+    params = []
+    # We gaan de text parsen
+    addNext = False
+    for chr in text:
+        if chr == '%':
+            addNext = True
+        elif addNext:
+            param = "%" + chr
+            addNext = False
+            params.append(param)
+    return params
