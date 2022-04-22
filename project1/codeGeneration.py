@@ -51,11 +51,15 @@ class LLVM:
         for child in node.children:
             if child.value == "FUNC_DEF":
                 self.function(child)
-
             elif child.value == "RETURN":
                 self.returnFunction(node)
             elif child.token == "PRINTF":
                 self.printf(child)
+            elif child.token == "IF":
+                self.if_stmt(child)
+            elif child.token == "WHILE":
+                self.while_stmt(child)
+
             # print(child.value)
             self.generateLLVM(child)
 
@@ -316,6 +320,12 @@ class LLVM:
 
         func.registerCounter = register + 1
         func.line = line
+
+    def if_stmt(self, node):
+        pass
+
+    def while_stmt(self, node):
+        pass
 
     def printfFunction(self):
         return "declare dso_local i32 @printf(i8*, ...) "
