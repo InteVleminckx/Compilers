@@ -17,7 +17,6 @@ class LLVM:
     def __init__(self, tree):
         self.tree = tree
         self.strings = list()
-        self.attributes = list()
         self.file = None
         self.functions = list()
         self.isPrintf = False
@@ -162,7 +161,6 @@ class LLVM:
         parameters = table.functionParameters
         register = 1
 
-        #TODO: de attribute moet hier nog in komen
         line = "\ndefine dso_local " + types[return_type][0] + " @" + name + "() {\n"
 
         #Alloceer een register voor deze return
@@ -232,12 +230,10 @@ class LLVM:
             if text[len(text) - 2:len(text)] != "\\n":
                 addsize += 1
             else:
+                text  = text[0:len(text) - 2]
                 text += "\\0A"
         textsize += addsize
         text += "\\00"
-
-        #TODO: vraag mss brent want dit is wel arig dat dit verkeerd wordt gegenereerd door clang
-        textsize += 2
 
         inbound = "[" + str(textsize) + " x i8]"
 
@@ -288,6 +284,7 @@ class LLVM:
                             if text[len(text) - 2:len(text)] != "\\n":
                                 addsize += 1
                             else:
+                                text = text[0:len(text) - 2]
                                 text += "\\0A"
                         textsize += addsize
                         text += "\\00"
@@ -321,7 +318,6 @@ class LLVM:
         func.line = line
 
     def printfFunction(self):
-        #TODO: De attribute moet hier ook nog worden toegevoegd
         return "declare dso_local i32 @printf(i8*, ...) "
 
     def printStrings(self, number, text, inboud):

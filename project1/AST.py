@@ -585,6 +585,13 @@ class ASTprinter(mathGrammerListener):
 
     # Enter a parse tree produced by mathGrammerParser#decl_spec.
     def enterDecl_spec(self, ctx: mathGrammerParser.Decl_specContext):
+
+        if ctx.getChildCount() == 0:
+            if str(type(ctx.parentCtx.parentCtx)) == "<class 'mathGrammerParser.mathGrammerParser.Parameter_type_listContext'>" :
+                print("[ Error ] line " + str(ctx.start.line) + ", position " + str(
+                    ctx.start.column) + " : " + "Function parameters not typed.")
+                exit(1)
+
         if ctx.getChildCount() == 2:
             ast.nextConst = True
         else:

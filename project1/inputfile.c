@@ -2,23 +2,11 @@
 
 #include <stdio.h>
 
-// This should print the number 10 for each basic operation (int and float)
-int main(int c,){
-        int b = 6;
-        printf("%f; ", b);
-        printf("%f; ", 4.5+5.5);
-        printf("%d; ", 15-5);
-        printf("%f; ", 10.5-0.5);
-        printf("%d; ", 2*5);
-        printf("%f; ", 20.0*0.5);
-        printf("%d; ", 20/2);
-        printf("%f; ", 5.0/0.5);
-        if (b == 6) {
-            printf("%f; ", b);
-        }
-        int a[5];
-        return 1;
+int mul(a, b){
+    return 0;
 }
+
+// This should print the number 10 for each basic operation (int and float)
 
 ////int a = 5*(-3/10 + (-9/10));
 ////1 || 0;
