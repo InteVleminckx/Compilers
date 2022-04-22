@@ -1,14 +1,13 @@
 #include <stdio.h>
 
-int a = 10;
-int b = 10;
+int main() {
 
-while (a != b){
-
-}
-
-for (int i = 10; i < a; i++){
-
+	int a = 10;
+	int b = 5;
+	int c = 7;
+	if (a > b && b > c || c == a) {
+		printf("%s", "oke");
+	}
 
 }
 

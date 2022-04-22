@@ -34,6 +34,8 @@ class Node:
         self.reference = reference # 0 means no reference, 1 means one &, ...
         self.textPrint = ""
 
+        self.popped = 0
+
     def getValue(self):
         return self.value
 
@@ -1176,10 +1178,18 @@ def optimizationVisitor(tree, table=False): # TODO verwijderen?
 
     return newTree
 
+tester = False
+
 def optimize(tree):
+    global tester
     if tree.root is not None:
         propagation(tree.root)
-        folding(tree.root)
+
+        while not tester:
+            if not folding(tree.root):
+                tester = True
+            else:
+                tester = False
 
 def propagation(node):
 
@@ -1197,6 +1207,13 @@ def propagation(node):
         if (node == node.parent.children[0] and node.parent.token == "=") or node.parent.token == "NAME" or node.parent.token == "++" or node.parent.token == "--":
             # Dan returnen we gewoon
             return
+
+        if node.parent is not None:
+            if node.parent.parent is not None:
+                if node.parent.parent.parent is not None:
+                    if len(node.parent.parent.parent.children) > 2:
+                        if node.parent.parent.parent.children[0].token == "DECLARATION" and node.parent.parent.parent.children[1].token == "CONDITION":
+                            return
 
         # We bekrijgen nu de table waar allee identifiers inzitten van huidge scope
         tableNode = tableLookup(node)
@@ -1217,10 +1234,19 @@ def propagation(node):
 
 
 def folding(node):
+    global tester
 
-    for child in node.children:
-        if len(child.children) > 0:
-            folding(child)
+    if tester:
+        return True
+
+    for i in range(len(node.children)):
+
+        if tester:
+            break
+
+        if len(node.children[i-node.popped].children) > 0:
+            if (folding(node.children[i-node.popped])):
+                tester = True
 
     value_c0, value_c0_t = getValuesChildren(node.children[0])
     value_c1, value_c1_t = getValuesChildren(node.children[1]) if len(node.children) == 2 else (None,None)
@@ -1339,7 +1365,7 @@ def folding(node):
                     for i, children in enumerate(node.parent.parent.children):
                         if children == node.parent:
                             node.parent.parent.children.pop(i)
-                            break
+                            return True
                 else:
                     #geval else
                     newNode = createNodeItem("NEW_BLOCK", "NEW_BLOCK", node.parent.parent)
@@ -1359,7 +1385,9 @@ def folding(node):
                 for i, children in enumerate(node.parent.parent.children):
                     if children == node.parent:
                         node.parent.parent.children.pop(i)
-                        break
+                        return True
+
+    return False
 
 def getValuesChildren(child):
     if child.token == "INT" and child.value != "INT":

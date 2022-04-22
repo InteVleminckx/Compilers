@@ -1,6 +1,6 @@
 from AST import *
 
-registerCount = 1
+
 
 types = {"INT": ("i32", "align 4"), "FLOAT": ("float", "align 4"), "CHAR": ("i8", "align 1")}
 
@@ -20,6 +20,9 @@ class LLVM:
         self.file = None
         self.functions = list()
         self.isPrintf = False
+        self.isScanf = False
+        self.registerCount = 1
+        self.line = ""
 
     def toLLVM(self, inputfile):
 
@@ -37,8 +40,7 @@ class LLVM:
         for strings in self.strings:
             self.file.write(self.printStrings(*strings))
 
-        for function in self.functions:
-            self.file.write(function.line)
+        self.file.write(self.line)
 
         if self.isPrintf:
             self.file.write(self.printfFunction())
@@ -48,20 +50,26 @@ class LLVM:
 
     def generateLLVM(self, node):
 
-        for child in node.children:
+        for i, child in enumerate(node.children):
+
             if child.value == "FUNC_DEF":
                 self.function(child)
-            elif child.value == "RETURN":
+            if child.value == "RETURN":
                 self.returnFunction(node)
-            elif child.token == "PRINTF":
+            if child.token == "PRINTF":
                 self.printf(child)
             elif child.token == "IF":
                 self.if_stmt(child)
-            elif child.token == "WHILE":
+            if child.token == "WHILE":
                 self.while_stmt(child)
+            if child.token == "=":
+                self.storeNew(child)
+            #Zie dat deze op het laatste staat
+            if i == len(node.children)-1 and node.value == "FUNC_DEF":
+                self.returnFunction(node)
 
-            # print(child.value)
             self.generateLLVM(child)
+
 
     # def addition(self, value, var, register, float=False):
     #     """
@@ -159,23 +167,38 @@ class LLVM:
     #
     #     return line
 
+    def allocateVariables(self, symbolTable):
+        toAllocate = symbolTable.dict
+        for key in toAllocate:
+
+            if toAllocate[key].value.parent.children[0].token == "IDENTIFIER":
+                type = toAllocate[key].type
+                toAllocate[key].register = self.registerCount
+                self.line += self.allocate(self.registerCount, type)
+                self.registerCount += 1
+
+
     def function(self, node):
         table, name = getSymbolFromTable(node.parent.children[1].children[0])
+        symbolTable = tableLookup(node)
+        symbol_lookup = symbolLookup(node.value, symbolTable)
+
         return_type = table.type
         parameters = table.functionParameters
-        register = 1
 
-        line = "\ndefine dso_local " + types[return_type][0] + " @" + name + "() {\n"
+        self.line += "\ndefine dso_local " + types[return_type][0] + " @" + name + "() {\n"
 
         #Alloceer een register voor deze return
         if return_type != "void":
-            line += self.allocate(register, return_type)
+            self.line += self.allocate(self.registerCount, return_type)
             #store deze waarde ook
             #TODO: controleer dit nog later
-            line += self.store(0, register, return_type, False, True)
-            register += 1
+            self.store(0, self.registerCount, return_type, False, True)
+            self.registerCount += 1
 
         #TODO: parameters moeten nog worden toegevoegd maar momenteel doen we dit nog niet
+
+        self.allocateVariables(symbolTable)
 
         #Nu gaan we zien dat er assignments zijn
         for child in node.children:
@@ -183,36 +206,44 @@ class LLVM:
                 #TODO: hier verder werken voor de assignments
                 pass
 
-        # voegen de functies toe aan de lijst van functies, zodat we deze later kunnen printen
-        # Zo kunne we ook de rest nog toevoegen van functions calls, additions etc...
-        self.functions.append(funcNode(line, len(self.functions)-1, True, register))
-
     def returnFunction(self, node):
 
         # We nemen de laatst toegevoegde functie waar nog een return aan toegevoegd moet worden
 
-        func = self.functions[len(self.functions)-1]
+        if node.token == "FUNC_DEF":
+            # TODO: Check bij void ook
+            returnType = node.parent.children[0].children[0].value
+            #Geval return opgegeven
+            if node.children[len(node.children) - 1].token == "RETURN":
+                # symbolTable = tableLookup(node)
 
+                returnNode = node.children[len(node.children) - 1].children[0]
+                returnValue = str(returnNode.value)
+                returnToken = returnNode.token
+                #TODO: lookup in symbol table
+                if returnToken == "IDENTIFIER":
+                    pass
+                else:
+                    self.line += "  ret " + types[returnType][0] + " " + str(returnValue) + "\n}\n\n"
 
-        returnval = node.children[len(node.children) - 1].children[0]
-        if returnval.token == "IDENTIFIER":
-            # TODO: zoek in de table naar zijn register
-            pass
-        else:
-            func.line += "  ret " + types[returnval.token][0] + " " + str(returnval.value) + "\n}\n\n"
-
-        #Na de return mag de functie gesloten worden
-        func.isOpen = False
+            #Geval return niet opgegeven
+            else:
+                if returnType == "INT":
+                    self.line += "  ret " + "i32" + " 0\n}\n\n"
+                elif returnType == "FLOAT":
+                    self.line += "  ret " + "i32" + " 0\n}\n\n"
+                elif returnType == "CHAR":
+                    pass
 
     def printf(self, node):
         self.isPrintf = True
-        line = ""
-        func = self.functions[len(self.functions) - 1]
+        # line = ""
+        # func = self.functions[len(self.functions) - 1]
         #check eerst of er geen functie meer openstaat
-        if func.isOpen:
-            line = func.line
+        # if func.isOpen:
+        #     line = func.line
         text = node.children[0].value
-        register = func.registerCounter
+        # register = func.registerCounter
         params = []
         # We gaan de text parsen
         addNext = False
@@ -241,7 +272,7 @@ class LLVM:
 
         inbound = "[" + str(textsize) + " x i8]"
 
-        line += "  %" + str(register) + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds (" + inbound + ", " \
+        self.line += "  %" + str(self.registerCount) + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds (" + inbound + ", " \
                 "" + inbound + "* "
 
         stringnumber = "@.str"
@@ -260,9 +291,9 @@ class LLVM:
         elif len(self.strings) == 0:
             self.strings.append((stringnumber, text, inbound))
 
-        line += stringnumber + ", i64 0, i64 0)"
+        self.line += stringnumber + ", i64 0, i64 0)"
         if len(params) == 0:
-            line += ")\n"
+            self.line += ")\n"
         else:
             
             for i, child in enumerate(node.children):
@@ -270,14 +301,14 @@ class LLVM:
                     continue
                 else:
                     if i <= len(node.children) - 1:
-                        line += ", "
+                        self.line += ", "
                     if node.children[i].token == "INT":
-                        line += "i32 " + str(node.children[i].value)
+                        self.line += "i32 " + str(node.children[i].value)
                     elif node.children[i].token == "FLOAT":
-                        line += "double " + str(node.children[i].value)
+                        self.line += "double " + str(node.children[i].value)
                     elif node.children[i].token == "CHAR":
                         number = ord(str(node.children[i].value)[1])
-                        line += "i32 " + str(number)
+                        self.line += "i32 " + str(number)
                     elif node.children[i].token == "STRING":
                         text = node.children[i].value
                         textsize = len(text)
@@ -295,7 +326,7 @@ class LLVM:
 
                         inbound = "[" + str(textsize) + " x i8]"
 
-                        line += "i8* getelementptr inbounds (" + inbound + ", " + inbound + "* "
+                        self.line += "i8* getelementptr inbounds (" + inbound + ", " + inbound + "* "
 
 
                         stringnumber = "@.str"
@@ -314,15 +345,19 @@ class LLVM:
                         elif len(self.strings) == 0:
                             self.strings.append((stringnumber, text, inbound))
 
-                        line += stringnumber + ", i64 0, i64 0)"
+                        self.line += stringnumber + ", i64 0, i64 0)"
 
-            line += ")\n"
+            self.line += ")\n"
 
         func.registerCounter = register + 1
         func.line = line
 
     def if_stmt(self, node):
-        pass
+
+        compOp = node.parent.children[0].children[0].value
+        left = node.parent.children[0].children[0].value
+        compOp = node.parent.children[0].children[0].value
+
 
     def while_stmt(self, node):
         pass
@@ -336,18 +371,33 @@ class LLVM:
 
     def load(self, type, register):
 
-        return registerCount, "%" + str(registerCount) + " = load " + types[type][0] + ", " + types[type][0] + "* " \
+        return self.registerCount, "%" + str(self.registerCount) + " = load " + types[type][0] + ", " + types[type][0] + "* " \
                                                                                                                "%" + str(register) + ", " + types[type][1] + "\n"
     def store(self, fromRegister, toRegister, type, isReg1, isReg2):
 
         reg1 = "%" + str(fromRegister) if isReg1 else str(fromRegister)
         reg2 = "%" + str(toRegister) if isReg2 else str(toRegister)
 
-        return "  store " + types[type][0] + " " + reg1 + ", " + types[type][0] + "* " + reg2 + "" \
-                                                                                                                        ", " + types[type][1] + "\n"
+        self.line += "  store " + types[type][0] + " " + reg1 + ", " + types[type][0] + "* " + reg2 + "" \
+            ", " + types[type][1] + "\n"
+
+    def storeNew(self, node):
+
+        symbolTable = tableLookup(node).dict
+        #TODO: Lookup in table naar zijn register
+        if node.children[1].token == "IDENTIFIER":
+            pass
+        else:
+            for key in symbolTable:
+                if str(key) == str(node.children[0].value):
+                    register = symbolTable[key].register
+                    type = symbolTable[key].type
+                    value = node.children[1].value
+                    self.store(value, register, type, False, True)
 
     def allocate(self, register, type):
         return "  %" + str(register) + " = alloca " + types[type][0] + ", " + types[type][1] + "\n"
+
 def multiply():
     pass
 def divide():
@@ -356,14 +406,14 @@ def divide():
     pass
 
 
-def intToFloat(register):
-    """
-    Krijgt een integer binnen en zet deze om naar een float
-    :param register: De ingeladen register
-    :return: node als een float
-    """
-
-    return registerCount, "%" + str(registerCount) + " = sitofp i32 %" + str(register) + " to float\n"
+# def intToFloat(register):
+#     """
+#     Krijgt een integer binnen en zet deze om naar een float
+#     :param register: De ingeladen register
+#     :return: node als een float
+#     """
+#
+#     return registerCount, "%" + str(registerCount) + " = sitofp i32 %" + str(register) + " to float\n"
 
 def getSymbolFromTable(node):
 
