@@ -1,30 +1,58 @@
-//#include <stdio.h>
+#include <stdio.h>
+
+int main() {
+
+	int x = 10;
+	int y = 11;
+	y = y + 1;
+	x = x + 1 + y + 1;
+    printf("Enter two numbers:");
+	scanf("%d%d", &x, &y);
+	printf("%d; %d", x, y);
+//	int b = a;
+//	b = b + 1;
+//	int c = 7;
+//	c = c + 1;
+}
 //
 //int main() {
-//
-//
-////	int a = 10;
-////	int b = 5;
-////	int c = 7;
-////	if (a > b && b > c || c == a) {
-////		printf("%s", "oke");
-////	}
+//	int a = 10;
+//	a = a + 1;
+//	int b = a;
+//	b = b + 1;
+//	int c = 7;
+//	c = c + 1;
+//	if (a > b && b > c && c == a) {
+//	    printf("%s", "oke");
+//	   	if (a > b && b > c && c == a) {
+//	       printf("%s", "oke");
+//	    }
+//	    else {
+//            printf("%s", "oke");
+//	    }
+//	}
+//	else {
+//        printf("%s", "oke");
+//	}
+
+//    int x;
+//    int y;
 //	printf("Enter two numbers:");
 //    scanf("%d%d", &x, &y);
 //	printf("%d; %d", x, y);
-//
+
 //}
 
-#include <stdio.h>
-
-int main(){
-	int x;
-	int y;
-//    printf("Enter two numbers:");
-	scanf("%d%d", &x, &y);
-//	printf("%d; %d", x, y);
-	return 1;
-}
+//#include <stdio.h>
+//
+//int main(){
+//	int x;
+//	int y;
+////    printf("Enter two numbers:");
+//	scanf("%d%d", &x, &y);
+////	printf("%d; %d", x, y);
+//	return 1;
+//}
 
 // This should print the number 10 for each basic operation (int and float)
 

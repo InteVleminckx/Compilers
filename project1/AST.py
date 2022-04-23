@@ -1277,6 +1277,9 @@ def folding(node):
             print("[ Warning ] line " + str(node.children[0].line) + ", position " + str(
                 node.children[0].column) + " : " + "Operation of incompatible types")
 
+        if value_c1 is None:
+            return
+
         bin_operations = {
             "+": value_c0 + value_c1,
             "-": value_c0 - value_c1,

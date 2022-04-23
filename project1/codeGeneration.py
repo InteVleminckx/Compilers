@@ -1,16 +1,70 @@
 from AST import *
 
-
-
 types = {"INT": ("i32", "align 4"), "FLOAT": ("float", "align 4"), "CHAR": ("i8", "align 1")}
 
-class funcNode:
+comparisons = {"==": "eq", "!=": "ne", ">": "sgt", "<": "slt", ">=": "sge", "<=": "sle"}
+logicals = {"||": "OR", "&&": "AND", "!": "NOT"}
 
-    def __init__(self, line, number, state, register):
-        self.line = line
-        self.functionNumber = number
-        self.isOpen = state
-        self.registerCounter = register
+
+class Branch:
+
+    def __init__(self):
+        self.boolRegister = None
+        self.label1 = None
+        self.label2 = None
+        self.instruction = "br"
+
+
+class NodeCon:
+
+    def __init__(self):
+        self.isRoot = False
+        self.parent = None
+        self.children = []
+        self.nodeNumber = 0
+
+        #info node
+        self.toRegister = None
+        self.type = None
+        self.instruction = None
+
+
+        #Nodig bij load
+        self.fromRegister = None
+        self.align = None
+
+        #Nodig bij icmp
+        self.comparison = None
+        self.value1 = None
+        self.value2 = None
+        self.branch = None
+
+        #nodig bij logical
+        self.operation = None
+
+
+    def getLine(self):
+        if self.instruction == "load":
+            return self.load()
+        elif self.instruction == "icmp":
+            return self.icmp()
+
+    def load(self):
+        return "  %" + str(self.toRegister) + " = load " + self.type + ", " + self.type + "* %" + str(self.fromRegister) + ", " + self.align + "\n"
+
+    def icmp(self):
+        return "  %" + str(self.toRegister) + " = icmp " + self.comparison + " " + self.type + " %" + str(self.value1) + ", %" + str(self.value2) + "\n" + self.br()
+
+    def br(self):
+        return "  br i1 %" + str(self.branch.boolRegister) + ", label %" + str(self.branch.label1) + ", label %" + str(self.branch.label2) + "\n\n" + str(self.branch.boolRegister + 1) + ":\n"
+
+    def setEndRegister(self, number):
+        if self.branch is not None:
+            if self.branch.label1 is None:
+                self.branch.label1 = number
+
+            elif self.branch.label2 is None:
+                self.branch.label2 = number
 
 class LLVM:
 
@@ -23,6 +77,11 @@ class LLVM:
         self.isScanf = False
         self.registerCount = 1
         self.line = ""
+        self.nodeCount = 0
+        #Vult op het einde van programma alle registers in van de if statements
+        self.ifRegisters = {}
+        self.ifCount = 0
+        self.ifValues = []
 
     def toLLVM(self, inputfile):
 
@@ -53,77 +112,19 @@ class LLVM:
 
     def generateLLVM(self, node):
 
+        value = self.registerCount
+        # print("Enter: ", node.token, " Value: " , value)
+        self.EnterExitstatements(node, True, value)
         for i, child in enumerate(node.children):
-
-            if child.value == "FUNC_DEF":
-                self.function(child)
-            if child.value == "RETURN":
-                self.returnFunction(node)
-            if child.token == "PRINTF":
-                self.printf(child)
-            if child.token == "SCANF":
-                self.scanf(child)
-            if child.token == "IF":
-                self.if_stmt(child)
-            if child.token == "WHILE":
-                self.while_stmt(child)
-            if child.token == "=":
-                self.storeNew(child)
             #Zie dat deze op het laatste staat
-            if i == len(node.children)-1 and node.value == "FUNC_DEF":
-                self.returnFunction(node)
-
+            # if i == len(node.children)-1 and node.value == "FUNC_DEF":
+            #     self.returnFunction(node)
             self.generateLLVM(child)
 
+        # print("Exit: ", node.token, " Value: " , value)
+        self.EnterExitstatements(node, False, value)
 
-    # def addition(self, value, var, register, float=False):
-    #     """
-    #     :param value: De waarde/andere variable die bij de var wordt opgeteld (node)
-    #     :param var: De variable waar de value wordt opgeteld. (node)
-    #     :param register: Het register nummer waar we de uitkomst in wegschrijven
-    #     :param float: Geeft aan of een een add of fadd is.
-    #     :return: De register nummber en de line die wegschreven moeten worden in het bestand
-    #     """
-    #
-    #     #0 = value, 1 = var
-    #     registers = [None, None]
-    #     type = "FLOAT"
-    #     line = ""
-    #
-    #     # Moest 1 van de 2 maar een float zijn moeten we eerst nog de int omzetten naar een float
-    #     if float:
-    #         symbolValue = getSymbolFromTable(value)
-    #         registers[0], lineValue = load(value.type, symbolValue.register)
-    #         line += lineValue
-    #         if value.type == "INT":
-    #             registers[0], lineValue = intToFloat(registers[0])
-    #             line += lineValue
-    #
-    #         symbolVar = getSymbolFromTable(var)
-    #         registers[1], lineVar = load(var.type, symbolVar.register)
-    #         line += lineVar
-    #         if var.type == "INT":
-    #             registers[1], lineVar = intToFloat(registers[1])
-    #             line += lineVar
-    #
-    #         line += "%" + str(registerCount) + " = fadd float %" + str(registers[0]) + ", %" + str(registers[1]) + "\n"
-    #
-    #     else:
-    #         symbolValue = getSymbolFromTable(value)
-    #         registers[0], lineValue = load(value.type, symbolValue.register)
-    #         line += lineValue
-    #
-    #         symbolVar = getSymbolFromTable(var)
-    #         registers[1], lineVar = load(var.type, symbolVar.register)
-    #         line += lineVar
-    #
-    #         line += "%" + str(registerCount) + " = add i32 %" + str(registers[0]) + ", %" + str(registers[1]) + "\n"
-    #         type = "INT"
-    #
-    #     line += store(registerCount, register, type)
-    #
-    #     return line
-    #
+
     # def subtract(self, value, var, register, float=False):
     #     """
     #     :param value: De waarde/andere variable die bij de var wordt opgeteld (node)
@@ -172,6 +173,48 @@ class LLVM:
     #
     #     return line
 
+    def EnterExitstatements(self, node, enter, value):
+        if node.token == "FUNC_DEF":
+            if enter:
+                self.enterFunction(node)
+            else:
+                self.exitFunction(node)
+        elif node.token == "RETURN":
+            if enter:
+                self.exitFunction(node)
+            else:    # def addition(self, value, var, register, float=False):
+                pass
+        elif node.token == "PRINTF":
+            if enter:
+                self.enterPrintf(node)
+            else:
+                pass
+        elif node.token == "SCANF":
+            if enter:
+                self.enterScanf(node)
+            else:
+                pass
+        elif node.token == "IF":
+            if enter:
+                self.enterIf_stmt(node, value)
+            else:
+                self.exitIf_stmt(node, value)
+        elif node.token == "ELSE":
+            if enter:
+                self.enterElse_stmt()
+            else:
+                self.exitElse_stmt()
+        elif node.token == "WHILE":
+            if enter:
+                self.while_stmt(node)
+            else:
+                pass
+        elif node.token == "=":
+            if enter:
+                self.enterAssignment(node)
+            else:
+                self.exitAssignment(node)
+
     def allocateVariables(self, symbolTable):
         toAllocate = symbolTable.dict
         for key in toAllocate:
@@ -182,8 +225,7 @@ class LLVM:
                 self.line += self.allocate(self.registerCount, type)
                 self.registerCount += 1
 
-
-    def function(self, node):
+    def enterFunction(self, node):
         table, name = getSymbolFromTable(node.parent.children[1].children[0])
         symbolTable = tableLookup(node)
         symbol_lookup = symbolLookup(node.value, symbolTable)
@@ -211,47 +253,85 @@ class LLVM:
                 #TODO: hier verder werken voor de assignments
                 pass
 
-    def returnFunction(self, node):
+    def exitFunction(self, node):
+        # TODO: Check bij void ook
+        returnType = node.parent.children[0].children[0].value
+        # Geval return opgegeven
+        if node.children[len(node.children) - 1].token == "RETURN":
+            # symbolTable = tableLookup(node)
 
-        # We nemen de laatst toegevoegde functie waar nog een return aan toegevoegd moet worden
-
-        if node.token == "FUNC_DEF":
-            # TODO: Check bij void ook
-            returnType = node.parent.children[0].children[0].value
-            #Geval return opgegeven
-            if node.children[len(node.children) - 1].token == "RETURN":
-                # symbolTable = tableLookup(node)
-
-                returnNode = node.children[len(node.children) - 1].children[0]
-                returnValue = str(returnNode.value)
-                returnToken = returnNode.token
-                #TODO: lookup in symbol table
-                if returnToken == "IDENTIFIER":
-                    pass
-                else:
-                    self.line += "  ret " + types[returnType][0] + " " + str(returnValue) + "\n}\n\n"
-
-            #Geval return niet opgegeven
+            returnNode = node.children[len(node.children) - 1].children[0]
+            returnValue = str(returnNode.value)
+            returnToken = returnNode.token
+            # TODO: lookup in symbol table
+            if returnToken == "IDENTIFIER":
+                pass
             else:
-                if returnType == "INT":
-                    self.line += "  ret " + "i32" + " 0\n}\n\n"
-                elif returnType == "FLOAT":
-                    self.line += "  ret " + "i32" + " 0\n}\n\n"
-                elif returnType == "CHAR":
-                    pass
+                self.line += "  ret " + types[returnType][0] + " " + str(returnValue) + "\n}\n\n"
 
-    def printf(self, node):
+        # Geval return niet opgegeven
+        else:
+            if returnType == "INT":
+                self.line += "  ret " + "i32" + " 0\n}\n\n"
+            elif returnType == "FLOAT":
+                self.line += "  ret " + "i32" + " 0\n}\n\n"
+            elif returnType == "CHAR":
+                pass
+
+    def enterAssignment(self, node):
+
+        symbolTable = tableLookup(node.children[0])
+        symbol_lookup = symbolLookup(node.children[0].value, symbolTable)[1]
+        if node.children[1].token == "IDENTIFIER":
+            symbolTable1 = tableLookup(node.children[1])
+            symbol_lookup1 = symbolLookup(node.children[1].value, symbolTable1)[1]
+            register1 = symbol_lookup1.register
+            register = symbol_lookup.register
+            type = symbol_lookup1.type
+
+            self.line += self.load(type, register1)
+            self.store(self.registerCount, register, type, True, True)
+            self.registerCount += 1
+
+        elif node.children[1].token in types:
+            register = symbol_lookup.register
+            type = symbol_lookup.type
+            value = node.children[1].value
+            self.store(value, register, type, False, True)
+
+        # Kans op meerder berekingen die nog uitgevoerd moeten worden
+        else:
+            # We moeten eerst alle variable loaden die we gebruiken
+            registers = []
+            self.getRegisters(node.children[1], registers)
+            for i, register in enumerate(registers):
+                self.line += self.load(register[0].type, register[0].register)
+                registers[i] = self.registerCount, *register
+                self.registerCount += 1
+
+            self.calculations(node.children[1], registers)
+
+
+    def exitAssignment(self, node):
+        pass
+
+    def enterPrintf(self, node):
         self.isPrintf = True
 
         # TODO ? load voor de variabelen doen die in de printf gebruikt worden?
+        reg = [] # registers waar we de variabelen in hebben geload
+        for i, child in enumerate(node.children):
+            if (i == 0):
+                continue
+            else:
+                table = tableLookup(node.children[i])  # we look up the name of the function
+                symbol_lookup = symbolLookup(node.children[i].value, table)
+                if symbol_lookup[0]:
+                    self.line += self.load(symbol_lookup[1].type, symbol_lookup[1].register)
+                    reg.append(self.registerCount)
+                    self.registerCount += 1
 
-        # line = ""
-        # func = self.functions[len(self.functions) - 1]
-        #check eerst of er geen functie meer openstaat
-        # if func.isOpen:
-        #     line = func.line
         text = node.children[0].value
-        # register = func.registerCounter
         params = parseFuncCallParameters(text)
 
         #Als de lengte nul is betekent dat we gewoon een string hebben
@@ -349,9 +429,11 @@ class LLVM:
             self.line += ")\n"
 
         self.registerCount += 1
-        # func.line = line
 
-    def scanf(self, node):
+    def exitPrintf(self, node):
+        pass
+
+    def enterScanf(self, node):
 
         self.isScanf = True
 
@@ -422,6 +504,7 @@ class LLVM:
                             textsize = len(text)
                             addsize = 0
                             strname = text
+
                             # We controleren of er een \n bij de tekst staat, moest dit niet zo zijn dan doen we nog +1
                             if len(text) > 1:
                                 if text[len(text) - 2:len(text)] != "\\n":
@@ -461,12 +544,172 @@ class LLVM:
 
         self.registerCount += 1
 
-    def if_stmt(self, node):
+    def exitScanf(self, node):
+        pass
 
-        compOp = node.parent.children[0].children[0].value
-        left = node.parent.children[0].children[0].value
-        compOp = node.parent.children[0].children[0].value
+    def enterIf_stmt(self, node, value):
+        self.ifCount += 1
+        self.ifRegisters["if"+str(self.ifCount)] = value
+        conditionNode  = node.parent.children[0]
+        # self.analyseCondition(conditionNode)
+        startNode = NodeCon()
+        startNode.isRoot = True
+        self.nodeCount = 0
+        self.generateConditionTree(conditionNode, startNode)
+        self.analyseCondition(startNode)
+        self.fillIf(startNode)
+        self.writeIf(startNode)
 
+    def exitIf_stmt(self, node, value):
+        for key in self.ifRegisters:
+            if self.ifRegisters[key] == value:
+                self.line = self.line.replace(key, str(self.registerCount))
+        #Geval geen else
+        if node == node.parent.children[len(node.parent.children)-1]:
+            self.line += "  br label %" + str(self.registerCount) + "\n\n" + str(self.registerCount) + ":\n"
+
+        else:
+            self.line += "  br label %" + "else" + str(value) + "\n\n" + str(self.registerCount) + ":\n"
+            self.ifValues.append(value)
+        self.registerCount += 1
+
+    def enterElse_stmt(self):
+        pass
+
+    def exitElse_stmt(self):
+        self.line = self.line.replace("else"+str(self.ifValues[-1]), str(self.registerCount))
+        self.ifValues.pop()
+        self.line += "  br label %" + str(self.registerCount) + "\n\n" + str(self.registerCount) + ":\n"
+        self.registerCount += 1
+
+    def enterBIN_OP1(self, node):
+        print("")
+
+    def exitBIN_OP1(self, node):
+        pass
+
+    def writeIf(self, node):
+
+        for child in node.children:
+            self.writeIf(child)
+
+        if node.instruction == "load" or node.instruction == "icmp":
+            self.line += node.getLine()
+
+    def fillIf(self, startNode):
+        for child in startNode.children:
+            self.fillIf(child)
+
+        startNode.setEndRegister("if"+str(self.ifCount))
+
+    def generateConditionTree(self, node, newNode):
+        for child in node.children:
+            nNode = None
+            if str(child.value) in comparisons:
+                nNode = NodeCon()
+                nNode.instruction = "icmp"
+                nNode.comparison = comparisons[str(child.value)]
+                nNode.parent = newNode
+                nNode.nodeNumber = self.nodeCount
+                self.nodeCount += 1
+                newNode.children.append(nNode)
+
+            elif str(child.value) in logicals:
+                nNode = NodeCon()
+                nNode.instruction = "logical"
+                nNode.operation = logicals[str(child.value)]
+                nNode.parent = newNode
+                nNode.nodeNumber = self.nodeCount
+                self.nodeCount += 1
+                newNode.children.append(nNode)
+
+            elif str(child.token) == "IDENTIFIER":
+                nNode = NodeCon()
+                nNode.instruction = "load"
+                symbolTable = tableLookup(child)
+                symbol_lookup = symbolLookup(child.value, symbolTable)
+                symbol = symbol_lookup[1]
+                nNode.type, nNode.align = types[symbol.type]
+                nNode.fromRegister = symbol.register
+                nNode.parent = newNode
+                nNode.nodeNumber = self.nodeCount
+                self.nodeCount += 1
+                newNode.children.append(nNode)
+
+            self.generateConditionTree(child, nNode)
+
+    def analyseCondition(self, node):
+
+        for child in node.children:
+            self.analyseCondition(child)
+
+        # print(node.instruction)
+
+        if node.instruction == "load":
+            node.toRegister = self.registerCount
+            self.registerCount += 1
+
+        elif node.instruction == "icmp":
+            node.toRegister = self.registerCount
+            node.value1 = node.children[0].toRegister
+            node.value2 = node.children[1].toRegister
+            node.type = node.children[0].type
+            self.registerCount += 1
+
+            # Elke icmp is gevolgd door een br instrutction
+            # De labels worden bepaald door de logical er boven
+
+            if node.parent.operation == "OR":
+                node.branch = Branch()
+                node.branch.boolRegister = node.toRegister
+
+                # Als de node de linker van de operation is gaan we eerst naar de rechterkant gaan als het fout is
+                # Als de node de rechter is van de operation gaan we naar de logical zijn parent zien
+                # En deze bepaalt dan wat er moet gebeuren
+
+                if node == node.parent.children[0]:
+                    node.branch.label2 = self.registerCount
+                    self.registerCount += 1
+
+                elif node == node.parent.children[1] and node.parent.parent is not None:
+                    # We controleren nog voor de zekerheid dat we de linker van parent zijn
+                    if node.parent == node.parent.parent.children[0] and len(node.parent.parent.children) == 2:
+                        #We moeten ook nog kijken wat de parent hier van is want or of and heeft hier ook invloed
+                        if node.parent.parent.operation == "AND":
+                            node.branch.label1 = self.registerCount
+                            self.registerCount += 1
+                        elif node.parent.parent.operation == "OR":
+                            node.branch.label2 = self.registerCount
+                            self.registerCount += 1
+
+            elif node.parent.operation == "AND":
+                node.branch = Branch()
+                node.branch.boolRegister = node.toRegister
+
+                # Als de node de links van de operation is gaan we eerst naar de rechterkant gaan als het juist is
+                # Als de node de rechts is van de operation gaan we naar de logical zijn parent zien
+                # En deze bepaalt dan wat er moet gebeuren
+
+                if node == node.parent.children[0]:
+                    node.branch.label1 = self.registerCount
+                    self.registerCount += 1
+
+                elif node == node.parent.children[1] and node.parent.parent is not None:
+                    # We controleren nog voor de zekerheid dat we de linker van parent zijn
+                    if node.parent == node.parent.parent.children[0] and len(node.parent.parent.children) == 2:
+                        #We moeten ook nog kijken wat de parent hier van is want or of and heeft hier ook invloed
+                        if node.parent.parent.operation == "AND":
+                            node.branch.label1 = self.registerCount
+                            self.registerCount += 1
+                        elif node.parent.parent.operation == "OR":
+                            node.branch.label2 = self.registerCount
+                            self.registerCount += 1
+
+            if len(node.children) == 2:
+                if self.nodeCount-1 == node.children[1].nodeNumber:
+                    #betekent dat we in de laatste node zitten dus de laatste branch ook voor de if statemtn
+                    node.branch.label1 = self.registerCount
+                    self.registerCount += 1
 
     def while_stmt(self, node):
         pass
@@ -485,8 +728,9 @@ class LLVM:
 
     def load(self, type, register):
 
-        return self.registerCount, "%" + str(self.registerCount) + " = load " + types[type][0] + ", " + types[type][0] + "* " \
+        return "  %" + str(self.registerCount) + " = load " + types[type][0] + ", " + types[type][0] + "* " \
                                                                                                                "%" + str(register) + ", " + types[type][1] + "\n"
+
     def store(self, fromRegister, toRegister, type, isReg1, isReg2):
 
         reg1 = "%" + str(fromRegister) if isReg1 else str(fromRegister)
@@ -495,22 +739,101 @@ class LLVM:
         self.line += "  store " + types[type][0] + " " + reg1 + ", " + types[type][0] + "* " + reg2 + "" \
             ", " + types[type][1] + "\n"
 
-    def storeNew(self, node):
-
-        symbolTable = tableLookup(node).dict
-        #TODO: Lookup in table naar zijn register
-        if node.children[1].token == "IDENTIFIER":
-            pass
-        else:
-            for key in symbolTable:
-                if str(key) == str(node.children[0].value):
-                    register = symbolTable[key].register
-                    type = symbolTable[key].type
-                    value = node.children[1].value
-                    self.store(value, register, type, False, True)
-
     def allocate(self, register, type):
         return "  %" + str(register) + " = alloca " + types[type][0] + ", " + types[type][1] + "\n"
+
+    def getRegisters(self, node, registers):
+        for child in node.children:
+            self.getRegisters(child, registers)
+
+        if node.token == "IDENTIFIER":
+            symbolTable = tableLookup(node)
+            lookup_symbol = symbolLookup(node.value, symbolTable)[1]
+            registers.append((lookup_symbol, str(node.value)))
+
+    def calculations(self, node, registers):
+
+        for child in node.children:
+            self.calculations(child, registers)
+
+        if str(node.value) == "+":
+            self.addition(node.children[0], node.children[1], registers)
+        elif str(node.value) == "-":
+            self.addition(node.children[0], node.children[1], registers)
+        elif str(node.value) == "*":
+            self.addition(node.children[0], node.children[1], registers)
+        elif str(node.value) == "/":
+            self.addition(node.children[0], node.children[1], registers)
+        elif str(node.value) == "%":
+            self.addition(node.children[0], node.children[1], registers)
+
+    def getValuesForCalc(self, node):
+        type = None
+        isRegister = None
+        value = None
+        if node.token == "IDENTIFIER":
+            symbolTable = tableLookup(node)
+            lookup_symbol = symbolLookup(node.value, symbolTable)[1]
+            type = lookup_symbol.type
+            isRegister = True
+            value = str(node.value)
+
+        elif node.token in types:
+            type = node.token
+            isRegister = False
+            value = node.value
+        
+        return value, type, isRegister
+        
+    def addition(self, leftChild, rightChild, registers):
+
+        left, leftType, leftReg = self.getValuesForCalc(leftChild)
+        right, rightType, rightReg = self.getValuesForCalc(rightChild)
+        type = "INT"
+        if leftType or rightType == "FLOAT":
+            type = "FLOAT"
+
+        for register in registers:
+            if register[2] == str(leftChild.value):
+                left = str(register[0])
+            elif register[2] == str(rightChild.value):
+                right = str(register[0])
+
+
+        if type == "FLOAT":
+            #Moest 1 van de 2 types een int zijn moeten we deze eerst nog omzetten naar een float
+            if leftType == "INT":
+                #Check of het een register is of niet.
+                if not leftReg:
+                    left = str(left) + ".0e+00"
+                else:
+                    self.line += "  %" + str(self.registerCount) + " = sitofp i32 %" + str(left) + " to float\n"
+                    left = str(self.registerCount)
+                    self.registerCount += 1
+
+                self.line += "%" + str(self.registerCount) + " = fadd float %" + left + ", %" + right + "\n"
+
+            elif rightType == "INT":
+                # Check of het een register is of niet.
+                if not rightReg:
+                    right = str(left) + ".0e+00"
+                else:
+                    self.line += "  %" + str(self.registerCount) + " = sitofp i32 %" + str(right) + " to float\n"
+                    right = str(self.registerCount)
+                    self.registerCount += 1
+
+                self.line += "%" + str(self.registerCount) + " = fadd float %" + left + ", %" + right + "\n"
+
+            else:
+                #Allebei float
+                self.line += "%" + str(self.registerCount) + " = fadd float %" + left + ", %" + right + "\n"
+
+        elif type == "INT":
+            self.line += "%" + str(self.registerCount) + " = add i32 %" + left + ", %" + right + "\n"
+
+        self.registerCount += 1
+        return self.registerCount-1
+
 
 def multiply():
     pass
