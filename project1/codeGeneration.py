@@ -842,13 +842,13 @@ class LLVM:
         left, leftType, leftReg = self.getValuesForCalc(leftChild)
         right, rightType, rightReg = self.getValuesForCalc(rightChild)
         type = "INT"
-        if leftType or rightType == "FLOAT":
+        if leftType == "FLOAT" or rightType == "FLOAT":
             type = "FLOAT"
 
         for register in registers:
-            if register[2] == str(leftChild.value):
+            if register[2] == str(left):
                 left = str(register[0])
-            elif register[2] == str(rightChild.value):
+            elif register[2] == str(right):
                 right = str(register[0])
 
 
@@ -863,7 +863,8 @@ class LLVM:
                     left = str(self.registerCount)
                     self.registerCount += 1
 
-                self.line += "%" + str(self.registerCount) + " = fadd float %" + left + ", %" + right + "\n"
+                self.line += "  %" + str(self.registerCount) + " = fadd float " + "%" if leftReg else "" + str(left) + ", " + "%" if rightReg else ""
+                self.line += str(right) + "\n"
 
             elif rightType == "INT":
                 # Check of het een register is of niet.
@@ -874,14 +875,17 @@ class LLVM:
                     right = str(self.registerCount)
                     self.registerCount += 1
 
-                self.line += "%" + str(self.registerCount) + " = fadd float %" + left + ", %" + right + "\n"
+                self.line += "  %" + str(self.registerCount) + " = fadd float " + "%" if leftReg else "" + str(left) + ", " + "%" if rightReg else ""
+                self.line += str(right) + "\n"
 
             else:
                 #Allebei float
-                self.line += "%" + str(self.registerCount) + " = fadd float %" + left + ", %" + right + "\n"
+                self.line += "  %" + str(self.registerCount) + " = fadd float " + "%" if leftReg else "" + str(left) + ", " + "%" if rightReg else ""
+                self.line += str(right) + "\n"
 
         elif type == "INT":
-            self.line += "%" + str(self.registerCount) + " = add i32 %" + left + ", %" + right + "\n"
+            self.line += "  %" + str(self.registerCount) + " = add i32 " + "%" if leftReg else "" + str(left) + ", " + "%" if rightReg else ""
+            self.line += str(right) + "\n"
 
         self.registerCount += 1
         return self.registerCount-1
