@@ -1,16 +1,30 @@
+//#include <stdio.h>
+//
+//int main() {
+//
+//
+////	int a = 10;
+////	int b = 5;
+////	int c = 7;
+////	if (a > b && b > c || c == a) {
+////		printf("%s", "oke");
+////	}
+//	printf("Enter two numbers:");
+//    scanf("%d%d", &x, &y);
+//	printf("%d; %d", x, y);
+//
+//}
+
 #include <stdio.h>
 
-int main() {
-
-	int a = 10;
-	int b = 5;
-	int c = 7;
-	if (a > b && b > c || c == a) {
-		printf("%s", "oke");
-	}
-
+int main(){
+	int x;
+	int y;
+    printf("Enter two numbers:");
+	scanf("%d%d", &x, &y);
+	printf("%d; %d", x, y);
+	return 1;
 }
-
 
 // This should print the number 10 for each basic operation (int and float)
 

@@ -493,15 +493,26 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#scan_stmt.
     def enterScan_stmt(self, ctx:mathGrammerParser.Scan_stmtContext):
         text = str(ctx.getChild(2))
-        text = text[1:len(text) - 1]
+        text = text[1:len(text)-1]
+        strings = False
         if ctx.getChild(3).children is None:
+            strings = True
             ast.createNode(ctx.getChild(0), "SCANF", 1, ctx.start.line, ctx.start.column)
 
         else:
-            ast.createNode(ctx.getChild(0), "SCANF", 2, ctx.start.line, ctx.start.column)
-
+            childs = int(1 + len(ctx.getChild(3).children) / 2)
+            ast.createNode(ctx.getChild(0), "SCANF", childs, ctx.start.line, ctx.start.column)
+            # ast.createNode(ctx.getChild(0), "SCANF", 2, ctx.start.line, ctx.start.column)
 
         ast.createNode(text, "PRINTTEXT", 0, ctx.start.line, ctx.start.column)
+
+        if not strings:
+            for i, child in enumerate(ctx.getChild(3).children):
+                text = str(child)
+                if len(text) > 1:
+                    if text[0] == "\"" and text[len(text) - 1] == "\"":
+                        text = text[1:len(text) - 1]
+                        ast.createNode(text, "STRING", 0, ctx.start.line, ctx.start.column, place=int((i - 1) / 2) + 1)
 
     # Exit a parse tree produced by mathGrammerParser#scan_stmt.
     def exitScan_stmt(self, ctx:mathGrammerParser.Scan_stmtContext):

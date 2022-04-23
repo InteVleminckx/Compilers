@@ -249,17 +249,8 @@ class LLVM:
         #     line = func.line
         text = node.children[0].value
         # register = func.registerCounter
-        params = []
-        # We gaan de text parsen
-        addNext = False
-        for chr in text:
-            if chr == '%':
-                addNext = True
-            elif addNext:
-                param = "%" + chr
-                addNext = False
-                params.append(param)
-        
+        params = parseFuncCallParameters(text)
+
         #Als de lengte nul is betekent dat we gewoon een string hebben
 
         textsize = len(text)
@@ -360,19 +351,11 @@ class LLVM:
     def scanf(self, node):
 
         self.isScanf = True
-        text = node.children[0].value
-        params = []
-        # We gaan de text parsen
-        addNext = False
-        for chr in text:
-            if chr == '%':
-                addNext = True
-            elif addNext:
-                param = "%" + chr
-                addNext = False
-                params.append(param)
 
-        # Als de lengte nul is betekent dat we gewoon een string hebben, wat hier wel onzinnig is
+        text = node.children[0].value
+        params = parseFuncCallParameters(text)
+
+        # Als de lengte nul is betekent dat we gewoon een string hebben
 
         textsize = len(text)
         addsize = 0
@@ -389,7 +372,7 @@ class LLVM:
         inbound = "[" + str(textsize) + " x i8]"
 
         self.line += "  %" + str(
-            self.registerCount) + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds (" + inbound + ", " \
+            self.registerCount) + " = call i32 (i8*, ...) @__isoc99_scanf(i8* getelementptr inbounds (" + inbound + ", " \
                                                                                                             "" + inbound + "* "
 
         stringnumber = "@.str"
@@ -466,7 +449,6 @@ class LLVM:
             self.line += ")\n"
 
         self.registerCount += 1
-        # func.line = line
 
     def if_stmt(self, node):
 
@@ -482,11 +464,13 @@ class LLVM:
         return "declare dso_local i32 @printf(i8*, ...) "
 
     def scanfFunction(self):
-        return "declare dso_local i32 @scanf(i8*, ...) "
+        return "declare dso_local i32 @__isoc99_scanf(i8*, ...) "
 
     def printStrings(self, number, text, inboud):
         return number + " = private unnamed_addr constant " + inboud + " c\"" + text + "\", align 1\n"
 
+    def scanStrings(self, number, text, inboud):
+        return number + " = private unnamed_addr constant " + inboud + " c\"" + text + "\", align 1\n"
 
     def load(self, type, register):
 
