@@ -1741,29 +1741,25 @@ def semanticAnalysisVisitor(node):
                                     if symbol_lookup[1].type == "INT":
                                         pass
                                     else:
-                                        print(
-                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                        print("[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
                                                 node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
                                 elif params[i][-1] == "f":
                                     if symbol_lookup[1].type == "FLOAT":
                                         pass
                                     else:
-                                        print(
-                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                        print("[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
                                                 node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
                                 elif params[i][-1] == "c":
                                     if symbol_lookup[1].type == "CHAR":
                                         pass
                                     else:
-                                        print(
-                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                        print("[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
                                                 node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
                                 elif params[i][-1] == "s":
                                     if symbol_lookup[1].type == "CHAR":
                                         pass
                                     else:
-                                        print(
-                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                        print("[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
                                                 node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
 
                             else:
@@ -1771,31 +1767,26 @@ def semanticAnalysisVisitor(node):
                                     if type(node.children[i + 1].value) == int or node.children[i + 1].token == "INT":
                                         pass
                                     else:
-                                        print(
-                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                        print("[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
                                                 node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
                                 elif params[i][-1] == "f":
                                     if type(node.children[i + 1].value) == float or node.children[i + 1].token == "FLOAT":
                                         pass
                                     else:
-                                        print(
-                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
-                                                node.children[
-                                                    i + 1].column) + " : " + "In function call, passing of incompatible type")
+                                        print("[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
                                 elif params[i][-1] == "c":
                                     if type(node.children[i + 1].value) == str or node.children[i + 1].token == "CHAR":
                                         pass
                                     else:
-                                        print(
-                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                        print("[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
                                                 node.children[
                                                     i + 1].column) + " : " + "In function call, passing of incompatible type")
                                 elif params[i][-1] == "s":
                                     if type(node.children[i + 1].value) == str or node.children[i + 1].token == "STRING":
                                         pass
                                     else:
-                                        print(
-                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                        print("[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
                                                 node.children[
                                                     i + 1].column) + " : " + "In function call, passing of incompatible type")
 
@@ -1846,35 +1837,7 @@ def semanticAnalysisVisitor(node):
                                     print("[ Warning ] line " + str(node.children[i + 1].children[0].line) + ", position " + str(
                                         node.children[i + 1].children[0].column) + " : " + "In function call, passing of incompatible type")
 
-                        else:
-                            # if params[i][-1] == "d":
-                            #     if type(node.children[i+1].value) == int or node.children[i+1].token == "INT":
-                            #         pass
-                            #     else:
-                            #         print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
-                            #             node.children[
-                            #                 i+1].column) + " : " + "In function call, passing of incompatible type")
-                            # elif params[i][-1] == "f":
-                            #     if type(node.children[i+1].value) == float or node.children[i+1].token == "FLOAT":
-                            #         pass
-                            #     else:
-                            #         print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
-                            #             node.children[
-                            #                 i+1].column) + " : " + "In function call, passing of incompatible type")
-                            # elif params[i][-1] == "c":
-                            #     if type(node.children[i+1].value) == str or node.children[i+1].token == "CHAR":
-                            #         pass
-                            #     else:
-                            #         print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
-                            #             node.children[
-                            #                 i+1].column) + " : " + "In function call, passing of incompatible type")
-                            # elif params[i][-1] == "s":
-                            #     if type(node.children[i+1].value) == str or node.children[i+1].token == "STRING":
-                            #         pass
-                            #     else:
-                            #         print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
-                            #             node.children[
-                            #                 i+1].column) + " : " + "In function call, passing of incompatible type")
+                        else: # non-variabelen (maar dit kan niet?)
                             pass
 
     if len(node.children) > 0:
