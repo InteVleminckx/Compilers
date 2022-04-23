@@ -1191,18 +1191,14 @@ def optimizationVisitor(tree, table=False): # TODO verwijderen?
 
     return newTree
 
-tester = False
-
 def optimize(tree):
-    global tester
+    tester = True
     if tree.root is not None:
         propagation(tree.root)
 
-        while not tester:
-            if not folding(tree.root):
-                tester = True
-            else:
-                tester = False
+        while tester:
+            tester = folding(tree.root)
+            print("")
 
 def propagation(node):
 
@@ -1247,25 +1243,18 @@ def propagation(node):
 
 
 def folding(node):
-    global tester
-
-    if tester:
-        return True
 
     for i in range(len(node.children)):
 
-        if tester:
-            break
-
         if len(node.children[i-node.popped].children) > 0:
             if (folding(node.children[i-node.popped])):
-                tester = True
+                return True
 
     value_c0, value_c0_t = getValuesChildren(node.children[0])
     value_c1, value_c1_t = getValuesChildren(node.children[1]) if len(node.children) == 2 else (None,None)
 
     if value_c0 is None:
-        return
+        return False
 
     if node.token == "BIN_OP1" or node.token == "BIN_OP2":
 
@@ -1279,7 +1268,7 @@ def folding(node):
                 node.children[0].column) + " : " + "Operation of incompatible types")
 
         if value_c1 is None:
-            return
+            return False
 
         bin_operations = {
             "+": value_c0 + value_c1,
@@ -1328,7 +1317,7 @@ def folding(node):
         #     return
 
         if value_c1 is None:
-            return
+            return False
 
         comp_operations = {
             ">": value_c0 > value_c1,
@@ -1350,7 +1339,7 @@ def folding(node):
         # print(node.token)
         if node.parent.parent is not None:
             if node.parent.parent.token == "CONDITION":
-                return
+                return False
         # The value is just the return value of his child.
         node.value = -value_c0 if str(node.value) == "-" else value_c0
         # Checking what type the value is, it is an int or a float.

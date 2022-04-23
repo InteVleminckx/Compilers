@@ -55,7 +55,13 @@ class NodeCon:
         return "  %" + str(self.toRegister) + " = load " + self.type + ", " + self.type + "* %" + str(self.fromRegister) + ", " + self.align + "\n"
 
     def icmp(self):
-        return "  %" + str(self.toRegister) + " = icmp " + self.comparison + " " + self.type + " %" + str(self.value1) + ", %" + str(self.value2) + "\n" + self.br()
+        val1 = str(self.value1)
+        val2 = str(self.value2)
+        if self.iden1:
+            val1 = "%" + val1
+        if self.iden2:
+            val2 = "%" + val2
+        return "  %" + str(self.toRegister) + " = icmp " + self.comparison + " " + self.type + " " + val1 + ", " + val2 + "\n" + self.br()
 
     def br(self):
         return "  br i1 %" + str(self.branch.boolRegister) + ", label %" + str(self.branch.label1) + ", label %" + str(self.branch.label2) + "\n\n" + str(self.branch.boolRegister + 1) + ":\n"
@@ -434,8 +440,6 @@ class LLVM:
 
                     else: # bij een niet-identifier
 
-                        if i <= len(node.children) - 1:
-                            self.line += ", "
                         if node.children[i].token == "INT":
                             self.line += "i32 " + str(node.children[i].value)
                         elif node.children[i].token == "FLOAT":
@@ -660,6 +664,7 @@ class LLVM:
     def generateConditionTree(self, node, newNode):
         for child in node.children:
             nNode = None
+
             if str(child.value) in comparisons:
                 nNode = NodeCon()
                 nNode.instruction = "icmp"
@@ -793,7 +798,7 @@ class LLVM:
 
                 if node == node.parent.children[0]:
                     node.branch.label1 = self.registerCount
-                    self.registerCount += 1
+                    # self.registerCount += 1
 
             if len(node.children) == 2:
                 if self.nodeCount-1 == node.children[1].nodeNumber:
@@ -825,6 +830,9 @@ class LLVM:
 
         reg1 = "%" + str(fromRegister) if isReg1 else str(fromRegister)
         reg2 = "%" + str(toRegister) if isReg2 else str(toRegister)
+
+        if type == "CHAR" and not isReg1:
+            reg1 = str(ord(str(reg1[1])))
 
         self.line += "  store " + types[type][0] + " " + reg1 + ", " + types[type][0] + "* " + reg2 + "" \
             ", " + types[type][1] + "\n"
