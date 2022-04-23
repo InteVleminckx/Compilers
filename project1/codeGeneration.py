@@ -242,6 +242,9 @@ class LLVM:
 
     def printf(self, node):
         self.isPrintf = True
+
+        # TODO ? load voor de variabelen doen die in de printf gebruikt worden?
+
         # line = ""
         # func = self.functions[len(self.functions) - 1]
         #check eerst of er geen functie meer openstaat
@@ -402,49 +405,57 @@ class LLVM:
                 else:
                     if i <= len(node.children) - 1:
                         self.line += ", "
-                    if node.children[i].token == "INT":
-                        self.line += "i32 " + str(node.children[i].value)
-                    elif node.children[i].token == "FLOAT":
-                        self.line += "double " + str(node.children[i].value)
-                    elif node.children[i].token == "CHAR":
-                        number = ord(str(node.children[i].value)[1])
-                        self.line += "i32 " + str(number)
-                    elif node.children[i].token == "STRING":
-                        text = node.children[i].value
-                        textsize = len(text)
-                        addsize = 0
-                        strname = text
-                        # We controleren of er een \n bij de tekst staat, moest dit niet zo zijn dan doen we nog +1
-                        if len(text) > 1:
-                            if text[len(text) - 2:len(text)] != "\\n":
-                                addsize += 1
-                            else:
-                                text = text[0:len(text) - 2]
-                                text += "\\0A"
-                        textsize += addsize
-                        text += "\\00"
+                    if node.children[i].token == "UN_OP": # als we bij de argumenten (rechts) een ampersand hebben (reference), wat hoogstwaarschijnlijk gaat gebeuren
+                        table = tableLookup(node.children[i].children[0])  # we look up the name of the function
+                        symbol_lookup = symbolLookup(node.children[i].children[0].value, table)
+                        # if node.children[i].children[0].token == "INT":
+                        #     self.line += "i32 " + str(node.children[i].children[0].value)
+                        if symbol_lookup[1].type == "INT":
+                            self.line += "i32* %" + str(symbol_lookup[1].register)
+                        elif symbol_lookup[1].type == "FLOAT":
+                            self.line += "double* %" + str(symbol_lookup[1].register)
+                        elif symbol_lookup[1].type == "CHAR":
+                            number = ord(str(node.children[i].children[0].value)[1])
+                            self.line += "i32* %" + str(symbol_lookup[1].register)
+                        elif symbol_lookup[1].type == "STRING": # TODO type kan wel ni kloppen, want hebben wij een string
+                            text = node.children[i].children[0].value
+                            textsize = len(text)
+                            addsize = 0
+                            strname = text
+                            # We controleren of er een \n bij de tekst staat, moest dit niet zo zijn dan doen we nog +1
+                            if len(text) > 1:
+                                if text[len(text) - 2:len(text)] != "\\n":
+                                    addsize += 1
+                                else:
+                                    text = text[0:len(text) - 2]
+                                    text += "\\0A"
+                            textsize += addsize
+                            text += "\\00"
 
-                        inbound = "[" + str(textsize) + " x i8]"
+                            inbound = "[" + str(textsize) + " x i8]"
 
-                        self.line += "i8* getelementptr inbounds (" + inbound + ", " + inbound + "* "
+                            self.line += "i8* getelementptr inbounds (" + inbound + ", " + inbound + "* "
 
-                        stringnumber = "@.str"
-                        exists = False
-                        # check if string is in self.strings anders maak nieuwe aan
-                        for number, textt, inbound1 in self.strings:
-                            if textt == text:
-                                stringnumber = number
-                                exists = True
-                                break
+                            stringnumber = "@.str"
+                            exists = False
+                            # check if string is in self.strings anders maak nieuwe aan
+                            for number, textt, inbound1 in self.strings:
+                                if textt == text:
+                                    stringnumber = number
+                                    exists = True
+                                    break
 
-                        if not exists and len(self.strings) > 0:
-                            stringnumber = "@.str" + str(len(self.strings))
-                            self.strings.append((stringnumber, text, inbound))
+                            if not exists and len(self.strings) > 0:
+                                stringnumber = "@.str" + str(len(self.strings))
+                                self.strings.append((stringnumber, text, inbound))
 
-                        elif len(self.strings) == 0:
-                            self.strings.append((stringnumber, text, inbound))
+                            elif len(self.strings) == 0:
+                                self.strings.append((stringnumber, text, inbound))
 
-                        self.line += stringnumber + ", i64 0, i64 0)"
+                            self.line += stringnumber + ", i64 0, i64 0)"
+                    else: # geval waar er geen ampersand staat
+                        pass
+
 
             self.line += ")\n"
 
@@ -461,10 +472,10 @@ class LLVM:
         pass
 
     def printfFunction(self):
-        return "declare dso_local i32 @printf(i8*, ...) "
+        return "declare dso_local i32 @printf(i8*, ...)\n"
 
     def scanfFunction(self):
-        return "declare dso_local i32 @__isoc99_scanf(i8*, ...) "
+        return "declare dso_local i32 @__isoc99_scanf(i8*, ...)\n"
 
     def printStrings(self, number, text, inboud):
         return number + " = private unnamed_addr constant " + inboud + " c\"" + text + "\", align 1\n"
