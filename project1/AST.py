@@ -1730,55 +1730,152 @@ def semanticAnalysisVisitor(node):
             else:
 
                 for i in range(len(params)):
-                    table = tableLookup(node.children[i+1]) # i + 1 want de arguments beginnen bij de tweede node (niet de eerste)
-                    symbol_lookup = symbolLookup(node.children[i+1].value, table)
-                    if len(node.children[i+1].children) == 0:
-                        if symbol_lookup[0]: # if the passed argument is found in a symbol table
-                            pass
-                        else:
+                    if node.token == "PRINTF":
+                        table = tableLookup(node.children[i + 1])  # i + 1 want de arguments beginnen bij de tweede node (niet de eerste)
+                        symbol_lookup = symbolLookup(node.children[i + 1].value, table)
+
+                        if len(node.children[i + 1].children) == 0:
+                            if symbol_lookup[0]:  # if the passed argument is found in a symbol table
+
+                                if params[i][-1] == "d":
+                                    if symbol_lookup[1].type == "INT":
+                                        pass
+                                    else:
+                                        print(
+                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
+                                elif params[i][-1] == "f":
+                                    if symbol_lookup[1].type == "FLOAT":
+                                        pass
+                                    else:
+                                        print(
+                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
+                                elif params[i][-1] == "c":
+                                    if symbol_lookup[1].type == "CHAR":
+                                        pass
+                                    else:
+                                        print(
+                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
+                                elif params[i][-1] == "s":
+                                    if symbol_lookup[1].type == "CHAR":
+                                        pass
+                                    else:
+                                        print(
+                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
+
+                            else:
+                                if params[i][-1] == "d":
+                                    if type(node.children[i + 1].value) == int or node.children[i + 1].token == "INT":
+                                        pass
+                                    else:
+                                        print(
+                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
+                                elif params[i][-1] == "f":
+                                    if type(node.children[i + 1].value) == float or node.children[i + 1].token == "FLOAT":
+                                        pass
+                                    else:
+                                        print(
+                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[
+                                                    i + 1].column) + " : " + "In function call, passing of incompatible type")
+                                elif params[i][-1] == "c":
+                                    if type(node.children[i + 1].value) == str or node.children[i + 1].token == "CHAR":
+                                        pass
+                                    else:
+                                        print(
+                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[
+                                                    i + 1].column) + " : " + "In function call, passing of incompatible type")
+                                elif params[i][-1] == "s":
+                                    if type(node.children[i + 1].value) == str or node.children[i + 1].token == "STRING":
+                                        pass
+                                    else:
+                                        print(
+                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[
+                                                    i + 1].column) + " : " + "In function call, passing of incompatible type")
+
+                        else:  # for a whole expression
+                            expectedType = ""
                             if params[i][-1] == "d":
-                                if type(node.children[i+1].value) == int or node.children[i+1].token == "INT":
-                                    pass
-                                else:
-                                    print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
-                                        node.children[
-                                            i+1].column) + " : " + "In function call, passing of incompatible type")
+                                expectedType = "INT"
                             elif params[i][-1] == "f":
-                                if type(node.children[i+1].value) == float or node.children[i+1].token == "FLOAT":
-                                    pass
-                                else:
-                                    print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
-                                        node.children[
-                                            i+1].column) + " : " + "In function call, passing of incompatible type")
+                                expectedType = "FLOAT"
                             elif params[i][-1] == "c":
-                                if type(node.children[i+1].value) == str or node.children[i+1].token == "CHAR":
-                                    pass
-                                else:
-                                    print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
-                                        node.children[
-                                            i+1].column) + " : " + "In function call, passing of incompatible type")
+                                expectedType = "CHAR"
                             elif params[i][-1] == "s":
-                                if type(node.children[i+1].value) == str or node.children[i+1].token == "STRING":
+                                expectedType = "STRING"
+
+                            if expectedType != evaluateExpressionType(node.children[i + 1]):
+                                print("[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                    node.children[i + 1].column) + " : " + "In function call, passing of incompatible type")
+
+                    else:
+
+                        table = tableLookup(node.children[i + 1].children[0])  # i + 1 want de arguments beginnen bij de tweede node (niet de eerste)
+                        symbol_lookup = symbolLookup(node.children[i + 1].children[0].value, table)
+
+                        if symbol_lookup[0]: # if the passed argument is found in a symbol table
+
+                            if params[i][-1] == "d":
+                                if symbol_lookup[1].type == "INT":
                                     pass
                                 else:
-                                    print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
-                                        node.children[
-                                            i+1].column) + " : " + "In function call, passing of incompatible type")
+                                    print("[ Warning ] line " + str(node.children[i + 1].children[0].line) + ", position " + str(
+                                        node.children[i + 1].children[0].column) + " : " + "In function call, passing of incompatible type")
+                            elif params[i][-1] == "f":
+                                if symbol_lookup[1].type == "FLOAT":
+                                    pass
+                                else:
+                                    print("[ Warning ] line " + str(node.children[i + 1].children[0].line) + ", position " + str(
+                                        node.children[i + 1].children[0].column) + " : " + "In function call, passing of incompatible type")
+                            elif params[i][-1] == "c":
+                                if symbol_lookup[1].type == "CHAR":
+                                    pass
+                                else:
+                                    print("[ Warning ] line " + str(node.children[i + 1].children[0].line) + ", position " + str(
+                                        node.children[i + 1].children[0].column) + " : " + "In function call, passing of incompatible type")
+                            elif params[i][-1] == "s":
+                                if symbol_lookup[1].type == "CHAR":
+                                    pass
+                                else:
+                                    print("[ Warning ] line " + str(node.children[i + 1].children[0].line) + ", position " + str(
+                                        node.children[i + 1].children[0].column) + " : " + "In function call, passing of incompatible type")
 
-                    else: # for a whole expression
-                        expectedType = ""
-                        if params[i][-1] == "d":
-                            expectedType = "INT"
-                        elif params[i][-1] == "f":
-                            expectedType = "FLOAT"
-                        elif params[i][-1] == "c":
-                            expectedType = "CHAR"
-                        elif params[i][-1] == "s":
-                            expectedType = "STRING"
-
-                        if expectedType != evaluateExpressionType(node.children[i+1]):
-                            print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
-                                node.children[i+1].column) + " : " + "In function call, passing of incompatible type")
+                        else:
+                            # if params[i][-1] == "d":
+                            #     if type(node.children[i+1].value) == int or node.children[i+1].token == "INT":
+                            #         pass
+                            #     else:
+                            #         print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
+                            #             node.children[
+                            #                 i+1].column) + " : " + "In function call, passing of incompatible type")
+                            # elif params[i][-1] == "f":
+                            #     if type(node.children[i+1].value) == float or node.children[i+1].token == "FLOAT":
+                            #         pass
+                            #     else:
+                            #         print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
+                            #             node.children[
+                            #                 i+1].column) + " : " + "In function call, passing of incompatible type")
+                            # elif params[i][-1] == "c":
+                            #     if type(node.children[i+1].value) == str or node.children[i+1].token == "CHAR":
+                            #         pass
+                            #     else:
+                            #         print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
+                            #             node.children[
+                            #                 i+1].column) + " : " + "In function call, passing of incompatible type")
+                            # elif params[i][-1] == "s":
+                            #     if type(node.children[i+1].value) == str or node.children[i+1].token == "STRING":
+                            #         pass
+                            #     else:
+                            #         print("[ Warning ] line " + str(node.children[i+1].line) + ", position " + str(
+                            #             node.children[
+                            #                 i+1].column) + " : " + "In function call, passing of incompatible type")
+                            pass
 
     if len(node.children) > 0:
         for child in node.children:
