@@ -7,6 +7,7 @@ import os
 import re
 
 var_list = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
+op_list = ["<", ">", "<=", ">=", "==", "!=", "&&", "||"]
 
 
 def createNodeItem(token, value, parent,line=0,column=0 ,type="", isConst=False, isOverwritten=False, pointer=None, reference=None):
@@ -1318,6 +1319,10 @@ def folding(node):
     # We check if it is a comparison operation like <,>,<=,>=,==,!=
     elif node.token == "COMP_OP" or node.token == "EQ_OP":
 
+        if value_c0_t != value_c1_t:
+            print("[ Warning ] line " + str(node.line) + ", position " + str(
+                node.column) + " : " + "Operation of incompatible types")
+
         #We hebben hier wel een geval dat de parent een Condition is en dan mag er niet meer gefold worden
         # if node.parent.token == "CONDITION" and node.parent.parent.children[1].token != "IF":
         #     return
@@ -1405,17 +1410,33 @@ def folding(node):
     return False
 
 def getValuesChildren(child):
-    if child.token == "INT" and child.value != "INT":
-        return int(str(child.value)), "INT"  # value and token of this node
+    if child.token == "IDENTIFIER":
+        table = tableLookup(child)
+        symbol_lookup = symbolLookup(child.value, table)
+        if symbol_lookup[0]:
+            if symbol_lookup[1].type == "INT" and child.value != "INT":
+                return None, "INT"  # value and token of this node
 
-    elif child.token == "FLOAT" and child.value != "FLOAT":
-        return float(str(child.value)), "FLOAT"  # value and token of this node
+            elif symbol_lookup[1].type == "FLOAT" and child.value != "FLOAT":
+                return None, "FLOAT"  # value and token of this node
 
-    elif child.token == "CHAR" and child.value != "CHAR":
-        return str(child.value), "CHAR"
+            elif symbol_lookup[1].type == "CHAR" and child.value != "CHAR":
+                return None, "CHAR"
 
+            else:
+                return None, None
     else:
-        return None, None
+        if child.token == "INT" and child.value != "INT":
+            return int(str(child.value)), "INT"  # value and token of this node
+
+        elif child.token == "FLOAT" and child.value != "FLOAT":
+            return float(str(child.value)), "FLOAT"  # value and token of this node
+
+        elif child.token == "CHAR" and child.value != "CHAR":
+            return str(child.value), "CHAR"
+
+        else:
+            return None, None
 # ----------------------------------------------------------------------------------------------------------------------#
 
 #########################################################################################################################
@@ -1704,7 +1725,7 @@ def semanticAnalysisVisitor(node):
                     print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
                         node.children[1].children[i].column) + " : " + "In function call, passing of incompatible type")
 
-    elif node.token == "PRINTF" or node.token == "SCANF":
+    elif node.token == "PRINTF" or node.token == "SCANF": # printf en scanf
 
         if not ast.includes.count("stdio.h"):
             print("[ Error ] line " + str(node.line) + ", position " + str(
@@ -1839,6 +1860,10 @@ def semanticAnalysisVisitor(node):
 
                         else: # non-variabelen (maar dit kan niet?)
                             pass
+
+    elif node.token == "COMP_OP" or node.token == "EQ_OP":
+
+        pass
 
     if len(node.children) > 0:
         for child in node.children:

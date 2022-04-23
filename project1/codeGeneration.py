@@ -322,7 +322,6 @@ class LLVM:
     def enterPrintf(self, node):
         self.isPrintf = True
 
-        # TODO ? load voor de variabelen doen die in de printf gebruikt worden?
         reg = [] # registers waar we de variabelen in hebben geload
         for i, child in enumerate(node.children):
             if (i == 0):
