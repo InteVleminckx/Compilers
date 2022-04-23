@@ -27,7 +27,7 @@ class NodeCon:
         self.toRegister = None
         self.type = None
         self.instruction = None
-
+        self.value = None
 
         #Nodig bij load
         self.fromRegister = None
@@ -38,6 +38,8 @@ class NodeCon:
         self.value1 = None
         self.value2 = None
         self.branch = None
+        self.iden1 = True
+        self.iden2 = True
 
         #nodig bij logical
         self.operation = None
@@ -309,7 +311,9 @@ class LLVM:
                 registers[i] = self.registerCount, *register
                 self.registerCount += 1
 
-            self.calculations(node.children[1], registers)
+            returnReg = self.calculations(node.children[1], registers)
+
+            self.store(returnReg[0], symbol_lookup.register, symbol_lookup.type, True, True)
 
 
     def exitAssignment(self, node):
@@ -385,12 +389,12 @@ class LLVM:
                     symbol_lookup = symbolLookup(node.children[i].value, table)
                     if symbol_lookup[0]: # bij een identifier
                         if symbol_lookup[1].type == "INT":
-                            self.line += "i32* %" + str(reg[i-1])
+                            self.line += "i32 %" + str(reg[i-1])
                         elif symbol_lookup[1].type == "FLOAT":
-                            self.line += "double* %" + str(reg[i-1])
+                            self.line += "double %" + str(reg[i-1])
                         elif symbol_lookup[1].type == "CHAR":
                             number = ord(str(node.children[i].children[0].value)[1])
-                            self.line += "i32* %" + str(reg[i-1])
+                            self.line += "i32 %" + str(reg[i-1])
                         elif symbol_lookup[1].type == "STRING":  # TODO type kan wel ni kloppen, want hebben wij een string
                             text = node.children[i].value
                             textsize = len(text)
@@ -688,6 +692,16 @@ class LLVM:
                 self.nodeCount += 1
                 newNode.children.append(nNode)
 
+            elif str(child.token) in types:
+                nNode = NodeCon()
+                nNode.instruction = "none"
+                nNode.type, nNode.align = types[str(child.token)]
+                nNode.value = str(child.value)
+                nNode.parent = newNode
+                nNode.nodeNumber = self.nodeCount
+                self.nodeCount += 1
+                newNode.children.append(nNode)
+
             self.generateConditionTree(child, nNode)
 
     def analyseCondition(self, node):
@@ -703,8 +717,21 @@ class LLVM:
 
         elif node.instruction == "icmp":
             node.toRegister = self.registerCount
-            node.value1 = node.children[0].toRegister
-            node.value2 = node.children[1].toRegister
+
+            if node.children[0].value is None:
+                node.value1 = node.children[0].toRegister
+            else:
+                node.value1 = node.children[0].value
+                node.iden1 = False
+
+            if node.children[1].value is None:
+                node.value2 = node.children[1].toRegister
+            else:
+                node.value2 = node.children[1].value
+                node.iden2 = False
+
+
+
             node.type = node.children[0].type
             self.registerCount += 1
 
@@ -757,6 +784,18 @@ class LLVM:
                             node.branch.label2 = self.registerCount
                             self.registerCount += 1
 
+            elif node.parent.isRoot:
+                node.branch = Branch()
+                node.branch.boolRegister = node.toRegister
+
+                # Als de node de links van de operation is gaan we eerst naar de rechterkant gaan als het juist is
+                # Als de node de rechts is van de operation gaan we naar de logical zijn parent zien
+                # En deze bepaalt dan wat er moet gebeuren
+
+                if node == node.parent.children[0]:
+                    node.branch.label1 = self.registerCount
+                    self.registerCount += 1
+
             if len(node.children) == 2:
                 if self.nodeCount-1 == node.children[1].nodeNumber:
                     #betekent dat we in de laatste node zitten dus de laatste branch ook voor de if statemtn
@@ -803,21 +842,23 @@ class LLVM:
             lookup_symbol = symbolLookup(node.value, symbolTable)[1]
             registers.append((lookup_symbol, str(node.value)))
 
-    def calculations(self, node, registers):
+    def calculations(self, node, registers, returnReg=None):
 
         for child in node.children:
-            self.calculations(child, registers)
+            returnReg = self.calculations(child, registers, returnReg)
 
         if str(node.value) == "+":
-            self.addition(node.children[0], node.children[1], registers)
+            returnReg = self.operate(node.children[0], node.children[1], registers, returnReg, "add")
         elif str(node.value) == "-":
-            self.addition(node.children[0], node.children[1], registers)
+            returnReg = self.operate(node.children[0], node.children[1], registers, returnReg, "sub")
         elif str(node.value) == "*":
-            self.addition(node.children[0], node.children[1], registers)
+            returnReg = self.operate(node.children[0], node.children[1], registers, returnReg, "mul")
         elif str(node.value) == "/":
-            self.addition(node.children[0], node.children[1], registers)
-        elif str(node.value) == "%":
-            self.addition(node.children[0], node.children[1], registers)
+            returnReg = self.operate(node.children[0], node.children[1], registers, returnReg, "div")
+        # elif str(node.value) == "%":
+        #     returnReg = self.operate(node.children[0], node.children[1], registers, returnReg, "mod")
+
+        return returnReg
 
     def getValuesForCalc(self, node):
         type = None
@@ -837,7 +878,7 @@ class LLVM:
         
         return value, type, isRegister
         
-    def addition(self, leftChild, rightChild, registers):
+    def operate(self, leftChild, rightChild, registers, returnReg, operation):
 
         left, leftType, leftReg = self.getValuesForCalc(leftChild)
         right, rightType, rightReg = self.getValuesForCalc(rightChild)
@@ -851,6 +892,15 @@ class LLVM:
             elif register[2] == str(right):
                 right = str(register[0])
 
+        if left is None:
+            left = str(returnReg[0])
+            leftType = str(returnReg[1])
+            leftReg = True
+
+        elif right is None:
+            right = str(returnReg[0])
+            rightType = str(returnReg[1])
+            rightReg = True
 
         if type == "FLOAT":
             #Moest 1 van de 2 types een int zijn moeten we deze eerst nog omzetten naar een float
@@ -863,7 +913,10 @@ class LLVM:
                     left = str(self.registerCount)
                     self.registerCount += 1
 
-                self.line += "  %" + str(self.registerCount) + " = fadd float " + "%" if leftReg else "" + str(left) + ", " + "%" if rightReg else ""
+                self.line += "  %" + str(self.registerCount) + " = f" + operation + " float "
+                self.line += "%" if leftReg else ""
+                self.line += str(left) + ", "
+                self.line += "%" if rightReg else ""
                 self.line += str(right) + "\n"
 
             elif rightType == "INT":
@@ -875,28 +928,32 @@ class LLVM:
                     right = str(self.registerCount)
                     self.registerCount += 1
 
-                self.line += "  %" + str(self.registerCount) + " = fadd float " + "%" if leftReg else "" + str(left) + ", " + "%" if rightReg else ""
+                self.line += "  %" + str(self.registerCount) + " = f" + operation + " float "
+                self.line += "%" if leftReg else ""
+                self.line += str(left) + ", "
+                self.line += "%" if rightReg else ""
                 self.line += str(right) + "\n"
 
             else:
                 #Allebei float
-                self.line += "  %" + str(self.registerCount) + " = fadd float " + "%" if leftReg else "" + str(left) + ", " + "%" if rightReg else ""
+                self.line += "  %" + str(self.registerCount) + " = f" + operation + " float "
+                self.line += "%" if leftReg else ""
+                self.line += str(left) + ", "
+                self.line += "%" if rightReg else ""
                 self.line += str(right) + "\n"
 
         elif type == "INT":
-            self.line += "  %" + str(self.registerCount) + " = add i32 " + "%" if leftReg else "" + str(left) + ", " + "%" if rightReg else ""
+            if operation == "div":
+                operation = "sdiv"
+
+            self.line += "  %" + str(self.registerCount) + " = " + operation + " i32 "
+            self.line += "%" if leftReg else ""
+            self.line += str(left) + ", "
+            self.line += "%" if rightReg else ""
             self.line += str(right) + "\n"
 
         self.registerCount += 1
-        return self.registerCount-1
-
-
-def multiply():
-    pass
-def divide():
-
-
-    pass
+        return self.registerCount-1, type
 
 
 # def intToFloat(register):
