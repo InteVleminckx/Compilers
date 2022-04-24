@@ -10,6 +10,8 @@ class Value:
         self.outputTypes = outputTypes # return type (e.g. for functions)
         self.functionParameters = functionParameters
         self.register = int()
+        self.isAssigned = False
+        self.isGlobal = False
 
         self.pointer = pointer
         self.reference = reference

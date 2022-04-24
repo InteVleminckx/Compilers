@@ -1030,7 +1030,6 @@ class ASTprinter(mathGrammerListener):
         #Deze staat standaard op 1 dit is als we geen parameters hebben, we zetten het gelijk aan 2 als we er wel hebben
         if ctx.getChildCount() > 3:
             childs = 2
-            print("")
         ast.createNode("FUNC_CALL", "FUNC_CALL", 2, ctx.start.line, ctx.start.column)
         ast.createNode("NAME", "NAME", 1, ctx.start.line, ctx.start.column)
         ast.createNode(ctx.getChild(0), "IDENTIFIER", 0, ctx.start.line, ctx.start.column)
@@ -1198,7 +1197,6 @@ def optimize(tree):
 
         while tester:
             tester = folding(tree.root)
-            print("")
 
 def propagation(node):
 
@@ -1217,12 +1215,26 @@ def propagation(node):
             # Dan returnen we gewoon
             return
 
-        if node.parent is not None:
-            if node.parent.parent is not None:
-                if node.parent.parent.parent is not None:
-                    if len(node.parent.parent.parent.children) > 2:
-                        if node.parent.parent.parent.children[0].token == "DECLARATION" and node.parent.parent.parent.children[1].token == "CONDITION":
-                            return
+        parent = node.parent
+        while parent.token == "COMP_OP" or parent.token == "EQ_OP" or parent.token == "UN_OP":
+            parent = parent.parent
+
+        if len(parent.parent.children) > 1:
+            if parent.parent.children[1].token == "WHILE":
+                return
+            if len(parent.parent.children) > 2:
+                if parent.parent.children[0].token == "DECLARATION" and parent.parent.children[1].token == "CONDITION":
+                    return
+
+        if str(node.parent.value) == "&" or str(node.parent.value) == "*":
+            return
+
+        # if node.parent is not None:
+        #     if node.parent.parent is not None:
+        #         if node.parent.parent.parent is not None:
+        #             if len(node.parent.parent.parent.children) > 2:
+        #                 if node.parent.parent.parent.children[0].token == "DECLARATION" and node.parent.parent.parent.children[1].token == "CONDITION":
+        #                     return
 
         # We bekrijgen nu de table waar allee identifiers inzitten van huidge scope
         tableNode = tableLookup(node)
@@ -1230,6 +1242,53 @@ def propagation(node):
         # We krijgen dan volgende waardes uit de functie: wat zegt of het symbol bestaat, de waardes bevat van const, overwritten en de value van de identifier
         # en dan nog of het in dezelfde scope behoort
         exist, lookupValue, sameScope = symbolLookup(node.value, tableNode)
+
+        # Het kan zijn dat we nog altijd niet mogen propagaten omdat er zowel binnen deze scope als de scope hierboven
+        # dezelfde variable is en dan kan het zijn dat we dan nog niet mogen propageten
+
+        parent = node.parent
+
+        token = None
+        if parent is not None:
+            while parent.token != "IF" and parent.token != "ELSE" and parent.token != "WHILE" and parent.token != "NEW_BLOCK":
+                parent = parent.parent
+                if parent is None:
+                    break
+                token = parent.token
+
+        if parent is not None:
+            searchAgain = False
+            foundNode = False
+            for childr in parent.children:
+                if getNode(childr, node):
+                    foundNode = True
+                elif foundNode:
+                    if childr.token == "=":
+                        if str(childr.children[0].value) == str(node.value):
+                            # Moeten in de symboltable hier boven kijken naar de value van de variable
+                            searchAgain = True
+                            break
+                else:
+                    if childr.token == "=":
+                        if str(childr.children[0].value) == str(node.value):
+                            # We kunnen in onze eigen symboltable kijken
+                            break
+
+            if searchAgain:
+                parent2 = parent.parent
+                isTable = False
+                table2 = None
+                lookup_symbol = None
+                while not isTable:
+                    while parent2.symbolTablePointer is None:
+                        parent2 = parent2.parent
+
+                    table2 = tableLookup(parent2)  # we look up the name of the function
+                    isTable, lookup_symbol, scope = symbolLookup(str(node.value), table2)
+                    parent2 = parent2.parent
+
+                lookupValue = lookup_symbol
+                sameScope = False
 
         # we controleren of het bestaat
         if exist:
@@ -1241,6 +1300,14 @@ def propagation(node):
                 node.value = lookupValue.value.value
                 node.token = lookupValue.value.token
 
+def getNode(child, search):
+
+    for node in child.children:
+        if node == search:
+            return True
+        elif node.symbolTablePointer:
+            return False
+        getNode(node, search)
 
 def folding(node):
 
@@ -1367,7 +1434,7 @@ def folding(node):
                 # Als de value 0 is controleren we eerst nog of er een else statement is
                 # moest dit niet zo zijn kunnen we gewoon heel de branch verwijderen uit de ast want deze wordt nooit bereikt
                 # moest dit wel zo zijn dan vervangen we de branch door een nieuw block met alle nodes die in de else scape zaten.
-                print("")
+
                 if len(node.parent.children) == 2:
                     # geval geen else
                     # We verwijderen gewoon de branch uit de children van de parent want deze wordt toch nooit bereikt
@@ -1916,11 +1983,15 @@ def parseFuncCallParameters(text):
     params = []
     # We gaan de text parsen
     addNext = False
+    param = None
     for chr in text:
         if chr == '%':
             addNext = True
+            param = "%"
         elif addNext:
-            param = "%" + chr
-            addNext = False
-            params.append(param)
+            param += chr
+            if not chr.isdigit():
+                addNext = False
+                params.append(param)
+
     return params
