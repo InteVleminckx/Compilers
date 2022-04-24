@@ -8,9 +8,13 @@ import re
 
 var_list = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
 op_list = ["<", ">", "<=", ">=", "==", "!=", "&&", "||"]
-
+types = {"INT": ("i32", "align 4"), "FLOAT": ("float", "align 4"), "CHAR": ("i8", "align 1")}
 
 def createNodeItem(token, value, parent,line=0,column=0 ,type="", isConst=False, isOverwritten=False, pointer=None, reference=None):
+
+    if type == "" and token in types:
+        type = token
+
     node = Node(token, value, parent, line, column, type, isConst, isOverwritten, pointer, reference)
     return node
 
@@ -34,6 +38,9 @@ class Node:
         self.pointer = pointer # 0 means not a pointer, 1 means one *, 2 means **, ...
         self.reference = reference # 0 means no reference, 1 means one &, ...
         self.textPrint = ""
+
+        self.isDeclaration = False
+        self.hasType = False
 
         self.popped = 0
 
@@ -64,6 +71,7 @@ class AST:
         self.symbolTableStack = [globalTable]
 
         self.includes = []
+        self.lastCreated = None
 
     def returnLastBranch(self):
         node = self.parentsList[len(self.parentsList)-1].children[len(self.parentsList[len(self.parentsList)-1].children)-1]
@@ -128,6 +136,7 @@ class AST:
                                 curParent.children[i] = node
                                 break
                         self.parentsList.append(node)
+                        self.lastCreated = node
 
                     self.unaries = []
 
@@ -138,7 +147,7 @@ class AST:
 
                 # We nemen de laatste parent in de list, want deze is als laatste toegevoegd en moeten daar dan de kinderen aan toevoegen.
                 node = createNodeItem(token, value, curParent,line,column, type, isConst, isOverwritten, pointer, reference)
-
+                self.lastCreated = node
                 if token == "PRINTF" or token == "SCANF":
                     node.textPrint = printText
 
@@ -600,12 +609,12 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#decl_spec.
     def enterDecl_spec(self, ctx: mathGrammerParser.Decl_specContext):
 
-        if ctx.getChildCount() == 0:
-            if ctx.parentCtx.getChildCount() > 1:
-                if str(type(ctx.parentCtx.parentCtx)) == "<class 'mathGrammerParser.mathGrammerParser.Parameter_type_listContext'>" :
-                    print("[ Error ] line " + str(ctx.start.line) + ", position " + str(
-                        ctx.start.column) + " : " + "Function parameters not typed.")
-                    exit(1)
+        # if ctx.getChildCount() == 0:
+        #     if ctx.parentCtx.getChildCount() > 1:
+        #         if str(type(ctx.parentCtx.parentCtx)) == "<class 'mathGrammerParser.mathGrammerParser.Parameter_type_listContext'>" :
+        #             print("[ Error ] line " + str(ctx.start.line) + ", position " + str(
+        #                 ctx.start.column) + " : " + "Function parameters not typed.")
+        #             exit(1)
 
         if ctx.getChildCount() == 2:
             ast.nextConst = True
@@ -662,10 +671,42 @@ class ASTprinter(mathGrammerListener):
         # Wanneer we ook nog eens bovenaan de stack een func def hebben en hier de scope nog niet van geopend is en
         # De return type al is aangemaakt kunnen we een node aanmaken die de naam van de func def bevat
 
-        if ctx.IDENTIFIER() and ctx.getChildCount() == 1:
+        if (ctx.getChildCount() == 2 or ctx.getChildCount() == 1) and ctx.IDENTIFIER():
+            type = None
+            if ctx.getChildCount() == 2:
+                # Als we een function definition bovenaan de stack hebben en we hebben de scope hiervan nog niet geopend
+                # Gaan we een node toevoegen als return type van de function
+
+                if ctx.getChild(0).CHAR_KEY():
+                    type = "CHAR"
+                elif ctx.getChild(0).INT_KEY():
+                    type = "INT"
+                elif ctx.getChild(0).FLOAT_KEY():
+                    type = "FLOAT"
+
+                ast.nextType = type
 
             #Controleren eerst of de stack niet leeg is
             if len(self.stack_scopes) > 0:
+
+                if ctx.getChildCount() == 2:
+                    # Eerst controleren we of de stack niet leeg is
+                    if len(self.stack_scopes) > 0:
+
+                        if self.stack_scopes[-1].statement == "FUNC_DEF" and not self.stack_scopes[-1].turn:
+                            if self.stack_scopes[-1].createdReturnType:
+                                # We kunnen het type van de identifier van de parameter opslagen
+                                self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] = type
+
+                            else:
+                                # Maken eerst een node aan met return type
+                                ast.createNode("RETURN_TYPE", "RETURN_TYPE", 1, ctx.start.line, ctx.start.column)
+                                # Dan maken we de node aan met het juiste type
+                                ast.createNode(type, type, 0, ctx.start.line, ctx.start.column)
+                                self.stack_scopes[-1].createdReturnType = True
+                                # We returnen terug zodat de code hieronder niet wordt uitgevoerd
+                    # ast.nextType = type
+
                 #controleren of we een func def bovenaan hebben
                 if self.stack_scopes[-1].statement == "FUNC_DEF" and self.stack_scopes[-1].turn is False and self.stack_scopes[-1].createdReturnType:
 
@@ -699,6 +740,16 @@ class ASTprinter(mathGrammerListener):
             ast.pointerAmount = 0
             ast.referenceAmount = 0
 
+            if ctx.getChildCount() == 2:
+                ast.lastCreated.isDeclaration = True
+
+
+        # #Declaration
+        # elif ctx.getChildCount() == 2:
+        #     if ctx.getChild(1).IDENTIFIER():
+        #         ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
+
+
         elif ctx.getChildCount() == 3:
             if str(ctx.getChild(1)) == "[":
                 ast.createNode("ARRAY", "ARRAY", 1, ctx.start.line, ctx.start.column)
@@ -723,8 +774,8 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#ttype.
     def enterTtype(self, ctx: mathGrammerParser.TtypeContext):
 
-        #Als we een function definition bovenaan de stack hebben en we hebben de scope hiervan nog niet geopend
-        #Gaan we een node toevoegen als return type van de function
+        # #Als we een function definition bovenaan de stack hebben en we hebben de scope hiervan nog niet geopend
+        # #Gaan we een node toevoegen als return type van de function
         type = None
         if ctx.CHAR_KEY():
             type = "CHAR"
@@ -732,21 +783,21 @@ class ASTprinter(mathGrammerListener):
             type = "INT"
         elif ctx.FLOAT_KEY():
             type = "FLOAT"
-        #Eerst controleren we of de stack niet leeg is
-        if len(self.stack_scopes) > 0:
-
-            if self.stack_scopes[-1].statement == "FUNC_DEF" and not self.stack_scopes[-1].turn:
-                if self.stack_scopes[-1].createdReturnType:
-                    #We kunnen het type van de identifier van de parameter opslagen
-                    self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] = type
-
-                else:
-                    #Maken eerst een node aan met return type
-                    ast.createNode("RETURN_TYPE", "RETURN_TYPE",1, ctx.start.line, ctx.start.column)
-                    #Dan maken we de node aan met het juiste type
-                    ast.createNode(type, type, 0, ctx.start.line, ctx.start.column)
-                    self.stack_scopes[-1].createdReturnType = True
-                    #We returnen terug zodat de code hieronder niet wordt uitgevoerd
+        # #Eerst controleren we of de stack niet leeg is
+        # if len(self.stack_scopes) > 0:
+        #
+        #     if self.stack_scopes[-1].statement == "FUNC_DEF" and not self.stack_scopes[-1].turn:
+        #         if self.stack_scopes[-1].createdReturnType:
+        #             #We kunnen het type van de identifier van de parameter opslagen
+        #             self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] = type
+        #
+        #         else:
+        #             #Maken eerst een node aan met return type
+        #             ast.createNode("RETURN_TYPE", "RETURN_TYPE",1, ctx.start.line, ctx.start.column)
+        #             #Dan maken we de node aan met het juiste type
+        #             ast.createNode(type, type, 0, ctx.start.line, ctx.start.column)
+        #             self.stack_scopes[-1].createdReturnType = True
+        #             #We returnen terug zodat de code hieronder niet wordt uitgevoerd
 
         ast.nextType = type
 
@@ -988,12 +1039,21 @@ class ASTprinter(mathGrammerListener):
         if ctx.getChildCount() == 1:
             #Maken een node aan voor de parameters
             ast.createNode("PARAMETERS", "PARAMETERS", 1, ctx.start.line, ctx.start.column)
+            if ctx.getChild(0).getChildCount() == 2:
+                ast.lastCreated.hasType = True
         elif ctx.getChildCount() > 1:
             #De parameters zijn gesplitst door commas dus we moeten eerst nog het aantal parameters berekenen
             total = ctx.getChildCount() - int((ctx.getChildCount()-1)/2)
 
             #maken een node aan voor de parameters
             ast.createNode("PARAMETERS", "PARAMETERS", total, ctx.start.line, ctx.start.column)
+            bol = True
+            for i in range(total):
+                if ctx.getChild(i).getChildCount() != 2:
+                    bol = False
+                    break
+            if bol:
+                ast.lastCreated.hasType = True
 
     # Exit a parse tree produced by mathGrammerParser#parameter_type_list.
     def exitParameter_type_list(self, ctx:mathGrammerParser.Parameter_type_listContext):
@@ -1030,7 +1090,7 @@ class ASTprinter(mathGrammerListener):
         #Deze staat standaard op 1 dit is als we geen parameters hebben, we zetten het gelijk aan 2 als we er wel hebben
         if ctx.getChildCount() > 3:
             childs = 2
-        ast.createNode("FUNC_CALL", "FUNC_CALL", 2, ctx.start.line, ctx.start.column)
+        ast.createNode("FUNC_CALL", "FUNC_CALL", childs, ctx.start.line, ctx.start.column)
         ast.createNode("NAME", "NAME", 1, ctx.start.line, ctx.start.column)
         ast.createNode(ctx.getChild(0), "IDENTIFIER", 0, ctx.start.line, ctx.start.column)
 
@@ -1156,6 +1216,7 @@ def optimizationVisitor(tree, table=False): # TODO verwijderen?
     newTree = AST()
     newTree.root = createNodeItem("ROOT", "ROOT", None)
     newNode = createNodeItem(tree.token, tree.value, tree.parent)
+    ast.lastCreated = newNode
     childnumber = 0
 
     loopP = None
@@ -1593,26 +1654,34 @@ def setupSymbolTables(tree, node=None):
         ## geval 2: we openen geen nieuw block ##
 
         if node.token == "=": # variabele toevoegen aan symbol table
+            if node.children[0].isDeclaration:
 
-            value = node.children[1]
-            type = node.children[0].type
-            isConst = node.children[0].isConst
+                value = node.children[1]
+                type = node.children[0].type
+                isConst = node.children[0].isConst
 
-            # if len(node.children[1].children) != 0:  # optimizen
-            #     pass
-            isOverwritten = False
-            if str(node.children[0].value) in tree.symbolTableStack[-1].dict: # als de variabele ervoor al gedeclareerd was.
-                isOverwritten = True # de variabele krijgt de status "overwritten"
+                # if len(node.children[1].children) != 0:  # optimizen
+                #     pass
+                isOverwritten = False
+                if str(node.children[0].value) in tree.symbolTableStack[-1].dict: # als de variabele ervoor al gedeclareerd was.
+                    isOverwritten = True # de variabele krijgt de status "overwritten"
 
+                    table = tableLookup(node.children[0])
+                    symbol_lookup = symbolLookup(node.children[0].value, table)
+                    type = symbol_lookup[1].type
+                    isConst = symbol_lookup[1].isConst
+
+                semanticAnalysis(node, node.children[0], node.children[1])
+
+                tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.children[0].pointer, node.children[0].reference)
+                tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
+
+            else:
                 table = tableLookup(node.children[0])
                 symbol_lookup = symbolLookup(node.children[0].value, table)
                 type = symbol_lookup[1].type
-                isConst = symbol_lookup[1].isConst
+                node.children[0].type = type
 
-            semanticAnalysis(node, node.children[0], node.children[1])
-
-            tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.children[0].pointer, node.children[0].reference)
-            tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
 
         elif node.parent.token == "PARAMETERS" and not (node.token == "=" or node.token == "NONE") and not node.parent.parent.token == "FUNC_CALL": # parametervariabelen van een functie toevoegen aan symbol table
 
@@ -1644,7 +1713,7 @@ def setupSymbolTables(tree, node=None):
         #     tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters)
         #     tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
 
-        elif node.token == "IDENTIFIER" and not node.parent.token == "=":
+        elif node.token == "IDENTIFIER" and not node.parent.token == "=" and node.isDeclaration:
             if not node.type == "":
                 value = node
                 type = node.type
@@ -1760,6 +1829,16 @@ def semanticAnalysisVisitor(node):
                     print("[ Warning ] line " + str(node.line) + ", position " + str(
                         node.column) + " : " + "Assignment of incompatible types")
 
+    elif node.token == "FUNC_DEF":
+        parameters = node.parent.children[2]
+
+        if len(parameters.children) > 0 and parameters.children[0].token != 'NONE':
+            if parameters.hasType is False:
+                print("[ Error ] line " + str(parameters.line) + ", position " + str(
+                    parameters.column) + " : " + "Function parameters not typed.")
+                exit(1)
+
+
     elif node.token == "FUNC_CALL": # function calls behandelen
         table = tableLookup(node.children[0].children[0]) # we look up the name of the function
         symbol_lookup = symbolLookup(node.children[0].children[0].value, table)
@@ -1768,18 +1847,21 @@ def semanticAnalysisVisitor(node):
             print("[ Error ] line " + str(node.children[0].children[0].line) + ", position " + str(
                 node.children[0].children[0].column) + " : " + "Undefined or Uninitialized Reference.")
             exit(1)
-        if len(node.children[1].children) > len(symbol_lookup[1].inputTypes):
-            print("[ Error ] line " + str(node.children[1].line) + ", position " + str(
-                node.children[1].column) + " : " + "In function call, given more arguments than expected")
-            exit(1)
-        elif len(node.children[1].children) < len(symbol_lookup[1].inputTypes): # here we give a warning, because function parameters can be default assigned
-            print("[ Warning ] line " + str(node.children[1].line) + ", position " + str(
-                node.children[1].column) + " : " + "In function call, given less arguments than expected")
-        else: # als het aantal parameters klopt (dan gaan we op types checken)
-            for i in range(len(node.children[1].children)):
-                if not symbol_lookup[1].inputTypes[i] == node.children[1].children[i].type:
-                    print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
-                        node.children[1].children[i].column) + " : " + "In function call, passing of incompatible type")
+
+        if len(node.children) == 2:
+            if len(node.children[1].children) > len(symbol_lookup[1].inputTypes):
+                print("[ Error ] line " + str(node.children[1].line) + ", position " + str(
+                    node.children[1].column) + " : " + "In function call, given more arguments than expected")
+                exit(1)
+
+            elif len(node.children[1].children) < len(symbol_lookup[1].inputTypes): # here we give a warning, because function parameters can be default assigned
+                print("[ Warning ] line " + str(node.children[1].line) + ", position " + str(
+                    node.children[1].column) + " : " + "In function call, given less arguments than expected")
+            else: # als het aantal parameters klopt (dan gaan we op types checken)
+                for i in range(len(node.children[1].children)):
+                    if not symbol_lookup[1].inputTypes[i] == node.children[1].children[i].type:
+                        print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
+                            node.children[1].children[i].column) + " : " + "In function call, passing of incompatible type")
 
     elif node.token == "PRINTF" or node.token == "SCANF": # printf en scanf
 

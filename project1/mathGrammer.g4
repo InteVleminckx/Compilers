@@ -96,7 +96,8 @@ expr_statement
 //        ;
 
 declaration
-        : decl_spec SEMICOLON
+        : func_call SEMICOLON
+        | decl_spec SEMICOLON
         | decl_spec init_decl_list SEMICOLON
         ;
 
@@ -132,8 +133,13 @@ initializer_list
         | initializer_list COMMA initializer
         ;
 
+func_call
+        : IDENTIFIER LPARENTH func_call_par_list? RPARENTH
+        ;
+
 direct_declarator
         : IDENTIFIER
+        | ttype IDENTIFIER
         | direct_declarator LPARENTH parameter_type_list RPARENTH
         | direct_declarator (LBRACKET_SQUARE log_op1 RBRACKET_SQUARE)+
         | direct_declarator LBRACKET_SQUARE RBRACKET_SQUARE
@@ -236,10 +242,6 @@ var
 		| IDENTIFIER
 		| func_call
 		;
-
-func_call
-        : IDENTIFIER LPARENTH func_call_par_list? RPARENTH
-        ;
 
 func_call_par_list
         : log_op1 (COMMA log_op1)*

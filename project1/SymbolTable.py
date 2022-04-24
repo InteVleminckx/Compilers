@@ -12,6 +12,7 @@ class Value:
         self.register = int()
         self.isAssigned = False
         self.isGlobal = False
+        self.isParam = False
 
         self.pointer = pointer
         self.reference = reference

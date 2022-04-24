@@ -119,6 +119,11 @@ class mathGrammerVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by mathGrammerParser#func_call.
+    def visitFunc_call(self, ctx:mathGrammerParser.Func_callContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by mathGrammerParser#direct_declarator.
     def visitDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):
         return self.visitChildren(ctx)
@@ -211,11 +216,6 @@ class mathGrammerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by mathGrammerParser#var.
     def visitVar(self, ctx:mathGrammerParser.VarContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by mathGrammerParser#func_call.
-    def visitFunc_call(self, ctx:mathGrammerParser.Func_callContext):
         return self.visitChildren(ctx)
 
 

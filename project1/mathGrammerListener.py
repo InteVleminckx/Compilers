@@ -206,6 +206,15 @@ class mathGrammerListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by mathGrammerParser#func_call.
+    def enterFunc_call(self, ctx:mathGrammerParser.Func_callContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#func_call.
+    def exitFunc_call(self, ctx:mathGrammerParser.Func_callContext):
+        pass
+
+
     # Enter a parse tree produced by mathGrammerParser#direct_declarator.
     def enterDirect_declarator(self, ctx:mathGrammerParser.Direct_declaratorContext):
         pass
@@ -374,15 +383,6 @@ class mathGrammerListener(ParseTreeListener):
 
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx:mathGrammerParser.VarContext):
-        pass
-
-
-    # Enter a parse tree produced by mathGrammerParser#func_call.
-    def enterFunc_call(self, ctx:mathGrammerParser.Func_callContext):
-        pass
-
-    # Exit a parse tree produced by mathGrammerParser#func_call.
-    def exitFunc_call(self, ctx:mathGrammerParser.Func_callContext):
         pass
 
 
