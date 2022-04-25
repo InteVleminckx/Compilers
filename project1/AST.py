@@ -2034,6 +2034,31 @@ def semanticAnalysisVisitor(node):
                         else: # non-variabelen (maar dit kan niet?)
                             pass
 
+    elif node.token == "CONTINUE" or node.token == "BREAK":
+        travelNode = node
+        while travelNode.token != "WHILE":
+            if travelNode.parent is None:
+                print("[ Error ] line " + str(node.line) + ", position " + str(
+                    node.column) + " : " + "Invalid loop control statement.")
+                exit(1)
+                break
+            travelNode = travelNode.parent
+
+    elif node.token == "RETURN":
+        # check for return outside function
+        travelNode = node
+        while travelNode.token != "FUNC_DEF":
+            if travelNode.parent is None:
+                print("[ Error ] line " + str(node.line) + ", position " + str(
+                    node.column) + " : " + "Return outside function.")
+                exit(1)
+                break
+            travelNode = travelNode.parent
+
+        # check for return type vs actual return type
+
+
+
     if len(node.children) > 0:
         for child in node.children:
             semanticAnalysisVisitor(child)
