@@ -187,8 +187,6 @@ class LLVM:
         # print("Enter: ", node.token, " Value: " , value)
 
         self.EnterExitstatements(node, True, value)
-        if self.registerCount == 22:
-            print(self.registerCount)
         for i, child in enumerate(node.children):
             #Zie dat deze op het laatste staat
             # if i == len(node.children)-1 and node.value == "FUNC_DEF":

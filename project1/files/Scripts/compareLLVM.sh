@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # This script runs the program and generates the llvm code
-
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
 TOP="*---------------------------COMPARE LLVMCODE--------------------------*"
 echo $TOP
 cd "files/"
@@ -14,37 +16,49 @@ do
     FILE=${f##*/}
     FILE=${FILE%.*}
     if cmp --silent -- "correctRunOutput/$FILE.txt" "outputLLVM/$FILE.txt"; then
-       	    LINE="*---- $FILE IS CORRECT"
-	    LENL=$((${#TOP} - ${#LINE} - 2))
+       	    LINE="*---- $FILE"
+	    LENL=$((${#TOP} - ${#LINE} - 10))
 	    LINE="$LINE "
 	    for i in $(seq 1 $LENL);
 	    do
 	    	CHECK=$(( $LENL - $i))
-	    	if (( $CHECK < 4))
+	        if (( $CHECK == 4))
 	    	then
-	    	    LINE="$LINE-";
+	    	    LINE="$LINE ${GREEN}[EQUAL]${NC} ";
 	    	else
-	    	    LINE="$LINE ";
+    		    if (( $CHECK < 4))
+    		    then
+	    	    	LINE="$LINE-";
+    		    else
+	    	    	LINE="$LINE ";
+    		    fi
 	    	fi
+
 	    done 
 	    LINE="$LINE*"
-	    echo "$LINE"
+	    echo -e "$LINE"
     else
-            LINE="*---- $FILE IS NOT CORRECT"
-	    LENL=$((${#TOP} - ${#LINE} - 2))
+       	    LINE="*---- $FILE"
+	    LENL=$((${#TOP} - ${#LINE} - 10))
 	    LINE="$LINE "
 	    for i in $(seq 1 $LENL);
 	    do
 	    	CHECK=$(( $LENL - $i))
-	    	if (( $CHECK < 4))
+	        if (( $CHECK == 4))
 	    	then
-	    	    LINE="$LINE-";
+	    	    LINE="$LINE ${RED}[FAULT]${RED} ";
 	    	else
-	    	    LINE="$LINE ";
+    		    if (( $CHECK < 4))
+    		    then
+	    	    	LINE="$LINE-";
+    		    else
+	    	    	LINE="$LINE ";
+    		    fi
 	    	fi
+
 	    done 
 	    LINE="$LINE*"
-	    echo "$LINE"
+	    echo -e "$LINE"
     fi
   else
     echo "Error trying to open or run \"$f\""

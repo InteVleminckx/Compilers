@@ -7,7 +7,7 @@ NC='\033[0m'
 TOP="*------------------------GENERATING INPUTFILES------------------------*"
 echo $TOP
 
-FILES="./files/C_CodesLLVM/*.c"
+FILES="./*.c"
 for f in $FILES
 do
 # Check if "$f" FILE exists and is a regular file and then only copy it #
@@ -15,28 +15,7 @@ do
   then
 	    FILE=${f##*/}
     	    FILE=${FILE%.*}
-       	    LINE="*---- $FILE"
-	    LENL=$((${#TOP} - ${#LINE} - 14))
-	    LINE="$LINE "
-	    for i in $(seq 1 $LENL);
-	    do
-	    	CHECK=$(( $LENL - $i))
-	        if (( $CHECK == 4))
-	    	then
-	    	    LINE="$LINE ${GREEN}[GENERATED]${NC} ";
-	    	else
-    		    if (( $CHECK < 4))
-    		    then
-	    	    	LINE="$LINE-";
-    		    else
-	    	    	LINE="$LINE ";
-    		    fi
-	    	fi
-
-	    done 
-	    LINE="$LINE*"
-	    echo -e "$LINE"
-    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py" $f
+    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py" $f > "$FILE.txt"
     
      
 

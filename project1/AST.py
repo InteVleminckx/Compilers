@@ -1043,12 +1043,12 @@ class ASTprinter(mathGrammerListener):
                 ast.lastCreated.hasType = True
         elif ctx.getChildCount() > 1:
             #De parameters zijn gesplitst door commas dus we moeten eerst nog het aantal parameters berekenen
-            total = ctx.getChildCount() - int((ctx.getChildCount()-1)/2)
+            total = ctx.getChildCount()
 
             #maken een node aan voor de parameters
             ast.createNode("PARAMETERS", "PARAMETERS", total, ctx.start.line, ctx.start.column)
             bol = True
-            for i in range(total):
+            for i in range(0, total, 2):
                 if ctx.getChild(i).getChildCount() != 2:
                     bol = False
                     break
@@ -1682,9 +1682,10 @@ def setupSymbolTables(tree, node=None):
             else:
                 table = tableLookup(node.children[0])
                 symbol_lookup = symbolLookup(node.children[0].value, table)
-                type = symbol_lookup[1].type
-                node.children[0].type = type
-                symbol_lookup[1].isOverwritten = True
+                if symbol_lookup[0]:
+                    type = symbol_lookup[1].type
+                    node.children[0].type = type
+                # symbol_lookup[1].isOverwritten = True
 
 
         elif node.parent.token == "PARAMETERS" and not (node.token == "=" or node.token == "NONE") and not node.parent.parent.token == "FUNC_CALL": # parametervariabelen van een functie toevoegen aan symbol table

@@ -55,16 +55,16 @@ def main(argv):
 
     a = ast
     # a.inorderTraversal(print)
-    createGraph(a, argv[1], 0)
+    # createGraph(a, argv[1], 0)
     setupSymbolTables(a)
     optimize(a)
     semanticAnalysisVisitor(a.root)
     # optimizationVisitor(a)
-    createGraph(a, argv[1], 1)
+    # createGraph(a, argv[1], 1)
     # codeGenerator(a)
     # codeGenerationVisitor()
-    llvm = LLVM(a)
-    llvm.toLLVM(argv[1])
+    # llvm = LLVM(a)
+    # llvm.toLLVM(argv[1])
 
 if __name__ == '__main__':
     main(sys.argv)

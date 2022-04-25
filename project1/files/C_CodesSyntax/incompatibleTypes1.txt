@@ -1,0 +1,5 @@
+[ Warning ] line 3, position 8 : Operation of incompatible types
+[ Warning ] line 4, position 8 : Operation of incompatible types
+[ Warning ] line 5, position 8 : Operation of incompatible types
+[ Warning ] line 6, position 8 : Operation of incompatible types
+[ Warning ] line 6, position 4 : Assignment of incompatible types
