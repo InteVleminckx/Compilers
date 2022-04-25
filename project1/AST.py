@@ -1614,6 +1614,9 @@ def setupSymbolTables(tree, node=None):
         if node.token == "IMPORT":
             for i in node.children:
                 tree.includes.append(i.value)
+                if i.value != "stdio.h":
+                    print("[ Warning ] line " + str(node.line) + ", position " + str(
+                        node.column) + " : " + "Invalid include error.")
 
         ## geval 1: we (open)en een nieuw block ##
 
@@ -1700,24 +1703,6 @@ def setupSymbolTables(tree, node=None):
 
             tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference)
             tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
-
-        # elif node.token == "BRANCH" and node.children[0].token == "RETURN_TYPE": # functie(naam) toevoegen aan symbol table
-        #
-        #     value = node.children[3] # de "FUNC_DEF" node
-        #     type = node.children[0].children[0].token
-        #     isConst = False
-        #     isOverwritten = False
-        #     inputTypes = [node.children[0].children[0].token]
-        #     outputTypes = []
-        #     functionParameters = []
-        #     for i in range(len(node.children[2].children)):
-        #         outputTypes.append(node.children[2].children[i].type)
-        #         functionParameters.append(node.children[2].children[i].value)
-        #
-        #     # semanticAnalysis(node.children[1].children[0])
-        #
-        #     tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters)
-        #     tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
 
         elif node.token == "IDENTIFIER" and not node.parent.token == "=" and node.isDeclaration:
             if not node.type == "":
@@ -2116,3 +2101,10 @@ def parseFuncCallParameters(text):
                 params.append(param)
 
     return params
+
+def checkMain(tree):
+    table = tree.symbolTableList[0]  # i + 1 want de arguments beginnen bij de tweede node (niet de eerste)
+    symbol_lookup = symbolLookup("main", table)
+    if not symbol_lookup[0]:
+        print("[ Error ] Function 'main' not found.")
+

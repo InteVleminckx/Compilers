@@ -1,14 +1,13 @@
 #include <stdio.h>
-
 //int f(int b){
 //}
-int f(int a, int b) {
-    return 5;
-}
+int f(int a, int b) {}
+
 int main() {
 
     int a = 5;
-
+    printf("%d; ", 9++);
+    printf("%d; ", --11);
 //	int x = 10;
 //	int y = 11;
 //	y = y + 1;

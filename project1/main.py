@@ -57,6 +57,7 @@ def main(argv):
     # a.inorderTraversal(print)
     createGraph(a, argv[1], 0)
     setupSymbolTables(a)
+    checkMain(a)
     optimize(a)
     semanticAnalysisVisitor(a.root)
     # optimizationVisitor(a)
