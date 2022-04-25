@@ -12,6 +12,9 @@ You can simply run ./testscript.sh in the project1/ folder. In the terminal, you
 |----------------|---------------------------------------------------------------|
 | A_inputfile2.c | Example code from second assignment sheet (P2)                | 
 | A_inputfile3.c | Example code from third assignment sheet (P3)                 |
+| A_inputfile4.c | Example code from fourth assignment sheet (P4)                |
+| A_inputfile5.c | Example code from fifth assignment sheet (P5)                 |
+| A_inputfile6.c | Example code from sixth assignment sheet (P6)                 |
 | inputfile0.c   | Binary operations and unary operations                        |
 | inputfile1.c   | Logical operations                                            |
 | inputfile2.c   | Comparison operators                                          |
