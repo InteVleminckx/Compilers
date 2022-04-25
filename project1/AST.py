@@ -1116,7 +1116,9 @@ class ASTprinter(mathGrammerListener):
         pass
 
 def createGraph(ast, inputfile, number=0):
-    path = "./ast_files/"
+
+    path = "./files/GeneratedAST/"
+    file = path
     afterSlash = re.search("[^/]+$", inputfile)  # build folder changes inputfile path
     pos = afterSlash.start()
     inputfile = inputfile[pos:]
@@ -1136,14 +1138,12 @@ def createGraph(ast, inputfile, number=0):
     f.write("}\n")
 
     f.close()
-
-    os.chdir('./ast_files/')
-
+    # os.system("pwd")
+    # os.chdir("files/GeneratedAST/")
     os.system(
-        "dot -Tpng " + graphname + " -o " + astname)  # "run" command voor graphviz, "ast#.png" bevat het schema van de AST.
+        "dot -Tpng " + graph_path + " -o " + file + astname)  # "run" command voor graphviz, "ast#.png" bevat het schema van de AST.
 
-    os.chdir('../')
-
+    # os.chdir('../../')
 
 def createVerticesAndEdges(tempLabel2, ast, graphFile, tempLabel, node=None):
     # graphviz werkt op een manier waarbij, als je één vertice 'A' hebt,
@@ -1311,7 +1311,7 @@ def propagation(node):
 
         token = None
         if parent is not None:
-            while parent.token != "IF" and parent.token != "ELSE" and parent.token != "WHILE" and parent.token != "NEW_BLOCK":
+            while parent.token != "IF" and parent.token != "ELSE" and parent.token != "WHILE" and parent.token != "NEW_BLOCK" and parent.token != "ROOT":
                 parent = parent.parent
                 if parent is None:
                     break
@@ -1331,12 +1331,15 @@ def propagation(node):
                             break
                 else:
                     if childr.token == "=":
+
                         if str(childr.children[0].value) == str(node.value):
+                            if childr.children[0].isDeclaration:
+                                searchAgain = True
                             # We kunnen in onze eigen symboltable kijken
                             break
 
             if searchAgain:
-                parent2 = parent.parent
+                parent2 = parent.parent if token != "ROOT" else parent
                 isTable = False
                 table2 = None
                 lookup_symbol = None
@@ -1350,6 +1353,7 @@ def propagation(node):
 
                 lookupValue = lookup_symbol
                 sameScope = False
+
 
         # we controleren of het bestaat
         if exist:
@@ -1611,7 +1615,7 @@ def setupSymbolTables(tree, node=None):
             for i in node.children:
                 tree.includes.append(i.value)
 
-        ## geval 1: we openen een nieuw block ##
+        ## geval 1: we (open)en een nieuw block ##
 
         wasNewBlockOpened = False # nodig om te weten wanneer we de scope moeten sluiten
         if node.token == "NEW_BLOCK" or node.token == "IF" or node.token == "ELSE" or node.token == "WHILE" or\

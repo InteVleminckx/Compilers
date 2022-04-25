@@ -159,7 +159,7 @@ class LLVM:
         pos = afterSlash.start()
         inputfile = inputfile[pos:]
         filename = str(inputfile[:len(inputfile) - 2]) + ".ll"
-        self.file = open("llvm_files/" + filename, "w")
+        self.file = open("files/GeneratedLLVM/" + filename, "w")
 
         if self.tree.root is None:
             return
@@ -998,16 +998,18 @@ class LLVM:
 
     def enterFuncCall(self, node):
 
-        # name = str(node.children[0].children[0].value)
-        # table = tableLookup(node.children[0].children[0])
-        # symbol = symbolLookup(name, table)
-        # type = symbol[1].type
-        # if len(node.children) == 1:
-        #     if type is None:
-        #         self.line += "  call void @" + name + "()\n"
-        # else:
-        #     parameters = node.children[1].children
-        pass
+
+        if node.parent.token == "FUNC_DEF":
+            name = str(node.children[0].children[0].value)
+            table = tableLookup(node.children[0].children[0])
+            symbol = symbolLookup(name, table)
+            type = symbol[1].type
+            if len(node.children) == 1:
+                if type is None:
+                    self.line += "  call void @" + name + "()\n"
+            #TODO: Dit moet nog gedaan worden
+            # else:
+            #     parameters = node.children[1].children
 
     def exitFuncCall(self, node):
         pass
