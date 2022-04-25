@@ -88,17 +88,16 @@ X: Not working or not implemented.
 | 6       | (mandatory) Arrays                                                 | V      |
 |         | (optional) multi-dimensional arrays.                               | V      |
 |         | (optional) assignments of complete arrays or array rows            | V      |
-|         | 2 Code Generation: LLVM                                            | V      |
-|         | 2 Code Generation: LLVM                                            | V      |
-|         | 2 Code Generation: LLVM                                            | V      |
-|         | 2 Code Generation: LLVM                                            | V      |
-|         | 2 Code Generation: LLVM                                            | V      |
-|         | 2 Code Generation: LLVM                                            | V      |
-|         | 2 Code Generation: LLVM                                            | V      |
+|         | (optional) dynamic arrays.                                         | -      |
+|         | (mandatory) Import                                                 | V      |
+|         | 1.2 Abstract Syntax Tree                                           | V      |
+|         | 1.3 Visualization                                                  | V      |
+|         | 1.4 Code Generation: LLVM                                          | V      |
+
 **Known problems:**\
 P2: Conversions: Right now, all (implicit) conversions (e.g. int to float too) raise a warning (=>semantic analysis). This can/will be fixed in the future.
 We also haven't paid any attention to assignment between pointers and type checking when assigning a pointer yet.
-
+We don't know what dynamic arrays are supposed to be.
 **Extra functionality, not described in the assignment sheet:** \
 /
 

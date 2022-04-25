@@ -1535,13 +1535,13 @@ def getValuesChildren(child):
         symbol_lookup = symbolLookup(child.value, table)
         if symbol_lookup[0]:
             if symbol_lookup[1].type == "INT" and child.value != "INT":
-                return None, "INT"  # value and token of this node
+                return 0, "INT"  # value and token of this node
 
             elif symbol_lookup[1].type == "FLOAT" and child.value != "FLOAT":
-                return None, "FLOAT"  # value and token of this node
+                return 0.0, "FLOAT"  # value and token of this node
 
             elif symbol_lookup[1].type == "CHAR" and child.value != "CHAR":
-                return None, "CHAR"
+                return "c", "CHAR"
 
             else:
                 return None, None
