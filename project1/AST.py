@@ -2004,9 +2004,11 @@ def semanticAnalysisVisitor(node):
                         else: # non-variabelen (maar dit kan niet?)
                             pass
 
-    elif node.token == "COMP_OP" or node.token == "EQ_OP":
-
-        pass
+    elif node.value == '*':
+        if len(node.children) < 2:
+            if not node.parent.token == "=":
+                print("[ Warning ] line " + str(node.line) + ", position " + str(
+                    node.column) + " : " + "Dereference type mismatch.")
 
     if len(node.children) > 0:
         for child in node.children:
