@@ -1,1 +1,0 @@
-[ Warning ] line 5, position 6 : In function call, passing of incompatible type

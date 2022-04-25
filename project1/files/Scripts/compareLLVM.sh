@@ -46,7 +46,7 @@ do
 	    	CHECK=$(( $LENL - $i))
 	        if (( $CHECK == 4))
 	    	then
-	    	    LINE="$LINE ${RED}[FAULT]${RED} ";
+	    	    LINE="$LINE ${RED}[FAULT]${NC} ";
 	    	else
     		    if (( $CHECK < 4))
     		    then

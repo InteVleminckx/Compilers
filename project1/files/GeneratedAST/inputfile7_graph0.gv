@@ -1,8 +1,0 @@
-strict digraph G{
-l11[label = "="]
-"ROOT"->"l11"
-l1131[label = "a"]
-l11311[label = "6"]
-"l11"->l1131
-"l11"->l11311
-}

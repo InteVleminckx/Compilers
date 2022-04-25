@@ -1278,8 +1278,28 @@ def propagation(node):
             return
 
         parent = node.parent
-        while parent.token == "COMP_OP" or parent.token == "EQ_OP" or parent.token == "UN_OP":
+        while (parent.token == "COMP_OP" or parent.token == "EQ_OP"):
             parent = parent.parent
+
+        if parent.token == "UN_OP":
+            return
+
+
+        if parent.token == "CONDITION":
+            if parent.parent.parent.token == "WHILE":
+                return
+            elif len(parent.parent.children) == 2:
+                if parent.parent.children[1].token == "WHILE":
+                    return
+            elif len(parent.parent.children) == 3:
+                if parent.parent.children[2].token == "WHILE":
+                    return
+
+            elif parent.parent.token == "BRANCH":
+                table = tableLookup(node)
+                symbol = symbolLookup(node.value, table)
+                print("")
+
 
         if len(parent.parent.children) > 1:
             if parent.parent.children[1].token == "WHILE":
@@ -1382,8 +1402,8 @@ def folding(node):
             if (folding(node.children[i-node.popped])):
                 return True
 
-    value_c0, value_c0_t = getValuesChildren(node.children[0])
-    value_c1, value_c1_t = getValuesChildren(node.children[1]) if len(node.children) == 2 else (None,None)
+    value_c0, value_c0_t, isIden0 = getValuesChildren(node.children[0])
+    value_c1, value_c1_t, isIden1 = getValuesChildren(node.children[1]) if len(node.children) == 2 else (None,None, False)
 
     if value_c0 is None:
         return False
@@ -1399,7 +1419,7 @@ def folding(node):
             print("[ Warning ] line " + str(node.children[0].line) + ", position " + str(
                 node.children[0].column) + " : " + "Operation of incompatible types")
 
-        if value_c1 is None:
+        if value_c1 is None or (isIden0 is True or isIden1 is True):
             return False
 
         bin_operations = {
@@ -1424,7 +1444,8 @@ def folding(node):
 
     # We check if it is a logaritmise operation like ||, &&, !
     elif node.token == "LOG_OR" or node.token == "LOG_AND" or node.token == "LOG_NOT":
-
+        if (isIden0 is True or isIden1 is True):
+            return False
         log_operations = {
             "||": value_c0 == 0 and value_c1 == 0,
             "&&": value_c0 == 0 or value_c1 == 0,
@@ -1439,7 +1460,8 @@ def folding(node):
 
     # We check if it is a comparison operation like <,>,<=,>=,==,!=
     elif node.token == "COMP_OP" or node.token == "EQ_OP":
-
+        if (isIden0 is True or isIden1 is True):
+            return False
         if value_c0_t != value_c1_t:
             print("[ Warning ] line " + str(node.line) + ", position " + str(
                 node.column) + " : " + "Operation of incompatible types")
@@ -1448,7 +1470,7 @@ def folding(node):
         # if node.parent.token == "CONDITION" and node.parent.parent.children[1].token != "IF":
         #     return
 
-        if value_c1 is None:
+        if value_c1 is None or (isIden0 is True or isIden1 is True):
             return False
 
         comp_operations = {
@@ -1469,6 +1491,10 @@ def folding(node):
     # We check if it is a unary operation like +,-
     elif node.token == "UN_OP":
         # print(node.token)
+
+        if (isIden0 is True or isIden1 is True):
+            return False
+
         if node.parent.parent is not None:
             if node.parent.parent.token == "CONDITION":
                 return False
@@ -1480,6 +1506,8 @@ def folding(node):
 
     #We controleren eerst of de node nog maar 1 kind heeft als dit het geval is is da kans groot dat er nog enkel een 0 of 1 staat
     elif node.token == "CONDITION" and node.parent.children[1].token == "IF" and len(node.children) == 1:
+        if (isIden0 is True or isIden1 is True):
+            return False
         # dan controleren we of het child geen kind heeft
         # + nu controleren we gewoon nog of we true of false is, maar moeten eerst nog zien of de value wel een int is
         if len(node.children[0].children) == 0 and isinstance(node.children[0].value, int):
@@ -1519,6 +1547,8 @@ def folding(node):
                             break
 
     elif node.token == "CONDITION" and node.parent.children[1].token != "IF" and len(node.children) == 1:
+        if (isIden0 is True or isIden1 is True):
+            return False
         #We gaan controleren of de while loop standaard False is, als dit het geval is verwijderen we de volledige branch
 
         if len(node.children[0].children) == 0 and isinstance(node.children[0].value, int):
@@ -1536,28 +1566,30 @@ def getValuesChildren(child):
         symbol_lookup = symbolLookup(child.value, table)
         if symbol_lookup[0]:
             if symbol_lookup[1].type == "INT" and child.value != "INT":
-                return 0, "INT"  # value and token of this node
+                return 0, "INT", True     # value and token of this node
 
             elif symbol_lookup[1].type == "FLOAT" and child.value != "FLOAT":
-                return 0.0, "FLOAT"  # value and token of this node
+                return 0.0, "FLOAT", True  # value and token of this node
 
             elif symbol_lookup[1].type == "CHAR" and child.value != "CHAR":
-                return "c", "CHAR"
+                return "c", "CHAR", True
 
             else:
-                return None, None
+                return None, None, True
+        else:
+            return None, None, True
     else:
         if child.token == "INT" and child.value != "INT":
-            return int(str(child.value)), "INT"  # value and token of this node
+            return int(str(child.value)), "INT", False  # value and token of this node
 
         elif child.token == "FLOAT" and child.value != "FLOAT":
-            return float(str(child.value)), "FLOAT"  # value and token of this node
+            return float(str(child.value)), "FLOAT", False  # value and token of this node
 
         elif child.token == "CHAR" and child.value != "CHAR":
-            return str(child.value), "CHAR"
+            return str(child.value), "CHAR", False
 
         else:
-            return None, None
+            return None, None, True
 # ----------------------------------------------------------------------------------------------------------------------#
 
 #########################################################################################################################
