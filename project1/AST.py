@@ -714,6 +714,7 @@ class ASTprinter(mathGrammerListener):
                         if self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] is not None:
                             #We maken de identifier node aan
                             ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType, ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
+                            ast.lastCreated.isDeclaration = True
                             if ast.nextConst:
                                 ast.nextConst = False
                             ast.nextType = ""
@@ -1046,7 +1047,7 @@ class ASTprinter(mathGrammerListener):
             total = ctx.getChildCount()
 
             #maken een node aan voor de parameters
-            ast.createNode("PARAMETERS", "PARAMETERS", total, ctx.start.line, ctx.start.column)
+            ast.createNode("PARAMETERS", "PARAMETERS", int((total+1)/2), ctx.start.line, ctx.start.column)
             bol = True
             for i in range(0, total, 2):
                 if ctx.getChild(i).getChildCount() != 2:
@@ -1641,7 +1642,7 @@ def setupSymbolTables(tree, node=None):
                 outputTypes.append(node.children[2].children[i].type)
                 functionParameters.append(node.children[2].children[i].value)
 
-            # semanticAnalysis(node.children[1].children[0])
+            semanticAnalysis(node.children[1].children[0])
 
             tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters)
             tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
@@ -1695,7 +1696,7 @@ def setupSymbolTables(tree, node=None):
             isConst = node.isConst
             isOverwritten = False
 
-            # semanticAnalysis(node, node.children[0], node.children[1])
+            semanticAnalysis(node, node, node)
 
             tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference)
             tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
@@ -1733,7 +1734,16 @@ def setupSymbolTables(tree, node=None):
                 semanticAnalysis(node)
 
         elif node.token == "IDENTIFIER" and node.type == "":
-            semanticAnalysis(node)
+            semanticAnalysis(node, f=True)
+
+        elif node.token == "UN_OP":
+            if str(node.value) == "*":
+                if len(node.children) < 2:
+                    if not node.token == "IDENTIFIER":
+                        print("[ Warning ] line " + str(node.line) + ", position " + str(
+                            node.column) + " : " + "Dereference type mismatch.")
+                    else:
+                        pass
 
         for child in node.children:
             setupSymbolTables(tree, child)
@@ -1744,7 +1754,7 @@ def setupSymbolTables(tree, node=None):
 
 # ----------------------------------------------------------------------------------------------------------------------#
 
-def semanticAnalysis(node, child1=None, child2=None):
+def semanticAnalysis(node, child1=None, child2=None, f=False):
 
     """
     Semantic errors:
@@ -1769,8 +1779,36 @@ def semanticAnalysis(node, child1=None, child2=None):
 
         if symbol_lookup[0] is False:
             # Undefined reference.
-            print("[ Error ] line " + str(node.line) + ", position " + str(node.column) + " : " + "Undefined or Uninitialized Reference.")
-            exit(1)
+            if not node.parent.token == "NAME":
+                print("[ Error ] line " + str(node.line) + ", position " + str(node.column) + " : " + "Undefined or Uninitialized Reference.")
+                exit(1)
+        else:
+            if not f:
+                if node.parent.token == "NAME":
+                    if node.parent.parent.token == "BRANCH" and node.parent.parent.children[0].token == "RETURN_TYPE":
+                        par_node = node.parent.parent.children[2]
+                        ret_node = node.parent.parent.children[0].children[0].token
+                        par_len = len(symbol_lookup[1].inputTypes)
+                        if symbol_lookup[1].inputTypes[0] is None or symbol_lookup[1].inputTypes[0] == '':
+                            par_len = 0
+                        if symbol_lookup[1].inputTypes[0] is None and par_node.children[0] is None:
+                            pass
+                        else:
+                            if len(par_node.children) != par_len:
+                                print("[ Error ] line " + str(node.line) + ", position " + str(
+                                    node.column) + " : " + "Duplicate function declaration (different amount of parameters).")
+                                exit(1)
+                            else:
+                                # check types
+                                for i in range(len(par_node.children)):
+                                    if par_node.children[i].type != symbol_lookup[1].inputTypes[i]:
+                                        print("[ Error ] line " + str(node.line) + ", position " + str(
+                                            node.column) + " : " + "Duplicate function declaration (different parameter types).")
+                                        exit(1)
+                        if symbol_lookup[1].outputTypes[0] != ret_node:
+                            print("[ Error ] line " + str(node.line) + ", position " + str(
+                                node.column) + " : " + "Duplicate function declaration (different return values).")
+                            exit(1)
 
     else:
         table = tableLookup(child1)
@@ -2003,12 +2041,6 @@ def semanticAnalysisVisitor(node):
 
                         else: # non-variabelen (maar dit kan niet?)
                             pass
-
-    elif node.value == '*':
-        if len(node.children) < 2:
-            if not node.parent.token == "=":
-                print("[ Warning ] line " + str(node.line) + ", position " + str(
-                    node.column) + " : " + "Dereference type mismatch.")
 
     if len(node.children) > 0:
         for child in node.children:
