@@ -1364,6 +1364,13 @@ def propagation(node):
                 node.value = lookupValue.value.value
                 node.token = lookupValue.value.token
 
+    else:
+        if node.parent is not None:
+            if str(node.parent.value) == "++" or str(node.parent.value) == "--":
+                print("[ Error ] line " + str(node.line) + ", position " + str(
+                    node.column) + " : " + "Invalid unary operation.")
+                exit(1)
+
 
 def getNode(child, search):
 
@@ -1422,7 +1429,7 @@ def folding(node):
         node.token = "INT" if isinstance(node.value, int) else "FLOAT"
         node.children.clear()
 
-    # We check if it is a logaritmise operation like ||, &&, !
+    # We check if it is a logical operation like ||, &&, !
     elif node.token == "LOG_OR" or node.token == "LOG_AND" or node.token == "LOG_NOT":
 
         log_operations = {
