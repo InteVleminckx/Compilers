@@ -1777,7 +1777,7 @@ def semanticAnalysis(node, child1=None, child2=None):
         symbol_lookup = symbolLookup(child1.value, table)
 
         if symbol_lookup[0] is False:
-            if child1.type == "":
+            if child1.isDeclaration is False:
                 # Undefined reference.
                 print("[ Error ] line " + str(node.line) + ", position " + str(
                     node.column) + " : " + "Uninitialized Reference.")
@@ -1785,7 +1785,7 @@ def semanticAnalysis(node, child1=None, child2=None):
         else:
 
             # Redeclaration or redefinition of an existing variable.
-            if child1.type != "" and symbol_lookup[2]: # allowed if it's in declared in another scope
+            if child1.isDeclaration and symbol_lookup[2]: # allowed if it's in declared in another scope
                 print("[ Error ] line " + str(node.line) + ", position " + str(
                     node.column) + " : " + "Duplicate declaration")
                 exit(1)
