@@ -1305,8 +1305,6 @@ def propagation(node):
         exist, lookupValue, sameScope = symbolLookup(node.value, tableNode)
 
         # Het kan zijn dat we nog altijd niet mogen propagaten omdat er zowel binnen deze scope als de scope hierboven
-        # dezelfde variable is en dan kan het zijn dat we dan nog niet mogen propageten
-
         parent = node.parent
 
         token = None
@@ -1364,6 +1362,7 @@ def propagation(node):
                     node.children.append(child)
                 node.value = lookupValue.value.value
                 node.token = lookupValue.value.token
+
 
 def getNode(child, search):
 
@@ -1685,6 +1684,7 @@ def setupSymbolTables(tree, node=None):
                 symbol_lookup = symbolLookup(node.children[0].value, table)
                 type = symbol_lookup[1].type
                 node.children[0].type = type
+                symbol_lookup[1].isOverwritten = True
 
 
         elif node.parent.token == "PARAMETERS" and not (node.token == "=" or node.token == "NONE") and not node.parent.parent.token == "FUNC_CALL": # parametervariabelen van een functie toevoegen aan symbol table
