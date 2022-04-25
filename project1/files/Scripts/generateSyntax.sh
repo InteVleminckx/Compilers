@@ -36,7 +36,8 @@ do
 	    done 
 	    LINE="$LINE*"
 	    echo -e "$LINE"
-    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py" $f > "./files/C_CodesSyntax/GeneratedSyntaxOutput/$FILE.txt"
+
+    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py" $f > "./files/GeneratedSyntaxOutput/$FILE.txt"
     
      
 

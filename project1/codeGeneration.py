@@ -54,7 +54,6 @@ class NodeCon:
         #nodig bij logical
         self.operation = None
 
-
     def getLine(self):
         if self.instruction == "load":
             return self.load()
@@ -179,7 +178,6 @@ class LLVM:
             self.file.write(self.scanfFunction())
 
         self.file.close()
-
 
     def generateLLVM(self, node):
 
@@ -1012,7 +1010,6 @@ class LLVM:
     def exitFuncCall(self, node):
         pass
 
-
     def floatToDouble(self, register):
         self.line += "  %" + str(self.registerCount) + " = fpext float %" + str(register) + " to double\n"
         self.registerCount += 1
@@ -1456,15 +1453,6 @@ class LLVM:
         self.registerCount += 1
         return self.registerCount-1, type
 
-
-# def intToFloat(register):
-#     """
-#     Krijgt een integer binnen en zet deze om naar een float
-#     :param register: De ingeladen register
-#     :return: node als een float
-#     """
-#
-#     return registerCount, "%" + str(registerCount) + " = sitofp i32 %" + str(register) + " to float\n"
 
 def getSymbolFromTable(node):
 

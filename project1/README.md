@@ -3,31 +3,8 @@
 ## Instructions:
 
 The build script is ***buildscript.sh*** (present in the project folder). This allows to generate the python classes (ANTLR).
-The test script, which runs all the test in the testfiles folder, and puts the output in the ast_files folder, is ***testscript.sh*** (present in the project folder).
-You can simply run ./testscript.sh in the project1/ folder. In the terminal, you will get an overview of which file outputs were correct.
-
-## Testfiles information:
-
-| Testfile       | Functionality                                                 |
-|----------------|---------------------------------------------------------------|
-| A_inputfile2.c | Example code from second assignment sheet (P2)                | 
-| A_inputfile3.c | Example code from third assignment sheet (P3)                 |
-| A_inputfile4.c | Example code from fourth assignment sheet (P4)                |
-| A_inputfile5.c | Example code from fifth assignment sheet (P5)                 |
-| A_inputfile6.c | Example code from sixth assignment sheet (P6)                 |
-| inputfile0.c   | Binary operations and unary operations                        |
-| inputfile1.c   | Logical operations                                            |
-| inputfile2.c   | Comparison operators                                          |
-| inputfile3.c   | Types, reserved words, variables                              |
-| inputfile4.c   | Identifier Operations                                         |
-| inputfile5.c   | Comments and printf                                           |
-| inputfile6.c   | Error outputs: Redeclaration of an existing variable.         |
-| inputfile7.c   | Error outputs: Use of an undefined or uninitialized variable. |
-| inputfile8.c   | Error outputs: Use of an undefined or uninitialized variable. |
-| inputfile9.c   | Error outputs: Assignment to a const variable.                |
-| inputfile10.c  | (Syntax) Error outputs: Mismatched input.                     |
-
-***note***: Semantic errors (Operations or assignments of incompatible types) are done throughout the testfiles.
+The test script, which runs all the test in the files folder, and puts the output in the folder that is provide for the generated files, is ***script.sh*** (present in the project folder).
+You can simply run ./script.sh in the project1/ folder. In the terminal, you will get an overview of which file outputs were correct.
 
 ## Progress:
 
@@ -95,19 +72,21 @@ X: Not working or not implemented.
 |         | (mandatory) Import                                                 | V      |
 |         | 1.2 Abstract Syntax Tree                                           | V      |
 |         | 1.3 Visualization                                                  | V      |
-|         | 1.4 Code Generation: LLVM                                          | V      |
+|         | 1.4 Code Generation: LLVM                                          | -      |
 
 **Known problems:**\
 P2: Conversions: Right now, all (implicit) conversions (e.g. int to float too) raise a warning (=>semantic analysis). This can/will be fixed in the future.
 We also haven't paid any attention to assignment between pointers and type checking when assigning a pointer yet.
 We don't know what dynamic arrays are supposed to be.
+
+P3: LLVM: We don't fully support all llvm generation. The files that are provided in the folder project1/files/C_CodeLLVM contains the C code that we can convert to llvm.
+
 **Extra functionality, not described in the assignment sheet:** \
 /
 
 ## Sources (Bibliography):
 - http://marvin.cs.uidaho.edu/Teaching/CS445/c-Grammar.pdf
 - https://www.lysator.liu.se/c/ANSI-C-grammar-y.html
-
 - https://graphviz.org/doc/info/lang.html
-
 - https://en.cppreference.com/w/c/language/operator_precedence
+- https://llvm.org/docs/LangRef.html

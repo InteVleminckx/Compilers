@@ -7,7 +7,7 @@ NC='\033[0m'
 TOP="*-------------------------EXECUTING LLVMFILES-------------------------*"
 echo $TOP
 
-FILES="./files/GeneratedLLVM/*.ll"
+FILES="./files/C_CodesLLVM/*.c"
 for f in $FILES
 do
 # Check if "$f" FILE exists and is a regular file and then only copy it #
@@ -36,7 +36,7 @@ do
 	    done 
 	    LINE="$LINE*"
 	    echo -e "$LINE"
-    lli $f > "files/outputLLVM/$FILE.txt"
+    lli "./files/GeneratedLLVM/$FILE.ll" > "files/outputLLVM/$FILE.txt"
 
     
   else

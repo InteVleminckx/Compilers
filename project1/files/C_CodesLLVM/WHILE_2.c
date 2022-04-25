@@ -12,7 +12,6 @@ int main(){
 				i = i - 1;
 				printf("---> %d ", i);
 			}
-			
 		}
 		if (i == 0){
 			break;

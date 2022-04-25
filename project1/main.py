@@ -6,10 +6,6 @@ from AST import *
 from ErrorHandeling import ErrorHandeler
 from codeGeneration import *
 
-#clang -S -emit-llvm -o output.ll -c input.c
-#dos2unix -k -o filename
-
-
 def printA(a, root):
 
     if root and root is not None:

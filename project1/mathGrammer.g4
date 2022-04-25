@@ -12,7 +12,7 @@ import_statement
         ;
 
 statement
-        : extern_decl // log_op1 SEMICOLON
+        : extern_decl
         | LBRACKET_CURLY statement* RBRACKET_CURLY
         ;
 
@@ -21,10 +21,6 @@ extern_decl
         | function_def
         | declaration
         ;
-
-//print_stmt
-//        : PRINTF LPARENTH log_op1 RPARENTH
-//        ;
 
 scan_stmt
         : SCANF LPARENTH TEXT print_values RPARENTH
@@ -53,18 +49,9 @@ stat
         | j_statement
         | print_stmt SEMICOLON
         | scan_stmt SEMICOLON
-        // | declaration_list // dit veroorzaakt een vreemde boom
         ;
 
-//stat_list
-//        : stat
-        //| stat_list stat
-//        ;
-
 comp_stat
-//        : LBRACKET_CURLY RBRACKET_CURLY
-//        | LBRACKET_CURLY stat_list RBRACKET_CURLY
-//        | LBRACKET_CURLY declaration_list RBRACKET_CURLY
         : LBRACKET_CURLY (declaration | stat)* RBRACKET_CURLY
         ;
 
@@ -89,11 +76,6 @@ expr_statement
         : log_op1 SEMICOLON
         | SEMICOLON
         ;
-
-//declaration_list
-//        : declaration
-//        | declaration_list declaration
-//        ;
 
 declaration
         : func_call SEMICOLON
@@ -154,7 +136,6 @@ identifier_list
 
 parameter_type_list
         : parameter_decl (COMMA parameter_decl)*
-//        | parameter_type_list COMMA parameter_decl
         ;
 
 parameter_decl
@@ -422,13 +403,10 @@ TEXT
 
 SINGLE_COMMENT
         : '//' ~[\r\n]* -> skip
-//        :  [/][/][ a-zA-Z0-9_/]*[\n]
         ;
 
 MULTI_COMMENT
-//        :  ['/*'][ -~]*['*/']
         : '/*' .*? '*/' -> skip
-//        | [\n]([ *][ a-zA-Z0-9_/]*[\n])*[*][/]
         ;
 
 

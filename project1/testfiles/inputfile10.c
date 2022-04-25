@@ -1,2 +1,0 @@
-//Error files:
-int a = ;
