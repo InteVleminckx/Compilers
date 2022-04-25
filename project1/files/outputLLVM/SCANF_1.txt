@@ -1,0 +1,1 @@
+Enter two numbers:5; 5

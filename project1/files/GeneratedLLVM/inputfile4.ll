@@ -1,0 +1,12 @@
+@a = dso_local global  i32 1 , align 4
+@b = dso_local global  i32 2 , align 4
+@c = dso_local global  i32 3 , align 4
+@d = dso_local global  i32 4 , align 4
+@e = dso_local global  i32 5 , align 4
+@f = dso_local global  i32 + , align 4
+@g = dso_local global  i32 - , align 4
+@h = dso_local global  i32 * , align 4
+@i = dso_local global  float / , align 4
+@j = dso_local global  i32 * , align 4
+@k = dso_local global  float / , align 4
+@l = dso_local global  float + , align 4
