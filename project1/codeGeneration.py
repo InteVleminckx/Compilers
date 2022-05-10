@@ -30,6 +30,8 @@ class CodeGeneration:
             if node.parent.token == "ROOT" and node.token == "=":
                 return
 
+        print(node.token)
+
         if node.token == "FUNC_DEF":
             if enter:
                 self.llvm.enterFunction(node)
@@ -117,6 +119,28 @@ class CodeGeneration:
                 self.llvm.exitFuncCall(node)
                 self.mips.exitFuncCall(node)
 
+        elif node.token == "BIN_OP1" or node.token == "BIN_OP2":
+            if enter:
+                self.llvm.enterBinOperation(node)
+            else:
+                self.llvm.exitBinOperation(node)
+        elif node.token == "IDENTIFIER":
+            if enter:
+                self.llvm.enterIdentifier(node)
+            else:
+                self.llvm.exitIdentifier(node)
+
+        elif node.token == "INT" or node.token == "FLOAT" or node.token == "CHAR":
+            if enter:
+                self.llvm.enterType(node)
+            else:
+                self.llvm.exitType(node)
+
+        elif node.token == "STRING":
+            if enter:
+                self.llvm.enterString(node)
+            else:
+                self.llvm.exitString(node)
 
 def getSymbolFromTable(node):
     searchNode = node

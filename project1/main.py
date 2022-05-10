@@ -54,14 +54,17 @@ def main(argv):
     createGraph(a, argv[1], 0)
     setupSymbolTables(a)
     checkMain(a)
-    optimize(a)
+    #TODO: ni vergeten terug aan te zetten
+    # optimize(a)
     semanticAnalysisVisitor(a.root)
     # optimizationVisitor(a)
     createGraph(a, argv[1], 1)
     # codeGenerator(a)
     # codeGenerationVisitor()
-    llvm = LLVM(a)
-    llvm.toLLVM(argv[1])
+    generation = CodeGeneration(a)
+    generation.generateCode()
+    print("")
+    # llvm.toLLVM(argv[1])
 
 if __name__ == '__main__':
     main(sys.argv)
