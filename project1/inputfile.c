@@ -1,6 +1,12 @@
-int x = 5;
-// variable redefinition with different type
-float x = 5.0;
+int a = 5;
+{
+int a = 6;
+int b = a;
+a = 7;
+{
+int a = 100;
+}
+}
 
 int main(){
     return 0;

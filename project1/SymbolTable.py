@@ -1,7 +1,8 @@
 class Value:
     def __init__(self, type=None, value=None, isConst=False,
                  isOverwritten=False, inputTypes=None, outputTypes=None,
-                 functionParameters = None, pointer = None, reference = None):
+                 functionParameters = None, pointer=None, reference=None,
+                 line=None, column=None):
         self.type = type
         self.value = value
         self.isConst = isConst # bool
@@ -16,6 +17,11 @@ class Value:
 
         self.pointer = pointer
         self.reference = reference
+
+        self.line = line
+        self.column = column
+
+        self.prevValues = list() # list of tuples (line, column, value) associated with the variable
 
 
 class SymbolTable:
