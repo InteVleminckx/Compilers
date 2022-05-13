@@ -1629,7 +1629,7 @@ def tableLookup(node):
     return tableLookup(node.parent)
 
 
-def symbolLookup(varName, symbolTable, sameScope=True, varLine=None, varColumn=None):  # zoekt in de symbol tables naar de variabele
+def symbolLookup(varName, symbolTable, sameScope=True, varLine=None, varColumn=None, afterTotalSetup=False):  # zoekt in de symbol tables naar de variabele
     """
 
     :param varName: identifier (var) name
@@ -1643,6 +1643,14 @@ def symbolLookup(varName, symbolTable, sameScope=True, varLine=None, varColumn=N
         if varLine is not None:
             if (symbolTable.dict[str(varName)].line < varLine) or (symbolTable.dict[str(varName)].line == varLine and symbolTable.dict[str(varName)].column < varColumn):
                 return True, symbolTable.dict[str(varName)], sameScope
+            else:
+                if afterTotalSetup:
+                    for i, prevv in reversed(list(enumerate(symbolTable.dict[str(varName)].prevValues))):
+                        if prevv[0] < varLine:
+                            return True, prevv[2], sameScope
+                        elif prevv[0] == varLine and prevv[1] < varColumn:
+                            return True, prevv[2], sameScope
+
         else: # only for when we are looking for 'main'
             return True, symbolTable.dict[str(varName)], sameScope
 
@@ -1730,8 +1738,6 @@ def setupSymbolTables(tree, node=None):
                 isConst = node.children[0].isConst
                 tuple = [] # prevValues tuple
 
-                # if len(node.children[1].children) != 0:  # optimizen
-                #     pass
                 isOverwritten = False
 
                 table = tableLookup(node.children[0])
@@ -1771,15 +1777,6 @@ def setupSymbolTables(tree, node=None):
                     tableValue.prevValues = prevValues
 
                 tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
-
-            # else:
-            #     table = tableLookup(node.children[0])
-            #     symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line, varColumn=node.children[0].column)
-            #     if symbol_lookup[0]:
-            #         type = symbol_lookup[1].type
-            #         node.children[0].type = type
-            #     # symbol_lookup[1].isOverwritten = True
-
 
         elif node.parent.token == "PARAMETERS" and not (
                 node.token == "=" or node.token == "NONE") and not node.parent.parent.token == "FUNC_CALL":  # parametervariabelen van een functie toevoegen aan symbol table
