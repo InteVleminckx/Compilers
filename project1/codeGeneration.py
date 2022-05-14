@@ -10,12 +10,14 @@ class CodeGeneration:
         self.llvm = LLVM()
         self.mips = Mips()
 
-    def generateCode(self):
+    def generateCode(self, inputfile):
 
         if self.tree.root is None:
             return
 
         self.convert(self.tree.root)
+
+        self.llvm.writeToFile(inputfile)
 
     def convert(self, node):
 
@@ -141,6 +143,25 @@ class CodeGeneration:
                 self.llvm.enterString(node)
             else:
                 self.llvm.exitString(node)
+
+        elif node.token == "COMP_OP" or node.token == "EQ_OP":
+            if enter:
+                self.llvm.enterComparison(node)
+            else:
+                self.llvm.exitComparison(node)
+
+        elif node.token == "LOG_OR" or node.token == "LOG_AND" or node.token == "LOG_NOT":
+            if enter:
+                self.llvm.enterLogical(node)
+            else:
+                self.llvm.exitLogical(node)
+
+        elif node.token == "CONDITION":
+            if enter:
+                self.llvm.enterCondition(node)
+            else:
+                self.llvm.exitCondition(node)
+
 
 def getSymbolFromTable(node):
     searchNode = node

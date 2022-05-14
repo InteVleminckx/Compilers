@@ -48,6 +48,11 @@ class Node:
 
         self.popped = 0
 
+        #Voor llvm
+        self.trueLabel = None
+        self.falseLabel = None
+
+
     def getValue(self):
         return self.value
 

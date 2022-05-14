@@ -62,7 +62,7 @@ def main(argv):
     # codeGenerator(a)
     # codeGenerationVisitor()
     generation = CodeGeneration(a)
-    generation.generateCode()
+    generation.generateCode(argv[1])
     print("")
     # llvm.toLLVM(argv[1])
 
