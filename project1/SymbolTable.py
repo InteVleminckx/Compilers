@@ -29,6 +29,7 @@ class SymbolTable:
         self.dict = dict() #key: varname; value: type, constness,...
         self.enclosingSTable = None
         self.astNode = None
+        self.childrenTables = []
 
     def addVar(self, key, value):
         self.dict[key] = value

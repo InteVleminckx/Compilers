@@ -19,24 +19,33 @@ class LLVM:
         self.printfStack = []
         self.conditionStack = []
         self.logicalStack = []
+        self.ifStack = []
+        self.whileStack = []
+        self.scanfStack = []
 
         self.enteredAssignment = False
         self.enteredFunctionCall = 0
         self.enteredReturn = False
         self.enteredPrintf = False
         self.enteredCondition = False
+        self.enteredScanf = False
 
         self.returnType = ""
         self.hasReturnNode = (False, 0)
         self.curPrintf = 0
+        self.isComparison = False
+        self.wasLogical = False
 
         self.printf = False
         self.scanf = False
 
         self.strings = []
+        self.globals = []
 
-        self.labelCount = 0
+        self.logLabelCount = 0
         self.finalRegLog = None
+        self.ifLabelCount = 0
+        self.whileLabelCount = 0
 
     def enterFunction(self, node):
         print("enterFunction")
@@ -98,10 +107,12 @@ class LLVM:
             self.hasReturnNode = True, 0
 
         # We gaan nu alle variable alloceren binnen de scope
-        self.allocateVariables(symboltable)
+        self.allTables(symboltable)
 
     def exitFunction(self, node):
         print("exitFunction")
+
+
         if not self.hasReturnNode[0]:
             if self.returnType is not None:
                 reg, line = self.load(str(self.hasReturnNode[1]), self.returnType)
@@ -114,7 +125,15 @@ class LLVM:
 
     def enterReturn(self, node):
         print("enterReturn")
+
         self.enteredReturn = True
+
+        # We kunnen een return hebben in een if of else of while of for
+        # Als deze stacks nog niet leeg zijn betekent dat we hier een return aanroepen dus we
+        # voeren geen return uit maar gaan branchen naar de laatste return, dit wordt automatisch gedaan
+        if len(self.ifStack) > 0 or len(self.whileStack) > 0:
+            return
+
         if self.returnType is None:
             self.line += "  ret void"
             self.enteredReturn = False
@@ -148,47 +167,50 @@ class LLVM:
         print("exitReturn")
         # We controleren nog of we nog de return moeten toepassen, dit is het geval wanneer de bool nog op true staat
         if self.enteredReturn:
-            # Op dit moment zou er ook nog maar 1 element in de stack mogen zitten die die uitkomst bevat
-            elem = self.returnStack[-1]
-            self.returnStack.pop()
-            # We returen dit register nog
-            self.line += "  ret " + types[elem[1]][0] + " %" + str(elem[0])
-            self.enteredReturn = False
-            self.line += "\n}\n\n"
+
+            # We kunnen een return hebben in een if of else of while of for
+            # Als deze stacks nog niet leeg zijn betekent dat we hier een return aanroepen dus we
+            # voeren geen return uit maar gaan branchen naar de laatste return, dit wordt automatisch gedaan
+            if len(self.returnStack) > 0:
+                if self.returnStack[-1][2] is False:
+                    self.store(self.returnStack[-1][0], self.hasReturnNode[1], self.returnStack[-1][1], False, True)
+                    self.returnStack.pop()
+                    self.enteredReturn = False
+                else:
+                    self.store(self.returnStack[-1][0], self.hasReturnNode[1], self.returnStack[-1][1], True, True)
+                    self.returnStack.pop()
+                    self.enteredReturn = False
+            else:
+                # Op dit moment zou er ook nog maar 1 element in de stack mogen zitten die die uitkomst bevat
+                elem = self.returnStack[-1]
+                self.returnStack.pop()
+                # We returen dit register nog
+                self.line += "  ret " + types[elem[1]][0] + " %" + str(elem[0])
+                self.enteredReturn = False
+                self.line += "\n}\n\n"
 
     def enterPrintf(self, node):
         print("enterPrintf")
         self.enteredPrintf = True
         # We predefinen hier al de count voor de string links in de printf functie omdat er nadien nog kunnen toegevoegd worden
         self.curPrintf = self.stringCount
-        self.stringCount += 1
         self.printf = True
 
     def exitPrintf(self, node):
         print("exitPrintf")
         if self.enteredPrintf:
             self.enteredPrintf = False
-            textLeft = str(node.children[0].value)
-            textsize = len(textLeft)
-            addsize = 0
+            text = self.printfStack[0]
+            textsize = text[3]
+            textcount = text[0]
 
-            # We controleren of er een \n bij de tekst staat, moest dit niet zo zijn dan doen we nog +1
-            if textsize > 1:
-                if textLeft[len(textLeft) - 2:len(textLeft)] != "\\n":
-                    addsize += 1
-                else:
-                    text = textLeft[0:len(textLeft) - 2]
-                    text += "\\0A"
-            textsize += addsize
-            textLeft += "\\00"
-            self.strings.append((textsize, str(self.curPrintf), textLeft))
             inbound = "[" + str(textsize) + " x i8], [" + str(textsize) + " x i8]*"
             str_ = "@.str"
-            str_ += str(self.curPrintf) if self.curPrintf > 0 else ""
+            str_ += str(textcount) if int(textcount) > 0 else ""
             self.line += "  %" + str(
                 self.register) + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds (" + inbound + " " + str_ + ", i64 0, i64 0)"
             self.register += 1
-            for i in range(len(self.printfStack)):
+            for i in range(1, len(self.printfStack)):
                 elem = self.printfStack[i]
                 self.line += ", "
                 if elem[1] == "TEXT":
@@ -208,27 +230,125 @@ class LLVM:
 
     def enterScanf(self, node):
         print("enterScanf")
+        self.enteredScanf = True
+        # We predefinen hier al de count voor de string links in de printf functie omdat er nadien nog kunnen toegevoegd worden
+        self.curPrintf = self.stringCount
+        self.scanf = True
 
     def exitScanf(self, node):
         print("exitScanf")
+        if self.enteredScanf:
+            self.enteredScanf = False
+
+            text = self.scanfStack[0]
+            textsize = text[3]
+            textcount = text[0]
+              
+            inbound = "[" + str(textsize) + " x i8], [" + str(textsize) + " x i8]*"
+            str_ = "@.str"
+            str_ += str(textcount) if int(textcount) > 0 else ""
+            self.line += "  %" + str(
+                self.register) + " = call i32 (i8*, ...) @__isoc99_scanf(i8* getelementptr inbounds (" + inbound + " " + str_ + ", i64 0, i64 0)"
+            self.register += 1
+            for i in range(1, len(self.scanfStack)):
+                elem = self.scanfStack[i]
+                self.line += ", "
+                self.line += types[elem[1]][0] + "* "
+                self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
+
+            self.scanfStack.clear()
+            self.enteredScanf = False
+            self.line += ")\n"
 
     def enterIf_stmt(self, node):
         print("enterIf_stmt")
+        #De conditie is net gedaan, we halen het resultaat hieruit en branchen
+
+        condtion = self.conditionStack[-1]
+        self.conditionStack.pop()
+        self.ifStack.append(self.ifLabelCount)
+        self.ifLabelCount += 1
+        self.ifStack.append(self.ifLabelCount)
+        self.ifLabelCount += 1
+        toReg = condtion[0]
+        if self.wasLogical or not condtion[2]:
+            # De logical gaat normaal gezien altijd een int returnen dat
+            # Deze moeten we eerst nog omzetten naar een bool (i1)
+            toReg, type, line = self.compare("ne", condtion[0], 0, condtion[1], "INT", condtion[2], False, True)
+            self.line += line
+            self.wasLogical = False
+
+        self.branch(str(toReg), str(self.ifStack[-2]), str(self.ifStack[-1]), self.ifStack[-2], "if")
+
+        self.line = self.line.replace("if" + str(self.ifStack[-2]), str(self.register))
+        self.register += 1
 
     def exitIf_stmt(self, node):
         print("exitIf_stmt")
 
+        #Als we geen else hebben
+        if node == node.parent.children[-1]:
+            #We branchen nu gewoon naar de volgende branch met het laatste element in de stack
+            self.line += "  br label %if" + str(self.ifStack[-1]) + "\n\n"
+            self.line += "if" + str(self.ifStack[-1]) + ":\n"
+            self.line = self.line.replace("if" + str(self.ifStack[-1]), str(self.register))
+            self.register += 1
+
+            #Poppen de 2 labels uit de stack
+            self.ifStack.pop()
+            self.ifStack.pop()
+
+        #We hebben een else
+        else:
+            self.ifStack.append(self.ifLabelCount)
+            self.ifLabelCount += 1
+            self.line += "  br label %if" + str(self.ifStack[-1]) + "\n\n"
+
     def enterElse_stmt(self, node):
         print("enterElse_stmt")
+
+        #nu maken we het deel voor de else aan
+        self.line += "if" + str(self.ifStack[-2]) + ":\n"
+        self.line = self.line.replace("if" + str(self.ifStack[-2]), str(self.register))
+        self.register += 1
 
     def exitElse_stmt(self, node):
         print("exitElse_stmt")
 
+        #Nu branchen we nog naar de laatst toegevoegde else
+
+        self.line += "  br label %if" + str(self.ifStack[-1]) + "\n\n"
+        self.line += "if" + str(self.ifStack[-1]) + ":\n"
+        self.line = self.line.replace("if" + str(self.ifStack[-1]), str(self.register))
+        self.register += 1
+
+        # Poppen de 3 labels uit de stack
+        self.ifStack.pop()
+        self.ifStack.pop()
+        self.ifStack.pop()
+
     def enterWhile_stmt(self, node):
         print("enterWhile_stmt")
+        #We gaan nu de branch maken
+
+        self.line += "  br i1 %" + str(self.conditionStack[-1][0]) + ", label %" + str(self.register) + ", label %while" + str(self.whileLabelCount) + "\n\n"
+        self.line += str(self.register) + ":\n"
+        self.register += 1
+        self.whileStack.append((self.whileLabelCount, False))
+        self.whileLabelCount += 1
 
     def exitWhile_stmt(self, node):
         print("exitWhile_stmt")
+
+        #We maken een branch naar het begin van de while loop, dit zou de voorlaatste value moeten zijn in de stack
+        self.line += "  br label %" + str(self.whileStack[-2][0]) + "\n\n"
+
+        #We maken de andere branch aan
+        self.line += "while" + str(self.whileStack[-1][0]) + ":\n"
+        self.line = self.line.replace("while" + str(self.whileStack[-1][0]), str(self.register))
+        self.register += 1
+        self.whileStack.pop()
+        self.whileStack.pop()
 
     def enterAssignment(self, node):
         print("enterAssignment")
@@ -280,6 +400,33 @@ class LLVM:
 
     def exitUnaryOperation(self, node):
         print("exitUnaryOperation")
+        #We controlerne of het een ++ of -- is
+        child = node.children[0]
+        tableLookup__ = tableLookup(child)
+        symbolTable = symbolLookup(str(child.value), tableLookup__)[1]
+
+        if str(node.value) == "++":
+            toReg = None
+            if not self.enteredCondition:
+                toReg, line = self.load(symbolTable.register, symbolTable.type)
+                self.line += line
+            else:
+                toReg = self.conditionStack[-1][0]
+            toReg, toType, line = self.operate("add", toReg, 1, symbolTable.type, "INT", True, False)
+            self.line += line
+            self.store(toReg, symbolTable.register, toType, True, True)
+
+
+        elif str(node.value) == "--":
+            toReg = None
+            if not self.enteredCondition:
+                toReg, line = self.load(symbolTable.register, symbolTable.type)
+                self.line += line
+            else:
+                toReg = self.conditionStack[-1][0]
+            toReg, toType, line = self.operate("sub", toReg, 1, symbolTable.type, "INT", True, False)
+            self.line += line
+            self.store(toReg, symbolTable.register, toType, True, True)
 
     def enterBreak(self, node):
         print("enterBreak")
@@ -300,6 +447,7 @@ class LLVM:
     def exitFuncCall(self, node):
         print("exitFuncCall")
 
+        #TODO: naar dit ook nog eens uittesten
         if len(self.logicalStack) > 0:
             if node == self.logicalStack[-1][0]:
                 print("func call")
@@ -429,6 +577,11 @@ class LLVM:
         if node.parent.token == "NAME":
             return
 
+        if node.parent.parent.token == "ROOT":
+            # betekent dat we een globale variabele hebben
+            self.makeGlobal(node)
+            return
+
         symboltable = tableLookup(node)
         # Betekent dat we de naam van de functie hebben, hier moeten we niets mee doen
         symbol_lookup = symbolLookup(str(node.value), symboltable)[1]
@@ -453,6 +606,9 @@ class LLVM:
             reg, type = func(symbol_lookup)
             self.line += reg[1]
             self.printfStack.append((reg[0], type, True))
+
+        elif self.enteredScanf:
+            self.scanfStack.append((symbol_lookup.register, symbol_lookup.type, True))
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredCondition:
@@ -519,7 +675,7 @@ class LLVM:
 
     def exitString(self, node):
 
-        if self.enteredPrintf:
+        if self.enteredPrintf or self.enteredScanf:
             # Ookal kan dit enkel hier voorkomen, een check kan geen kwaad
             text = str(node.value)
             textsize = len(text)
@@ -534,9 +690,14 @@ class LLVM:
                     text += "\\0A"
             textsize += addsize
             text += "\\00"
-            self.strings.append((textsize, str(self.stringCount), text))
-            self.printfStack.append((str(self.stringCount), "TEXT", False, textsize))
-            self.stringCount += 1
+            if self.enteredPrintf:
+                self.strings.append((textsize, str(self.stringCount), text))
+                self.printfStack.append((str(self.stringCount), "TEXT", False, textsize))
+                self.stringCount += 1
+            elif self.enteredScanf:
+                self.strings.append((textsize, str(self.stringCount), text))
+                self.scanfStack.append((str(self.stringCount), "TEXT", False, textsize))
+                self.stringCount += 1
 
     def enterComparison(self, node):
         print("enterComparison")
@@ -600,14 +761,11 @@ class LLVM:
 
         if len(self.logicalStack) > 0:
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
-                # We gaan nu de compare opartion uitvoeren
-                toReg__, type, line = self.compare("ne", toReg, 0, toType, "INT", True, False, True)
-
                 # Omdat we da waarde uit de stack al hebben gebruikt moeten we deze nog wel terug verwijderen
                 self.popRightStack()
-
-                self.line += line
-                self.determineBranch(node, node.parent, toReg__)
+                self.determineBranch(node, node.parent, toReg)
+                if self.isComparison:
+                    node.parent.fromRegBr = toReg
 
     def enterLogical(self, node):
         print("enterLogical")
@@ -662,14 +820,14 @@ class LLVM:
 
                     # We voeren nog een comparison uit
 
-                    self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.trueLabel)
+                    self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.trueLabel, "x")
                     self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
                     self.register += 1
                     parent.falseLabel = node.falseLabel
 
                 elif logicals[str(parent.value)] == "OR":
                     # We branchen met het Falselabel van de node
-                    self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.falseLabel)
+                    self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.falseLabel, "x")
                     self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
                     self.register += 1
                     parent.trueLabel = node.trueLabel
@@ -691,16 +849,23 @@ class LLVM:
             # De 2 branches geven aan of de volledige expressie true of false is
             # De final branch zal de rest van de scope zijn
 
-            # We maken eerst de branch aan met een nieuw falseLabel
-            self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.falseLabel)
-            self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
-            self.register += 1
+            if not self.isComparison:
+                # We maken eerst de branch aan met een nieuw falseLabel
+                self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.falseLabel, "x")
+                self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
+                self.register += 1
+            else:
+                self.isComparison = False
+                self.wasLogical = True
+                self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.falseLabel, "x")
+                self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
+                self.register += 1
 
             # Nu gaan we hier een false in het eind register plaatsen
             self.store(0, self.finalRegLog, "INT", False, True)
 
             # We doen hier een branch naar het final label
-            self.line += "  br label %x" + str(self.labelCount) + "\n\n"
+            self.line += "  br label %x" + str(self.logLabelCount) + "\n\n"
 
             # Nu de true branch
             self.line += "x" + str(node.trueLabel) + ":\n"
@@ -712,13 +877,13 @@ class LLVM:
             self.store(1, self.finalRegLog, "INT", False, True)
 
             # We doen hier een branch naar het final label
-            self.line += "  br label %x" + str(self.labelCount) + "\n\n"
+            self.line += "  br label %x" + str(self.logLabelCount) + "\n\n"
 
             # We maken de final branch aan
 
-            self.line += "x" + str(self.labelCount) + ":\n"
+            self.line += "x" + str(self.logLabelCount) + ":\n"
 
-            self.line = self.line.replace("x" + str(self.labelCount), str(self.register))
+            self.line = self.line.replace("x" + str(self.logLabelCount), str(self.register))
             self.register += 1
 
             # Nu moeten we de gealloceerde value nog uit het register halen en in de correcte stack pushen
@@ -746,11 +911,20 @@ class LLVM:
 
             # We resetten de values
             self.finalRegLog = None
-            self.labelCount = 0
+            self.logLabelCount = 0
 
     def enterCondition(self, node):
         print("enterCondition")
         self.enteredCondition = True
+
+        #We kijken of het een condition is van een while of niet, als dit zo is dan moeten we eerst een branch doen
+        if node.parent.children[-1].token == "WHILE":
+            self.line += "  br label %while" + str(self.whileLabelCount) + "\n\n"
+            self.line += "while" + str(self.whileLabelCount) + ":\n"
+            self.line = self.line.replace("while" + str(self.whileLabelCount), str(self.register))
+            self.whileStack.append((self.register, True))
+            self.register += 1
+            self.whileLabelCount += 1
 
     def exitCondition(self, node):
         print("exitCondition")
@@ -782,6 +956,22 @@ class LLVM:
     def allocate(self, register, type):
         self.line += "  %" + str(register) + " = alloca " + types[type][0] + ", " + types[type][1] + "\n"
 
+    def allTables(self, symbolTable):
+        self.allocateVariables(symbolTable)
+
+        for table in symbolTable.childrenTables:
+            self.allTables(table)
+
+    def makeGlobal(self, node):
+        tableLookup_ = tableLookup(node)
+        symbolTable = symbolLookup(node.value, tableLookup_)[1]
+        type = symbolTable.type
+        value = str(symbolTable.value.value)
+        name = str(node.value)
+        symbolTable.register = name
+        line = "@" + name + " = dso_local global " + types[type][0] + " " + value + ", " + types[type][1] + "\n"
+        self.globals.append(line)
+
     def store(self, fromRegister, toRegister, type, isReg1, isReg2):
 
         reg1 = "%" + str(fromRegister) if isReg1 else str(fromRegister)
@@ -802,8 +992,8 @@ class LLVM:
 
     def load(self, fromReg, type):
         line = ""
-        line += "  %" + str(self.register) + " = load " + types[type][0] + ", " + types[type][0] + "* %" + str(
-            fromReg) + ", " + types[type][1] + "\n"
+        line += "  %" + str(self.register) + " = load " + types[type][0] + ", " + types[type][0] + "* "
+        line += "%" + str(fromReg) + ", " + types[type][1] + "\n" if str(fromReg).isdigit() else "@" + str(fromReg) + ", " + types[type][1] + "\n"
         self.register += 1
         return self.register - 1, line
 
@@ -901,8 +1091,8 @@ class LLVM:
                 # Als dit een AND is gaan we met een True naar het rechterkind en met een False niet
                 # Omdat het rechterkind ook hierna komt gaan we dan ook direct de branch hiervoor maken
 
-                node.trueLabel = self.labelCount
-                self.labelCount += 1
+                node.trueLabel = self.logLabelCount
+                self.logLabelCount += 1
 
                 # Voor het falseLabel moeten we nog kijken wat de parent zijn parent is
                 # Als dit een and is en de parent is zijn rechterkind pakken we het falseLabel van die and
@@ -910,16 +1100,17 @@ class LLVM:
                     if logicals[str(parent.parent.value)] == "AND":
                         node.falseLabel = parent.parent.falseLabel
                     else:
-                        node.falseLabel = self.labelCount
-                        self.labelCount += 1
+                        node.falseLabel = self.logLabelCount
+                        self.logLabelCount += 1
                 else:
-                    node.falseLabel = self.labelCount
-                    self.labelCount += 1
-
-                self.branch(fromReg, node.trueLabel, node.falseLabel, node.trueLabel)
-                self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
-                self.register += 1
-
+                    node.falseLabel = self.logLabelCount
+                    self.logLabelCount += 1
+                if str(parent.value) in comparisons and str(parent.value.value) not in logicals:
+                    self.branch(fromReg, node.trueLabel, node.falseLabel, node.trueLabel, "x")
+                    self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
+                    self.register += 1
+                else:
+                    self.isComparison = True
                 # We stellen de parent zijn falseLabel ook gelijk aan dit van deze node
                 parent.falseLabel = node.falseLabel
 
@@ -931,19 +1122,20 @@ class LLVM:
                     if logicals[str(parent.parent.value)] == "OR":
                         node.trueLabel = parent.parent.trueLabel
                     else:
-                        node.trueLabel = self.labelCount
-                        self.labelCount += 1
+                        node.trueLabel = self.logLabelCount
+                        self.logLabelCount += 1
                 else:
-                    node.trueLabel = self.labelCount
-                    self.labelCount += 1
+                    node.trueLabel = self.logLabelCount
+                    self.logLabelCount += 1
 
-                node.falseLabel = self.labelCount
-                self.labelCount += 1
-
-                self.branch(fromReg, node.trueLabel, node.falseLabel, node.falseLabel)
-
-                self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
-                self.register += 1
+                node.falseLabel = self.logLabelCount
+                self.logLabelCount += 1
+                if str(parent.value) in comparisons and str(parent.value.value) not in logicals:
+                    self.branch(fromReg, node.trueLabel, node.falseLabel, node.falseLabel, "x")
+                    self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
+                    self.register += 1
+                else:
+                    self.isComparison = True
 
                 # We stellen de parent zijn trueLabel gelijk aan dit van deze node
                 parent.trueLabel = node.trueLabel
@@ -959,11 +1151,11 @@ class LLVM:
                     if logicals[str(parent.parent.value)] == "OR":
                         node.trueLabel = parent.parent.trueLabel
                     else:
-                        node.trueLabel = self.labelCount
-                        self.labelCount += 1
+                        node.trueLabel = self.logLabelCount
+                        self.logLabelCount += 1
                 else:
-                    node.trueLabel = self.labelCount
-                    self.labelCount += 1
+                    node.trueLabel = self.logLabelCount
+                    self.logLabelCount += 1
 
                 node.falseLabel = parent.falseLabel
                 # We stellen nu ook de parent zijn trueLabel in
@@ -984,11 +1176,11 @@ class LLVM:
                     if logicals[str(parent.parent.value)] == "AND":
                         node.falseLabel = parent.parent.falseLabel
                     else:
-                        node.falseLabel = self.labelCount
-                        self.labelCount += 1
+                        node.falseLabel = self.logLabelCount
+                        self.logLabelCount += 1
                 else:
-                    node.falseLabel = self.labelCount
-                    self.labelCount += 1
+                    node.falseLabel = self.logLabelCount
+                    self.logLabelCount += 1
                 # We stellen nu ook de parent zijn falseLabel in
                 parent.falseLabel = node.falseLabel
 
@@ -996,18 +1188,19 @@ class LLVM:
 
                 # We gaan hierna een exit doen, dus we behandelen dan dit geval verder in de log node zelf
 
-    def branch(self, boolean, left, right, next):
+    def branch(self, boolean, left, right, next, symbol):
 
-        self.line += "  br i1 %" + str(boolean) + ", label %x" + str(left) + ", label %x" + str(right) + "\n\n"
-        self.line += "x" + str(next) + ":\n"
+        self.line += "  br i1 %" + str(boolean) + ", label %" + symbol + str(left) + ", label %" + symbol + str(right) + "\n\n"
+        self.line += symbol + str(next) + ":\n"
 
     def noReturn(self):
         self.line += "  %" + str(self.register) + " = alloca " + types[self.returnType][0] + ", " + \
                      types[self.returnType][1] + "\n"
-        self.register += 1
-        self.line += "  %" + str(self.register) + " = load " + types[self.returnType][0] + ", " + \
-                     types[self.returnType][0] + "* %" + str(self.register - 1) + ", " + types[self.returnType][
-                         1] + "\n"
+        #TODO: dit is maar iets raars wat ik hier heb gedaan, nog eens bekijken op deze gevallen
+        # self.register += 1
+        # self.line += "  %" + str(self.register) + " = load " + types[self.returnType][0] + ", " + \
+        #              types[self.returnType][0] + "* %" + str(self.register - 1) + ", " + types[self.returnType][
+        #                  1] + "\n"
         self.hasReturnNode = (False, self.register)
         self.register += 1
 
@@ -1035,7 +1228,8 @@ class LLVM:
         # self.file = open("files/GeneratedLLVM/" + filename, "w")
         file = open("testfiles/generated/" + filename, "w")
 
-        # @.str = private unnamed_addr constant [6 x i8] c"%d %d\00", align 1
+        for global_ in self.globals:
+            file.write(global_)
 
         if self.printf:
             self.strings.sort(key=lambda x: x[1])
@@ -1050,5 +1244,7 @@ class LLVM:
 
         if self.printf:
             file.write("declare dso_local i32 @printf(i8*, ...)\n")
+        if self.scanf:
+            file.write("declare dso_local i32 @__isoc99_scanf(i8*, ...)\n")
 
         file.close()

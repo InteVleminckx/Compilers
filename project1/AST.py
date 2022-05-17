@@ -1,12 +1,11 @@
 import copy
-
-from copy import copy, deepcopy
-
-from mathGrammerListener import mathGrammerListener
-from mathGrammerParser import mathGrammerParser
-from SymbolTable import *
 import os
 import re
+from copy import copy
+
+from SymbolTable import *
+from mathGrammerListener import mathGrammerListener
+from mathGrammerParser import mathGrammerParser
 
 var_list = ["CHAR", "INT", "FLOAT", "IDENTIFIER"]
 op_list = ["<", ">", "<=", ">=", "==", "!=", "&&", "||"]
@@ -48,7 +47,7 @@ class Node:
 
         self.popped = 0
 
-        #Voor llvm
+        # Voor llvm
         self.trueLabel = None
         self.falseLabel = None
         self.fromRegBr = None
@@ -464,8 +463,8 @@ class ASTprinter(mathGrammerListener):
                     curStatement.iteration[1] = (ctx.FLOAT(), "FLOAT", 0, ctx.start.line, ctx.start.column)
                 elif ctx.IDENTIFIER() and ctx.getChildCount() == 1:
                     curStatement.iteration[1] = (
-                    ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
-                    ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
+                        ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
+                        ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
                     if ast.nextConst:
                         ast.nextConst = False
                     ast.nextType = ""
@@ -1130,7 +1129,7 @@ class ASTprinter(mathGrammerListener):
 
 
 def createGraph(ast, inputfile, number=0):
-    #TODO: terug veranderen
+    # TODO: terug veranderen
     # path = "./files/GeneratedAST/"
     path = "./testfiles/"
     file = path
@@ -1360,7 +1359,7 @@ Zegt of het een unary operation is zoals ++ of --, als dit zo is dan vervangen w
 def isUnaryOperation(node):
     # we controleren gewoon de parent
     if str(node.parent.value) == "++" or str(node.parent.value) == "--":
-        #We zetten deze dan ook nog voor de zekerheid op true want het wordt inprincipe wel overschreven
+        # We zetten deze dan ook nog voor de zekerheid op true want het wordt inprincipe wel overschreven
         tableNode = tableLookup(node)
 
         # We krijgen dan volgende waardes uit de functie: wat zegt of het symbol bestaat, de waardes bevat van const, overwritten en de value van de identifier
@@ -1377,6 +1376,8 @@ def isUnaryOperation(node):
 """
 Zegt of het een functie is of niet want deze willen we ook niet vervangen
 """
+
+
 def isFunctionName(node):
     if node.parent.token == "NAME":
         return True
@@ -1424,7 +1425,7 @@ def folding(node):
 
     value_c0, value_c0_t, isIden0 = getValuesChildren(node.children[0])
     value_c1, value_c1_t, isIden1 = getValuesChildren(node.children[1]) if len(node.children) == 2 else (
-    None, None, False)
+        None, None, False)
 
     if value_c0 is None:
         return False
@@ -1538,6 +1539,15 @@ def folding(node):
                 newNode = createNodeItem("NEW_BLOCK", "NEW_BLOCK", node.parent.parent)
                 newNode.children = node.parent.children[1].children
                 newNode.symbolTablePointer = node.parent.children[1].symbolTablePointer
+
+                node__ = newNode
+                while node__.parent is not None:
+                    node__ = node__.parent
+                    if node__.symbolTablePointer is not None:
+                        break
+
+                node__.symbolTablePointer.childrenTables.append(newNode.symbolTablePointer)
+
                 newNode.symbolTablePointer.astNode = newNode
                 for i, children in enumerate(node.parent.parent.children):
                     if children == node.parent:
@@ -1561,6 +1571,17 @@ def folding(node):
                     newNode = createNodeItem("NEW_BLOCK", "NEW_BLOCK", node.parent.parent)
                     newNode.children = node.parent.children[2].children
                     newNode.symbolTablePointer = node.parent.children[2].symbolTablePointer
+
+
+                    node__ = newNode
+                    while node__.parent is not None:
+                        node__ = node__.parent
+                        if node__.symbolTablePointer is not None:
+                            break
+
+                    node__.symbolTablePointer.childrenTables.append(newNode.symbolTablePointer)
+
+
                     newNode.symbolTablePointer.astNode = newNode
                     for i, children in enumerate(node.parent.parent.children):
                         if children == node.parent:
@@ -1634,7 +1655,8 @@ def tableLookup(node):
     return tableLookup(node.parent)
 
 
-def symbolLookup(varName, symbolTable, sameScope=True, varLine=None, varColumn=None, afterTotalSetup=False):  # zoekt in de symbol tables naar de variabele
+def symbolLookup(varName, symbolTable, sameScope=True, varLine=None, varColumn=None,
+                 afterTotalSetup=False):  # zoekt in de symbol tables naar de variabele
     """
 
     :param varName: identifier (var) name
@@ -1646,7 +1668,9 @@ def symbolLookup(varName, symbolTable, sameScope=True, varLine=None, varColumn=N
 
     if str(varName) in symbolTable.dict:
         if varLine is not None:
-            if (symbolTable.dict[str(varName)].line < varLine) or (symbolTable.dict[str(varName)].line == varLine and symbolTable.dict[str(varName)].column < varColumn):
+            if (symbolTable.dict[str(varName)].line < varLine) or (
+                    symbolTable.dict[str(varName)].line == varLine and symbolTable.dict[
+                str(varName)].column < varColumn):
                 return True, symbolTable.dict[str(varName)], sameScope
             else:
                 if afterTotalSetup:
@@ -1656,7 +1680,7 @@ def symbolLookup(varName, symbolTable, sameScope=True, varLine=None, varColumn=N
                         elif prevv[0] == varLine and prevv[1] < varColumn:
                             return True, prevv[2], sameScope
 
-        else: # only for when we are looking for 'main'
+        else:  # only for when we are looking for 'main'
             return True, symbolTable.dict[str(varName)], sameScope
 
     if symbolTable.enclosingSTable is not None:
@@ -1693,8 +1717,16 @@ def setupSymbolTables(tree, node=None):
                 (node.token == "BRANCH" and node.children[0].token == "DECLARATION"):
             s = SymbolTable()
             s.enclosingSTable = tree.symbolTableStack[-1]
+
             s.astNode = node
             node.symbolTablePointer = s
+            node__ = node
+            while node__.parent is not None:
+                node__ = node__.parent
+                if node__.symbolTablePointer is not None:
+                    break
+
+            node__.symbolTablePointer.childrenTables.append(s)
             tree.symbolTableStack.append(s)
             tree.symbolTableList.append(s)
             wasNewBlockOpened = True
@@ -1714,13 +1746,22 @@ def setupSymbolTables(tree, node=None):
 
             semanticAnalysis(node.children[1].children[0])
 
-            tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters, line=node.children[1].children[0].line, column=node.children[1].children[0].column)
+            tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters,
+                               line=node.children[1].children[0].line, column=node.children[1].children[0].column)
             tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
 
             s = SymbolTable()
             s.enclosingSTable = tree.symbolTableStack[-1]
+
             s.astNode = node
             node.symbolTablePointer = s
+            node__ = node
+            while node__.parent is not None:
+                node__ = node__.parent
+                if node__.symbolTablePointer is not None:
+                    break
+
+            node__.symbolTablePointer.childrenTables.append(s)
             tree.symbolTableStack.append(s)
             tree.symbolTableList.append(s)
             wasNewBlockOpened = True
@@ -1729,59 +1770,61 @@ def setupSymbolTables(tree, node=None):
 
         if node.token == "=":  # variabele toevoegen aan symbol table
             # if node.children[0].isDeclaration:
-                if not node.children[0].isDeclaration:
-                    table = tableLookup(node.children[0])
-                    symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
-                                     varColumn=node.children[0].column)
-                    if symbol_lookup[0]:
-                        type = symbol_lookup[1].type
-                        node.children[0].type = type
-                        # symbol_lookup[1].isOverwritten = True
+            if not node.children[0].isDeclaration:
+                table = tableLookup(node.children[0])
+                symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
+                                             varColumn=node.children[0].column)
+                if symbol_lookup[0]:
+                    type = symbol_lookup[1].type
+                    node.children[0].type = type
+                    # symbol_lookup[1].isOverwritten = True
 
-                value = node.children[1]
-                type = node.children[0].type
-                isConst = node.children[0].isConst
-                tuple = [] # prevValues tuple
+            value = node.children[1]
+            type = node.children[0].type
+            isConst = node.children[0].isConst
+            tuple = []  # prevValues tuple
 
-                isOverwritten = False
+            isOverwritten = False
+
+            table = tableLookup(node.children[0])
+            symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
+                                         varColumn=node.children[0].column)
+
+            # if str(node.children[0].value) in tree.symbolTableStack[-1].dict:  # als de variabele ervoor al gedeclareerd was.
+            if symbol_lookup[0]:
+
+                isOverwritten = True  # de variabele krijgt de status "overwritten"
 
                 table = tableLookup(node.children[0])
                 symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
                                              varColumn=node.children[0].column)
+                if not node.children[
+                    0].isDeclaration:  # als het een declaration is, maar in een nieuwe (andere) scope, moeten onderste twee lijnen niet gebeuren
+                    type = symbol_lookup[1].type
+                    isConst = symbol_lookup[1].isConst
 
-                # if str(node.children[0].value) in tree.symbolTableStack[-1].dict:  # als de variabele ervoor al gedeclareerd was.
-                if symbol_lookup[0]:
+                tuple = [symbol_lookup[1].line, symbol_lookup[1].column, symbol_lookup[1]]
 
-                    isOverwritten = True  # de variabele krijgt de status "overwritten"
+            semanticAnalysis(node, node.children[0], node.children[1])
 
-                    table = tableLookup(node.children[0])
-                    symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line, varColumn=node.children[0].column)
-                    if not node.children[0].isDeclaration: # als het een declaration is, maar in een nieuwe (andere) scope, moeten onderste twee lijnen niet gebeuren
-                        type = symbol_lookup[1].type
-                        isConst = symbol_lookup[1].isConst
+            tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.children[0].pointer,
+                               node.children[0].reference, line=node.children[0].line, column=node.children[0].column)
+            if isOverwritten:
+                prevValues = copy(symbol_lookup[1].prevValues)
 
-                    tuple = [symbol_lookup[1].line, symbol_lookup[1].column, symbol_lookup[1]]
+                # deepcopy doet echt raar, een "cannot pickle error"
+                # prevValues = []
+                # for item in range(len(symbol_lookup[1].prevValues)):
+                #     prevValuesTuple = []
+                #     for tupleItem in range(len(symbol_lookup[1].prevValues[item])):
+                #         prevValuesTuple.append(copy(symbol_lookup[1].prevValues[item][tupleItem]))
+                #     # prevValues.append(deepcopy(symbol_lookup[1].prevValues[item]))
+                #     prevValues.append(prevValuesTuple)
 
-                semanticAnalysis(node, node.children[0], node.children[1])
+                prevValues.append(tuple)
+                tableValue.prevValues = prevValues
 
-                tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.children[0].pointer,
-                                   node.children[0].reference, line=node.children[0].line, column=node.children[0].column)
-                if isOverwritten:
-                    prevValues = copy(symbol_lookup[1].prevValues)
-
-                    # deepcopy doet echt raar, een "cannot pickle error"
-                    # prevValues = []
-                    # for item in range(len(symbol_lookup[1].prevValues)):
-                    #     prevValuesTuple = []
-                    #     for tupleItem in range(len(symbol_lookup[1].prevValues[item])):
-                    #         prevValuesTuple.append(copy(symbol_lookup[1].prevValues[item][tupleItem]))
-                    #     # prevValues.append(deepcopy(symbol_lookup[1].prevValues[item]))
-                    #     prevValues.append(prevValuesTuple)
-
-                    prevValues.append(tuple)
-                    tableValue.prevValues = prevValues
-
-                tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
+            tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
 
         elif node.parent.token == "PARAMETERS" and not (
                 node.token == "=" or node.token == "NONE") and not node.parent.parent.token == "FUNC_CALL":  # parametervariabelen van een functie toevoegen aan symbol table
@@ -1793,7 +1836,8 @@ def setupSymbolTables(tree, node=None):
 
             semanticAnalysis(node, node, node)
 
-            tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference, line=node.line, column=node.column)
+            tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference,
+                               line=node.line, column=node.column)
             tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
 
         elif node.token == "IDENTIFIER" and not node.parent.token == "=" and node.isDeclaration:
@@ -1806,7 +1850,8 @@ def setupSymbolTables(tree, node=None):
                 semanticAnalysis(node, node,
                                  node)  # child1 is the node itself, we need to check that reference (if it is one)
 
-                tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference, line=node.line, column=node.column)
+                tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference,
+                                   line=node.line, column=node.column)
                 tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
             else:
                 semanticAnalysis(node)
@@ -1916,7 +1961,8 @@ def semanticAnalysisVisitor(node):
     if node.token == "=":  # assignments behandelen
 
         table_child2 = tableLookup(node.children[1])
-        symbol_lookup_child2 = symbolLookup(node.children[1].value, table_child2, varLine=node.children[1].line, varColumn=node.children[1].column)
+        symbol_lookup_child2 = symbolLookup(node.children[1].value, table_child2, varLine=node.children[1].line,
+                                            varColumn=node.children[1].column)
 
         if len(node.children[1].children) == 0:  # if the right child doesn't have any children.
             if symbol_lookup_child2[0]:  # if the right child is found in a symbol table.
@@ -1940,7 +1986,8 @@ def semanticAnalysisVisitor(node):
         else:  # for a whole expression
             if node.children[0].isOverwritten:  # van de vorm 'x = ...'
                 table = tableLookup(node.children[0])
-                symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line, varColumn=node.children[0].column)
+                symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
+                                             varColumn=node.children[0].column)
                 if symbol_lookup[0]:
                     if symbol_lookup[1].type != evaluateExpressionType(node.children[1]):
                         print("[ Warning ] line " + str(node.line) + ", position " + str(
@@ -1963,7 +2010,9 @@ def semanticAnalysisVisitor(node):
 
     elif node.token == "FUNC_CALL":  # function calls behandelen
         table = tableLookup(node.children[0].children[0])  # we look up the name of the function
-        symbol_lookup = symbolLookup(node.children[0].children[0].value, table, varLine=node.children[0].children[0].line, varColumn=node.children[0].children[0].column)
+        symbol_lookup = symbolLookup(node.children[0].children[0].value, table,
+                                     varLine=node.children[0].children[0].line,
+                                     varColumn=node.children[0].children[0].column)
         if symbol_lookup[0] is False:
             # Undefined reference.
             print("[ Error ] line " + str(node.children[0].children[0].line) + ", position " + str(
@@ -2016,7 +2065,9 @@ def semanticAnalysisVisitor(node):
                     if node.token == "PRINTF":
                         table = tableLookup(node.children[
                                                 i + 1])  # i + 1 want de arguments beginnen bij de tweede node (niet de eerste)
-                        symbol_lookup = symbolLookup(node.children[i+1].value, table, varLine=node.children[i+1].line, varColumn=node.children[i+1].column)
+                        symbol_lookup = symbolLookup(node.children[i + 1].value, table,
+                                                     varLine=node.children[i + 1].line,
+                                                     varColumn=node.children[i + 1].column)
 
                         if len(node.children[i + 1].children) == 0:
                             if symbol_lookup[0]:  # if the passed argument is found in a symbol table
@@ -2110,7 +2161,9 @@ def semanticAnalysisVisitor(node):
 
                         table = tableLookup(node.children[i + 1].children[
                                                 0])  # i + 1 want de arguments beginnen bij de tweede node (niet de eerste)
-                        symbol_lookup = symbolLookup(node.children[i + 1].children[0].value, table, varLine=node.children[i+1].line, varColumn=node.children[i+1].column)
+                        symbol_lookup = symbolLookup(node.children[i + 1].children[0].value, table,
+                                                     varLine=node.children[i + 1].line,
+                                                     varColumn=node.children[i + 1].column)
 
                         if symbol_lookup[0]:  # if the passed argument is found in a symbol table
 
@@ -2208,7 +2261,9 @@ def evaluateExpressionType(node=None):
     elif node.token == "FUNC_CALL":
 
         table = tableLookup(node.children[0].children[0])
-        symbol_lookup = symbolLookup(node.children[0].children[0].value, table, varLine=node.children[0].children[0].line, varColumn=node.children[0].children[0].column)
+        symbol_lookup = symbolLookup(node.children[0].children[0].value, table,
+                                     varLine=node.children[0].children[0].line,
+                                     varColumn=node.children[0].children[0].column)
 
         if symbol_lookup[0]:
             func_retType = symbol_lookup[1].outputTypes[0]

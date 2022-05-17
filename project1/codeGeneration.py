@@ -138,7 +138,7 @@ class CodeGeneration:
             else:
                 self.llvm.exitType(node)
 
-        elif node.token == "STRING":
+        elif node.token == "STRING" or node.token == "PRINTTEXT":
             if enter:
                 self.llvm.enterString(node)
             else:
