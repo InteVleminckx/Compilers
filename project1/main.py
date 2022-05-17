@@ -54,8 +54,7 @@ def main(argv):
     createGraph(a, argv[1], 0)
     setupSymbolTables(a)
     checkMain(a)
-    #TODO: ni vergeten terug aan te zetten
-    # optimize(a)
+    optimize(a)
     semanticAnalysisVisitor(a.root)
     # optimizationVisitor(a)
     createGraph(a, argv[1], 1)
