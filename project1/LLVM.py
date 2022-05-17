@@ -18,14 +18,13 @@ class LLVM:
         self.returnStack = []
         self.printfStack = []
         self.conditionStack = []
-        self.logatStack = []
+        self.logicalStack = []
 
         self.enteredAssignment = False
         self.enteredFunctionCall = 0
         self.enteredReturn = False
         self.enteredPrintf = False
         self.enteredCondition = False
-        self.enteredLogical = False
 
         self.returnType = ""
         self.hasReturnNode = (False, 0)
@@ -35,12 +34,9 @@ class LLVM:
         self.scanf = False
 
         self.strings = []
-        self.logStrings = []
-        self.logStringNext = None
-        self.logFinalReg = None
-        self.logCount = 0
 
         self.labelCount = 0
+        self.finalRegLog = None
 
     def enterFunction(self, node):
         print("enterFunction")
@@ -304,6 +300,10 @@ class LLVM:
     def exitFuncCall(self, node):
         print("exitFuncCall")
 
+        if len(self.logicalStack) > 0:
+            if node == self.logicalStack[-1][0]:
+                print("func call")
+
         # We moeten eerst het type van de functie opvragen
         funcName = str(node.children[0].children[0].value)
         symboltable = tableLookup(node.children[0].children[0])
@@ -337,8 +337,6 @@ class LLVM:
         elif self.enteredReturn:
             self.returnStack.append((str(self.register - 1), outputtype, True))
 
-        elif self.enteredLogical:
-            self.logatStack.append((str(self.register - 1), outputtype, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
@@ -355,11 +353,6 @@ class LLVM:
 
     def enterBinOperation(self, node):
         print("enterBinOperation")
-        if node == self.logStringNext:
-            self.logStringPlace = 1
-            # We doen dit omdat we voor het rechterkind eerst nog een extra br label aanmaken en we premaden de line al
-            # Dus moeten ons hier al op voorzien
-            self.register += 1
 
     def exitBinOperation(self, node):
         print("exitBinOperation")
@@ -368,6 +361,9 @@ class LLVM:
         func = lambda node1, stack: (
             self.operate(calculations_[str(node1.value)], stack[-2][0], stack[-1][0], stack[-2][1], stack[-1][1],
                          stack[-2][2], stack[-1][2]))
+
+        toReg = None
+        toType = None
 
         if self.enteredFunctionCall > 0:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
@@ -388,17 +384,6 @@ class LLVM:
             self.returnStack.pop()
             self.returnStack.append((toReg, toType, True))
 
-        # Deze heeft voorang op de printf en conditions enz. omdat deze daarin kan voorkomen
-        elif self.enteredLogical:
-            # if node == self.logStringNext:
-            #     self.logStringPlace = 1
-            # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
-            # Waar we de operation moeten uitvoeren
-            toReg, toType, line = func(node, self.logatStack)
-            self.logStrings[self.logStringPlace] += line
-            self.logatStack.pop()
-            self.logatStack.pop()
-            self.logatStack.append((toReg, toType, True, False))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
@@ -427,22 +412,20 @@ class LLVM:
             self.assignmentStack.pop()
             self.assignmentStack.append((toReg, toType, True))
 
+        if len(self.logicalStack) > 0:
+            if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
+                toReg__, type, line = self.compare("ne", toReg, 0, toType, "INT", True, False, True)
+                self.popRightStack()
+
+                self.line += line
+                self.determineBranch(node, node.parent, toReg__)
+
     def enterIdentifier(self, node):
         print("enterIdentifier")
-        if node == self.logStringNext:
-            self.logStringPlace = 1
-            # We doen dit omdat we voor het rechterkind eerst nog een extra br label aanmaken en we premaden de line al
-            # Dus moeten ons hier al op voorzien
-            self.register += 1
 
     def exitIdentifier(self, node):
 
         print("exitIdentifier")
-        if node == self.logStringNext:
-            # We doen dit omdat we voor het rechterkind eerst nog een extra br label aanmaken en we premaden de line al
-            # Dus moeten ons hier al op voorzien
-            self.register += 1
-
         if node.parent.token == "NAME":
             return
 
@@ -452,24 +435,18 @@ class LLVM:
 
         func = lambda symbol_lookup: (self.load(symbol_lookup.register, symbol_lookup.type), symbol_lookup.type)
 
+        reg = None
+        type = None
+
         # als we een functioncall hebben dan heeft dit voorrang op een assignment omdat een functioncall in een assignment kan voorkomen
         if self.enteredFunctionCall > 0:
             reg, type = func(symbol_lookup)
             self.line += reg[1]
-            self.functionCallStack.append((reg[0], type, True))
-            # Ook hier heeft de functioncall voorang
+            self.functionCallStack.append((reg[0], type, True))  # Ook hier heeft de functioncall voorang
         elif self.enteredReturn:
             reg, type = func(symbol_lookup)
             self.line += reg[1]
             self.returnStack.append((reg[0], type, True))
-
-        # Deze heeft voorang op de printf en conditions enz. omdat deze daarin kan voorkomen
-        elif self.enteredLogical:
-            # if node == self.logStringNext:
-            #     self.logStringPlace = 1
-            reg, type = func(symbol_lookup)
-            self.logStrings[self.logStringPlace] += reg[1]
-            self.logatStack.append((reg[0], type, True, False))
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
@@ -494,6 +471,17 @@ class LLVM:
             # We geven het register mee en het type en zeggen dat een register is
             self.assignmentStack.append((reg[0], type, True))
 
+        if len(self.logicalStack) > 0:
+            if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
+                # We gaan nu de compare opartion uitvoeren
+                toReg__, type, line = self.compare("ne", reg[0], 0, type, "INT", True, False, True)
+
+                # Omdat we da waarde uit de stack al hebben gebruikt moeten we deze nog wel terug verwijderen
+                self.popRightStack()
+
+                self.line += line
+                self.determineBranch(node, node.parent, toReg__)
+
     def enterType(self, node):
         print("enterType")
 
@@ -508,10 +496,6 @@ class LLVM:
         elif self.enteredReturn:
             self.returnStack.append((str(node.value), node.token, False))
 
-        # Deze heeft voorang op de printf en conditions enz. omdat deze daarin kan voorkomen
-        elif self.enteredLogical:
-            self.logatStack.append((str(node.value), node.token, False, False))
-
         # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
             self.printfStack.append((str(node.value), node.token, False))
@@ -525,6 +509,10 @@ class LLVM:
             # We voegen het toe aan de stack
             # We geven de value mee en het type en zeggen dat het geen register is
             self.assignmentStack.append((str(node.value), node.token, False))
+
+        if len(self.logicalStack) > 0:
+            if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
+                print("type")
 
     def enterString(self, node):
         pass
@@ -552,18 +540,17 @@ class LLVM:
 
     def enterComparison(self, node):
         print("enterComparison")
-        if node == self.logStringNext:
-            self.logStringPlace = 1
-            # We doen dit omdat we voor het rechterkind eerst nog een extra br label aanmaken en we premaden de line al
-            # Dus moeten ons hier al op voorzien
-            self.register += 1
 
     def exitComparison(self, node):
         print("exitComparison")
 
+
         func = lambda node1, stack, condition: (
             self.compare(comparisons[str(node1.value)], stack[-2][0], stack[-1][0], stack[-2][1], stack[-1][1],
                          stack[-2][2], stack[-1][2], condition))
+
+        toReg = None
+        toType = None
 
         if self.enteredFunctionCall > 0:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
@@ -583,18 +570,6 @@ class LLVM:
             self.returnStack.pop()
             self.returnStack.pop()
             self.returnStack.append((toReg, toType, True))
-
-        # Deze heeft voorang op de printf en conditions enz. omdat deze daarin kan voorkomen
-        elif self.enteredLogical:
-            # if node == self.logStringNext:
-            #     self.logStringPlace = 1
-            # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
-            # Waar we de operation moeten uitvoeren
-            toReg, toType, line = func(node, self.logatStack, True)
-            self.logStrings[self.logStringPlace] += line
-            self.logatStack.pop()
-            self.logatStack.pop()
-            self.logatStack.append((toReg, toType, True, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
@@ -623,216 +598,155 @@ class LLVM:
             self.assignmentStack.pop()
             self.assignmentStack.append((toReg, toType, True))
 
+        if len(self.logicalStack) > 0:
+            if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
+                # We gaan nu de compare opartion uitvoeren
+                toReg__, type, line = self.compare("ne", toReg, 0, toType, "INT", True, False, True)
+
+                # Omdat we da waarde uit de stack al hebben gebruikt moeten we deze nog wel terug verwijderen
+                self.popRightStack()
+
+                self.line += line
+                self.determineBranch(node, node.parent, toReg__)
+
     def enterLogical(self, node):
         print("enterLogical")
-        # We zetten dit op true omdat er eigl maar 1 register per br geladen moet worden
-        self.enteredLogical = True
-        self.logStrings = ["", ""]
-        self.logStringPlace = 0
-        self.logStringNext = node.children[1]
-        self.logCount += 1
-        if self.logFinalReg is None:
-            self.logFinalReg = self.register
+        """
+        Het idee is eigenlijk dat wanneer we een logical betreden dat we op deze moment bekijken in welke 
+        situatie ons bevinden
+        heeft de logical operator links wel of niet een logical operator, heeft het rechts wel of niet een logical operator
+        """
+
+        # Als het links een logical operation hebben doen we niets, anders wel
+
+        leftChild = node.children[0]
+        rightChild = node.children[1]
+
+        stackContent = [None, None]
+
+        if str(leftChild.value) not in logicals:
+            print("---------------not a logical--------------")
+            # We slagen deze node op, wanneer we een node verlaten waar deze node gelijk is aan die node gaan we de br aanmaken
+            # Dit kan een identifier, bin op, comp op, func call of gewoon een value zijn
+            stackContent[0] = leftChild
+
+        if str(rightChild.value) not in logicals:
+            print("---------------not a logical--------------")
+            # We slagen deze node op, wanneer we een node verlaten waar deze node gelijk is aan die node gaan we de br aanmaken
+            # Dit kan een identifier, bin op, comp op, func call of gewoon een value zijn
+            stackContent[1] = rightChild
+
+        self.logicalStack.append(stackContent)
+
+        # We gaan ook een final register alloceren waar de uitkomst in komt
+        if self.finalRegLog is None:
+            self.finalRegLog = self.register
             self.register += 1
-            #We gaan een final register alloceren
-            self.allocate(self.logFinalReg, "INT")
-            print("")
+            self.allocate(self.finalRegLog, "INT")
 
     def exitLogical(self, node):
-        self.logCount -= 1
-        if self.enteredLogical:
-            # Er zitten normaal gezien nu nog maar 2 elementen in de stack
-            # Dit is voor de conditie op te stellen, het 4de element in de tuple van de stack zegt of het al een comparison was
-            # of niet, als die niet zo was moeten we deze nog uitvoeren anders moet dit niet meer
+        print("exitLogical")
 
-            # We doen eerste de eerste branch
+        if len(self.logicalStack) > 0:
+            self.logicalStack.pop()
+        # We controleren dat de node zijn parent een log is of niet
+        parent = node.parent
 
-            # We laden eerst de code voor de vergelijking
-            self.line += self.logStrings[0]
+        if str(parent.value) in logicals:
+            # Als dit het geval is gaan we kijken of we het rechter of linkerkind zijn
+            if node == parent.children[0]:
+                # Als we het linkerkind zijn kijken we naar de parent zijn logical
 
-            toReg = self.logatStack[0][0]
-            # Daarna controleren we of we al een vergelijking hebben gedaan of niet
-            if not self.logatStack[0][3]:
-                # Dan moeten we zelf de vergelijking nog doen
-                toReg__, type, line = self.compare("ne", self.logatStack[0][0], 0, self.logatStack[0][1], "INT",
-                                                   self.logatStack[0][2], False, True)
-                toReg = int(toReg) + 1
-                line = line.replace("%" + str(toReg__), "%" + str(toReg))
-                self.line += line
+                if logicals[str(parent.value)] == "AND":
+                    # We branchen dan met de Truelabel van de node
 
-            # Als we dit hebben gedaan gaan we de branch opstellen
-            # We bevinden ons momenteel in het linkerkind
-            # Als we een and hebben als parent -> True: rechterkind(ook newlabel maar kunnen we direct invullen), False: newLabel
-            # Als we een or hebben als parent -> True: newLabel, False: rechterking(ook newLabel maar kunnen we direct invullen)
+                    # We voeren nog een comparison uit
 
-            if logicals[str(node.value)] == "AND":
-                node.trueLabel = self.labelCount
-                self.labelCount += 1
-                node.falseLabel = self.labelCount
-                self.labelCount += 1
+                    self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.trueLabel)
+                    self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
+                    self.register += 1
+                    parent.falseLabel = node.falseLabel
 
-                self.line += "  br i1 %" + str(toReg) + ", label %x" + str(node.trueLabel) + ", label %x" + str(
-                    node.falseLabel) + "\n\n"
-                self.line += "x" + str(node.trueLabel) + ":\n"
+                elif logicals[str(parent.value)] == "OR":
+                    # We branchen met het Falselabel van de node
+                    self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.falseLabel)
+                    self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
+                    self.register += 1
+                    parent.trueLabel = node.trueLabel
 
-                # We gaan nu de truelabel overal vervangen
-                self.line = self.line.replace("x" + str(node.trueLabel), str(int(toReg) + 1))
+            elif node == parent.children[1]:
+                # Als we het rechterkind zijn kijken we naar de parent zijn logical
 
-            elif logicals[str(node.value)] == "OR":
-                node.trueLabel = self.labelCount
-                self.labelCount += 1
-                node.falseLabel = self.labelCount
-                self.labelCount += 1
+                if logicals[str(parent.value)] == "AND":
+                    # We gaan niet branchen, we geven gewoon de truelabel door aan de parent
+                    parent.trueLabel = node.trueLabel
+                    parent.fromRegBr = node.fromRegBr
 
-                self.line += "  br i1 %" + str(toReg) + ", label %x" + str(node.trueLabel) + ", label %x" + str(
-                    node.falseLabel) + "\n\n"
-                self.line += "x" + str(node.falseLabel) + ":\n"
+                elif logicals[str(parent.value)] == "OR":
+                    # We gaan niet branchen, we geven gewoon het falseLabel door aan de parent
+                    parent.falseLabel = node.falseLabel
+                    parent.fromRegBr = node.fromRegBr
+        else:
+            # Nu moeten we nog 2 branches maken en de final branch
+            # De 2 branches geven aan of de volledige expressie true of false is
+            # De final branch zal de rest van de scope zijn
 
-                # We gaan nu de truelabel overal vervangen
-                self.line = self.line.replace("x" + str(node.falseLabel), str(int(toReg) + 1))
+            # We maken eerst de branch aan met een nieuw falseLabel
+            self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.falseLabel)
+            self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
+            self.register += 1
 
-            # Nu hebben we het linkerkind behandeld, we gaan nu het rechterkind behandelen
-            self.line += self.logStrings[1]
+            # Nu gaan we hier een false in het eind register plaatsen
+            self.store(0, self.finalRegLog, "INT", False, True)
 
-            toReg = self.logatStack[1][0]
-            # Daarna controleren we of we al een vergelijking hebben gedaan of niet
-            if not self.logatStack[1][3]:
-                # Dan moeten we zelf de vergelijking nog doen
-                toReg__, type, line = self.compare("ne", self.logatStack[1][0], 0, self.logatStack[1][1], "INT",
-                                                   self.logatStack[1][2], False, True)
-                toReg = int(toReg) + 1
-                line = line.replace("%" + str(toReg__), "%" + str(toReg))
-                self.line += line
-
-            # We gaan nu terug de branch opstellen
-            # Als we een And hebben -> True: new label maken, False: neem Falselabel van het linkerkind
-            # Als we een Or hebben -> True: neem trueLabel van het linkerkind, False: new label maken
-            if logicals[str(node.value)] == "AND":
-
-                # Hier moeten voor het true label ook nog kijken of we het linker of rechter zijn
-                if node == node.parent.children[0]:
-                    node.trueLabel = self.labelCount
-                    self.labelCount += 1
-                else:
-                    # Nu moeten we nog kijken of de parent een or of and is
-                    if logicals[str(node.parent.value)] == "AND":
-                        # We maken ook een nieuw label
-                        node.trueLabel = self.labelCount
-                        self.labelCount += 1
-
-                    elif logicals[str(node.parent.value)] == "OR":
-                        # We nemen het True label van het linker log
-                        node.trueLabel = node.parent.children[0].trueLabel
-
-                node.falseLabel = node.falseLabel
-
-            elif logicals[str(node.value)] == "OR":
-                node.trueLabel = node.trueLabel
-
-                # Hier moeten voor het false label ook nog kijken of we het linker of rechter zijn
-                if node == node.parent.children[0]:
-                    node.falseLabel = self.labelCount
-                    self.labelCount += 1
-                else:
-                    # Nu moeten we nog kijken of de parent een or of and is
-                    if logicals[str(node.parent.value)] == "AND":
-                        # We maken ook een nieuw label
-                        node.falseLabel = node.parent.children[0].falseLabel
-
-                    elif logicals[str(node.parent.value)] == "OR":
-                        # We nemen het False label van het linker log
-                        node.falseLabel = self.labelCount
-                        self.labelCount += 1
-
-            self.register = int(toReg) + 2
-            # Nu moeten we nog gaan bepalen welke branch we gaan doen
-            if node == node.parent.children[0]:
-                self.line += "  br i1 %" + str(toReg) + ", label %x" + str(node.trueLabel) + ", label %x" + str(
-                    node.falseLabel) + "\n\n"
-                # Nu moeten we nog kijken of de parent een or of and is
-                if logicals[str(node.parent.value)] == "AND":
-                    self.line += "x" + str(node.trueLabel) + ":\n"
-                    # We gaan nu de truelabel overal vervangen
-                    self.line = self.line.replace("x" + str(node.trueLabel), str(int(toReg) + 1))
-
-                elif logicals[str(node.parent.value)] == "OR":
-                    self.line += "x" + str(node.falseLabel) + ":\n"
-                    # We gaan nu de truelabel overal vervangen
-                    self.line = self.line.replace("x" + str(node.falseLabel), str(int(toReg) + 1))
-            else:
-
-                # Nu moeten we gaan kijken naar de node zijn parent, zijn parent Want als dit geen logical meer is
-                # moeten we een andere jump uitvoeren naar de branch die bepaald wat er moet gebeuren
-                if str(node.parent.parent.value) in logicals:
-                    # Nu moeten we nog kijken of de parent een or of and is
-                    # if logicals[str(node.parent.value)] == "AND":
-                    #
-                    #
-                    # elif logicals[str(node.parent.value)] == "OR":
-                    pass
-                else:
-                    self.line += "  br i1 %" + str(toReg) + ", label %x" + str(node.trueLabel) + ", label %x" + str(node.falseLabel) + "\n\n"
-
-
-            # We clearen logstrings en stack en next logstring en rester stringplace
-            self.logStrings.clear()
-            self.logatStack.clear()
-            self.logStringNext = None
-            self.logStringPlace = 0
-            self.enteredLogical = False
-
-        elif self.logCount == 0:
-            # We maken eigenlijk een true en false branch aan waar we een 0 of 1 in de gealloceerde variable gaan store
-            # We beginnen met de false branch
-            # We branchen hier eerst naar toe
-            falseL = node.children[1].falseLabel
-            trueL = node.children[1].trueLabel
-
-            self.line += "x" + str(falseL) + ":\n"
-            self.line = self.line.replace("x" + str(falseL), str(self.register -1))
-
-            # nu storen we 0 in het register
-            self.store(0, self.logFinalReg, "INT", False, True)
-
-            # Nu branchen we naar de final
+            # We doen hier een branch naar het final label
             self.line += "  br label %x" + str(self.labelCount) + "\n\n"
 
-            # Nu doen we de true branch
-            self.line += "x" + str(trueL) + ":\n"
-            self.line = self.line.replace("x" + str(trueL), str(self.register))
+            # Nu de true branch
+            self.line += "x" + str(node.trueLabel) + ":\n"
 
-            # nu storen we 0 in het register
-            self.store(1, self.logFinalReg, "INT", False, True)
+            self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
+            self.register += 1
 
-            # Nu branchen we naar de final
+            # We storen een true in het eind register
+            self.store(1, self.finalRegLog, "INT", False, True)
+
+            # We doen hier een branch naar het final label
             self.line += "  br label %x" + str(self.labelCount) + "\n\n"
+
+            # We maken de final branch aan
 
             self.line += "x" + str(self.labelCount) + ":\n"
-            self.register += 1
+
             self.line = self.line.replace("x" + str(self.labelCount), str(self.register))
             self.register += 1
+
             # Nu moeten we de gealloceerde value nog uit het register halen en in de correcte stack pushen
             toType = "INT"
-            toReg, line = self.load(self.logFinalReg, toType)
+            toReg, line = self.load(self.finalRegLog, toType)
             self.line += line
 
             if self.enteredFunctionCall > 0:
                 self.functionCallStack.append((toReg, toType, True))
 
-            # Ook hier heeft de functioncall eerst voorrang
+                # Ook hier heeft de functioncall eerst voorrang
             elif self.enteredReturn:
                 self.returnStack.append((toReg, toType, True))
 
-            # Ook hier heeft de functioncall eerst voorrang
+                # Ook hier heeft de functioncall eerst voorrang
             elif self.enteredPrintf:
                 self.printfStack.append((toReg, toType, True))
 
-            # Ook hier heeft de functioncall eerst voorrang
+                # Ook hier heeft de functioncall eerst voorrang
             elif self.enteredCondition:
                 self.conditionStack.append((toReg, toType, True))
 
             elif self.enteredAssignment:
                 self.assignmentStack.append((toReg, toType, True))
+
+            # We resetten de values
+            self.finalRegLog = None
+            self.labelCount = 0
 
     def enterCondition(self, node):
         print("enterCondition")
@@ -977,10 +891,115 @@ class LLVM:
 
         return self.register - 1, "INT", line
 
+    def determineBranch(self, node, parent, fromReg):
+
+        # We kijken eerst of we het linkerkind of rechterkind zijn van de node
+
+        if node == parent.children[0]:
+            # Nu kijken we of de parent een OR of AND is
+            if logicals[str(parent.value)] == "AND":
+                # Als dit een AND is gaan we met een True naar het rechterkind en met een False niet
+                # Omdat het rechterkind ook hierna komt gaan we dan ook direct de branch hiervoor maken
+
+                node.trueLabel = self.labelCount
+                self.labelCount += 1
+
+                # Voor het falseLabel moeten we nog kijken wat de parent zijn parent is
+                # Als dit een and is en de parent is zijn rechterkind pakken we het falseLabel van die and
+                if str(parent.parent.value) in logicals:
+                    if logicals[str(parent.parent.value)] == "AND":
+                        node.falseLabel = parent.parent.falseLabel
+                    else:
+                        node.falseLabel = self.labelCount
+                        self.labelCount += 1
+                else:
+                    node.falseLabel = self.labelCount
+                    self.labelCount += 1
+
+                self.branch(fromReg, node.trueLabel, node.falseLabel, node.trueLabel)
+                self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
+                self.register += 1
+
+                # We stellen de parent zijn falseLabel ook gelijk aan dit van deze node
+                parent.falseLabel = node.falseLabel
+
+            elif logicals[str(parent.value)] == "OR":
+                # Als dit een OR is gaan we met een False naar het rechterkind en met een True niet
+                # Omdat het rechterkind ook hierna komt gaan we dan ook direct de branch hiervoor maken
+
+                if str(parent.parent.value) in logicals:
+                    if logicals[str(parent.parent.value)] == "OR":
+                        node.trueLabel = parent.parent.trueLabel
+                    else:
+                        node.trueLabel = self.labelCount
+                        self.labelCount += 1
+                else:
+                    node.trueLabel = self.labelCount
+                    self.labelCount += 1
+
+                node.falseLabel = self.labelCount
+                self.labelCount += 1
+
+                self.branch(fromReg, node.trueLabel, node.falseLabel, node.falseLabel)
+
+                self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
+                self.register += 1
+
+                # We stellen de parent zijn trueLabel gelijk aan dit van deze node
+                parent.trueLabel = node.trueLabel
+
+        elif node == parent.children[1]:
+            if logicals[str(parent.value)] == "AND":
+                # Als dit een AND is gaan we de false van deze node gelijk stellen aan die van het linkerkind
+                # en gaan we de True als nieuwLabel maken
+
+                # Voor het trueLabel moeten we nog kijken wat de parent zijn parent is
+                # Als dit een or is en de parent is zijn rechterkind pakken we het trueLabel van die or
+                if str(parent.parent.value) in logicals:
+                    if logicals[str(parent.parent.value)] == "OR":
+                        node.trueLabel = parent.parent.trueLabel
+                    else:
+                        node.trueLabel = self.labelCount
+                        self.labelCount += 1
+                else:
+                    node.trueLabel = self.labelCount
+                    self.labelCount += 1
+
+                node.falseLabel = parent.falseLabel
+                # We stellen nu ook de parent zijn trueLabel in
+                parent.trueLabel = node.trueLabel
+
+                parent.fromRegBr = fromReg
+
+                # We gaan hierna een exit doen, dus we behandelen dan dit geval verder in de log node zelf
+
+            elif logicals[str(parent.value)] == "OR":
+                # Als dit een OR is gaan we de true van deze node gelijk stellen aan die van het linkerkind
+                # en gaan we de False als nieuwLabel maken
+
+                node.trueLabel = parent.trueLabel
+                # Voor het falseLabel moeten we nog kijken wat de parent zijn parent is
+                # Als dit een and is en de parent is zijn rechterkind pakken we het falseLabel van die and
+                if str(parent.parent.value) in logicals:
+                    if logicals[str(parent.parent.value)] == "AND":
+                        node.falseLabel = parent.parent.falseLabel
+                    else:
+                        node.falseLabel = self.labelCount
+                        self.labelCount += 1
+                else:
+                    node.falseLabel = self.labelCount
+                    self.labelCount += 1
+                # We stellen nu ook de parent zijn falseLabel in
+                parent.falseLabel = node.falseLabel
+
+                parent.fromRegBr = fromReg
+
+                # We gaan hierna een exit doen, dus we behandelen dan dit geval verder in de log node zelf
+
     def branch(self, boolean, left, right, next):
 
-        self.line += "  br i1 %" + str(boolean) + ", label %" + str(left) + ", label %" + str(right) + "\n\n"
-        self.line += str(next) + ":\n"
+        self.line += "  br i1 %" + str(boolean) + ", label %x" + str(left) + ", label %x" + str(right) + "\n\n"
+        self.line += "x" + str(next) + ":\n"
 
     def noReturn(self):
         self.line += "  %" + str(self.register) + " = alloca " + types[self.returnType][0] + ", " + \
@@ -991,6 +1010,22 @@ class LLVM:
                          1] + "\n"
         self.hasReturnNode = (False, self.register)
         self.register += 1
+
+    def popRightStack(self):
+        if self.enteredFunctionCall > 0:
+            self.functionCallStack.pop()
+
+        elif self.enteredReturn:
+            self.returnStack.pop()
+
+        elif self.enteredPrintf:
+            self.printfStack.pop()
+
+        elif self.enteredCondition:
+            self.conditionStack.pop()
+
+        elif self.enteredAssignment:
+            self.assignmentStack.pop()
 
     def writeToFile(self, inputfile):
         afterSlash = re.search("[^/]+$", inputfile)

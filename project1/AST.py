@@ -51,7 +51,7 @@ class Node:
         #Voor llvm
         self.trueLabel = None
         self.falseLabel = None
-
+        self.fromRegBr = None
 
     def getValue(self):
         return self.value
