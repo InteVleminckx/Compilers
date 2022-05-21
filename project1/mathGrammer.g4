@@ -225,6 +225,7 @@ var
         | FLOAT
 		| LPARENTH log_op1 RPARENTH
 		| IDENTIFIER
+		| IDENTIFIER LBRACKET_SQUARE log_op1 RBRACKET_SQUARE
 		| func_call
 		;
 
