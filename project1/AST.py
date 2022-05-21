@@ -766,6 +766,12 @@ class ASTprinter(mathGrammerListener):
                     ast.createNode("ARRAY", "ARRAY", 2, ctx.start.line, ctx.start.column)
                     self.createArray = (True, childs)
 
+        elif ctx.getChildCount() > 3:
+            if str(ctx.getChild(1)) == "[":
+                childs = int((ctx.getChildCount() - 1) / 3)
+                ast.createNode("ARRAY", "ARRAY", 2, ctx.start.line, ctx.start.column)
+                self.createArray = (True, childs)
+
     # Exit a parse tree produced by mathGrammerParser#direct_declarator.
     def exitDirect_declarator(self, ctx: mathGrammerParser.Direct_declaratorContext):
         if ctx.getChildCount() == 3:
