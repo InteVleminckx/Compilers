@@ -79,7 +79,8 @@ class LLVM:
 
             # We vragen het symbool ook op uit de symbol table zodat we het juiste
             # register eraan kunnen toekennen
-            symbol_lookup = symbolLookup(param[0], symboltable)[1]
+            #TODO: check lines and colums with function
+            symbol_lookup = symbolLookup(param[0], symboltable, afterTotalSetup=True)[1]
             symbol_lookup.register = i
 
             # Als het een parameter is zetten we dit ook op true
@@ -147,9 +148,9 @@ class LLVM:
             if node.children[0].token == "IDENTIFIER":
                 # We moeten dan de register hiervan opvragen en returnen
                 symboltable = tableLookup(node.children[0])
-                symbol_lookup = symbolLookup(str(node.children[0].value), symboltable)[1]
+                symbol_lookup = symbolLookup(str(node.children[0].value), symboltable, afterTotalSetup=True, varLine=node.children[0].line, varColumn=node.children[0].column)[1]
                 reg = symbol_lookup.register
-                reg, line = self.load(reg, self.returnType)
+                reg, line = self.load(reg, self.returnType, symbol_lookup.pointer)
                 self.line += line
                 self.line += "  ret " + types[self.returnType][0] + " %" + str(reg)
 
@@ -376,23 +377,23 @@ class LLVM:
         if len(node.children[1].children) == 0:
             # We vragen de symbol lookup op van het linker deel
             symboltable = tableLookup(node)
-            symbol_lookup = symbolLookup(str(node.children[0].value), symboltable)[1]
+            symbol_lookup = symbolLookup(str(node.children[0].value), symboltable, afterTotalSetup=True, varLine=node.children[0].line, varColumn=node.children[0].column)[1]
             reg1 = symbol_lookup.register
             type1 = node.children[0].type
             # Dan controleren we nog of de rechterkant een identifier is of niet
             if node.children[1].token == "IDENTIFIER":
                 # Moeten hiervoor zijn register ook terug opvragen
                 symboltable2 = tableLookup(node.children[1])
-                symbol_lookup2 = symbolLookup(str(node.children[1].value), symboltable2)[1]
+                symbol_lookup2 = symbolLookup(str(node.children[1].value), symboltable2, afterTotalSetup=True, varLine=node.children[1].line, varColumn=node.children[1].column)[1]
                 reg2 = symbol_lookup2.register
 
-                toReg, line = self.load(reg2, symbol_lookup2.type)
+                toReg, line = self.load(reg2, symbol_lookup2.type, symbol_lookup2.pointer)
                 self.line += line
                 if symbol_lookup.type == "INT" and symbol_lookup2.type == "FLOAT":
                     toReg = self.floatToInt(toReg)
                 elif symbol_lookup.type == "FLOAT" and symbol_lookup2.type == "INT":
                     toReg = self.intToFloat(toReg)
-                self.store(toReg, reg1, type1, True, True)
+                self.store(toReg, reg1, type1, True, True, symboltable.pointer)
             else:
                 # We nemen hier gewoon de waarde zelf van het attribuut
                 val = str(node.children[1].value)
@@ -416,12 +417,12 @@ class LLVM:
             self.assignmentStack.pop()
             # We vragen het register en type op van de variable
             symboltable = tableLookup(node.children[0])
-            symbol_lookup = symbolLookup(str(node.children[0].value), symboltable)[1]
+            symbol_lookup = symbolLookup(str(node.children[0].value), symboltable, afterTotalSetup=True, varLine=node.children[0].line, varColumn=node.children[0].column)[1]
             reg = symbol_lookup.register
             type = symbol_lookup.type
 
             # En we doen store
-            self.store(elem[0], reg, type, True, True)
+            self.store(elem[0], reg, type, True, True, symbol_lookup.pointer)
             self.enteredAssignment = False
 
     def enterUnaryOperation(self, node):
@@ -432,30 +433,30 @@ class LLVM:
         #We controlerne of het een ++ of -- is
         child = node.children[0]
         tableLookup__ = tableLookup(child)
-        symbolTable = symbolLookup(str(child.value), tableLookup__)[1]
+        symbolTable = symbolLookup(str(child.value), tableLookup__, afterTotalSetup=True, varLine=node.line, varColumn=node.column)[1]
 
         if str(node.value) == "++":
             toReg = None
             if not self.enteredCondition:
-                toReg, line = self.load(symbolTable.register, symbolTable.type)
+                toReg, line = self.load(symbolTable.register, symbolTable.type, symbolTable.pointer)
                 self.line += line
             else:
                 toReg = self.conditionStack[-1][0]
             toReg, toType, line = self.operate("add", toReg, 1, symbolTable.type, "INT", True, False)
             self.line += line
-            self.store(toReg, symbolTable.register, toType, True, True)
+            self.store(toReg, symbolTable.register, toType, True, True, symbolTable.pointer)
 
 
         elif str(node.value) == "--":
             toReg = None
             if not self.enteredCondition:
-                toReg, line = self.load(symbolTable.register, symbolTable.type)
+                toReg, line = self.load(symbolTable.register, symbolTable.type, symbolTable.pointer)
                 self.line += line
             else:
                 toReg = self.conditionStack[-1][0]
             toReg, toType, line = self.operate("sub", toReg, 1, symbolTable.type, "INT", True, False)
             self.line += line
-            self.store(toReg, symbolTable.register, toType, True, True)
+            self.store(toReg, symbolTable.register, toType, True, True, symbolTable.pointer)
 
     def enterBreak(self, node):
         print("enterBreak")
@@ -523,7 +524,8 @@ class LLVM:
         funcName = str(node.children[0].children[0].value)
         symboltable = tableLookup(node.children[0].children[0])
         # Betekent dat we de naam van de functie hebben, hier moeten we niets mee doen
-        symbol_lookup = symbolLookup(funcName, symboltable)[1]
+        # TODO: ook nog lijn en kolom doorgeven
+        symbol_lookup = symbolLookup(funcName, symboltable, afterTotalSetup=True)[1]
         outputtype = symbol_lookup.outputTypes[0]
 
         self.line += "  %" + str(self.register) + " = call " + types[outputtype][0] + " @" + funcName + "("
@@ -651,9 +653,9 @@ class LLVM:
 
         symboltable = tableLookup(node)
         # Betekent dat we de naam van de functie hebben, hier moeten we niets mee doen
-        symbol_lookup = symbolLookup(str(node.value), symboltable)[1]
+        symbol_lookup = symbolLookup(str(node.value), symboltable, afterTotalSetup=True, varLine=node.line, varColumn=node.column)[1]
 
-        func = lambda symbol_lookup: (self.load(symbol_lookup.register, symbol_lookup.type), symbol_lookup.type)
+        func = lambda symbol_lookup: (self.load(symbol_lookup.register, symbol_lookup.type, symbol_lookup.pointer), symbol_lookup.type)
 
         reg = None
         type = None
@@ -695,9 +697,11 @@ class LLVM:
             # We voegen het toe aan de stack
             # We laden eerst de variable in een nieuw register
             # Moet wel eerst het huidige register opvragen
-
-            reg, type = func(symbol_lookup)
-            self.line += reg[1]
+            reg = [symbol_lookup.register]
+            if str(node.parent.value) != "&":
+            # if symbol_lookup.pointer == 0:
+                reg, type = func(symbol_lookup)
+                self.line += reg[1]
             # We geven het register mee en het type en zeggen dat een register is
             self.assignmentStack.append((reg[0], type, True))
 
@@ -901,7 +905,6 @@ class LLVM:
 
                 if logicals[str(parent.value)] == "AND":
                     # We branchen dan met de Truelabel van de node
-
                     # We voeren nog een comparison uit
 
                     self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.trueLabel, "x")
@@ -928,15 +931,11 @@ class LLVM:
                     # We gaan niet branchen, we geven gewoon de truelabel door aan de parent
                     parent.trueLabel = node.trueLabel
                     parent.fromRegBr = node.fromRegBr
-                    # if parent.falseLabel is None:
-                    #     parent.falseLabel = node.falseLabel
 
                 elif logicals[str(parent.value)] == "OR":
                     # We gaan niet branchen, we geven gewoon het falseLabel door aan de parent
                     parent.falseLabel = node.falseLabel
                     parent.fromRegBr = node.fromRegBr
-                    # if parent.trueLabel is None:
-                    #     parent.trueLabel = node.trueLabel
 
         else:
             # Nu moeten we nog 2 branches maken en de final branch
@@ -1038,17 +1037,21 @@ class LLVM:
                 0].token == "IDENTIFIER":
                 tempReg = toAllocate[key].register
                 toAllocate[key].register = self.register
-                self.allocate(self.register, type)
+                self.allocate(self.register, type, toAllocate[key].pointer)
                 self.register += 1
                 if toAllocate[key].isParam:
-                    params.append((tempReg, toAllocate[key].register, toAllocate[key].type))
+                    params.append((tempReg, toAllocate[key].register, toAllocate[key].type, toAllocate[key].pointer))
 
         # Nu gaan we de parameters hun waarde storen in de nieuwe registers
         for param in params:
-            self.store(param[0], param[1], param[2], True, True)
+            self.store(param[0], param[1], param[2], True, True, param[3])
 
-    def allocate(self, register, type):
-        self.line += "  %" + str(register) + " = alloca " + types[type][0] + ", " + types[type][1] + "\n"
+    def allocate(self, register, type, numberOfPointer=0):
+        pointerAm = ""
+        for i in range(numberOfPointer):
+            pointerAm += "*"
+
+        self.line += "  %" + str(register) + " = alloca " + types[type][0] + pointerAm + ", " + types[type][1] + "\n"
 
     def allTables(self, symbolTable):
         self.allocateVariables(symbolTable)
@@ -1058,7 +1061,7 @@ class LLVM:
 
     def makeGlobal(self, node):
         tableLookup_ = tableLookup(node)
-        symbolTable = symbolLookup(node.value, tableLookup_)[1]
+        symbolTable = symbolLookup(node.value, tableLookup_, afterTotalSetup=True, varLine=node.line, varColumn=node.column)[1]
         type = symbolTable.type
         value = str(symbolTable.value.value)
         name = str(node.value)
@@ -1066,7 +1069,14 @@ class LLVM:
         line = "@" + name + " = dso_local global " + types[type][0] + " " + value + ", " + types[type][1] + "\n"
         self.globals.append(line)
 
-    def store(self, fromRegister, toRegister, type, isReg1, isReg2):
+    def store(self, fromRegister, toRegister, type, isReg1, isReg2, numberOfPointer=0):
+
+        leftPoint = ""
+        rightPoint = "*"
+
+        for i in range(numberOfPointer):
+            leftPoint += "*"
+            rightPoint += "*"
 
         reg1 = "%" + str(fromRegister) if isReg1 else str(fromRegister)
         reg2 = "%" + str(toRegister) if isReg2 else str(toRegister)
@@ -1080,15 +1090,24 @@ class LLVM:
             if not isReg2:
                 reg2 = str(reg2) + "e+00"
 
-        self.line += "  store " + types[type][0] + " " + reg1 + ", " + types[type][0] + "* " + reg2 + "" \
+        self.line += "  store " + types[type][0] + leftPoint + " " + reg1 + ", " + types[type][0] + rightPoint + " " + reg2 + "" \
                                                                                                       ", " + \
                      types[type][1] + "\n"
 
-    def load(self, fromReg, type):
+    def load(self, fromReg, type, numberOfPointer=0):
+
+        leftPoint = "" + "*" * numberOfPointer
+        rightPoint = "*" + "*" * numberOfPointer
         line = ""
-        line += "  %" + str(self.register) + " = load " + types[type][0] + ", " + types[type][0] + "* "
-        line += "%" + str(fromReg) + ", " + types[type][1] + "\n" if str(fromReg).isdigit() else "@" + str(fromReg) + ", " + types[type][1] + "\n"
-        self.register += 1
+        for i in range(numberOfPointer+1):
+            line += "  %" + str(self.register) + " = load " + types[type][0] + leftPoint + ", " + types[type][0] + rightPoint + " "
+            line += "%" + str(fromReg) + ", " + types[type][1] + "\n" if str(fromReg).isdigit() else "@" + str(fromReg) + ", " + types[type][1] + "\n"
+            fromReg = self.register
+            self.register += 1
+            if numberOfPointer > 0:
+                leftPoint = leftPoint[0:(len(leftPoint)-1)]
+                rightPoint = rightPoint[0:(len(rightPoint)-1)]
+
         return self.register - 1, line
 
     def operate(self, operation, num1, num2, type1, type2, isReg1, isReg2):

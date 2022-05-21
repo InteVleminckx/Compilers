@@ -1,0 +1,35 @@
+| Benchmark             | CompletedLLVM | CompletedMips |
+|-----------------------|---------------|---------------|
+| binaryOperations1     | V             | X             |
+| binaryOperations2     | V             | X             |
+| breakAndContinue      | V             | X             |
+| comparisons1          | V             | X             |
+| comparisons2          | V             | X             |
+| dereferenceAssignment | X             | X             |
+| fibonacciRecursive    | V             | X             |
+| floatToIntConversion  | V             | X             |
+| for                   | V             | X             |
+| forwardDeclarations   | X             | X             |
+| if                    | V             | X             |
+| ifElse                | V             | X             |
+| intToFloatConversion  | V             | X             |
+| modulo                | V             | X             |
+| pointerArgument       | X             | X             |
+| prime                 | V             | X             |
+| printf1               | V             | X             |
+| printf2               | V             | X             |
+| printf3               | V             | X             |
+| scanf1                | V             | X             |
+| scanf2                | X             | X             |
+| scoping               | V             | X             |
+| unaryOperations       | X             | X             |
+| variables1            | V             | X             |
+| variables2            | V             | X             |
+| variables3            | X             | X             |
+| variables4            | V             | X             |
+| variables5            | V             | X             |
+| variables6            | V             | X             |
+| variables7            | X             | X             |
+| variables8            | X             | X             |
+| while                 | V             | X             |
+

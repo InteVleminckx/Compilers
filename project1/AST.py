@@ -92,15 +92,15 @@ class AST:
     def createNode(self, value, token, numberOfChilds, line, column, type="", isConst=False, isOverwritten=False,
                    pointer=None, reference=None, unaryParenth=False, printText=None, place=None):
         # Als er parents tussen zitten waarbij die children al volledig zijn opgevuld dan zijn deze niet meer nodig
-        for parent in self.parentsList:
+        for i in range(len(self.parentsList)-1,-1, -1):
             hasUnfilledChildren = False
-            for child in parent.children:
+            for child in self.parentsList[i].children:
                 if child is None:
                     hasUnfilledChildren = True
                     break
 
             if not hasUnfilledChildren:
-                self.parentsList.remove(parent)
+                self.parentsList.remove(self.parentsList[i])
 
         # We maken een node aan en pre-fillen al de children
         if self.root is None:
@@ -682,19 +682,20 @@ class ASTprinter(mathGrammerListener):
         # De return type al is aangemaakt kunnen we een node aanmaken die de naam van de func def bevat
 
         if (ctx.getChildCount() == 2 or ctx.getChildCount() == 1) and ctx.IDENTIFIER():
-            type = None
+
+            type_ = None
             if ctx.getChildCount() == 2:
                 # Als we een function definition bovenaan de stack hebben en we hebben de scope hiervan nog niet geopend
                 # Gaan we een node toevoegen als return type van de function
 
                 if ctx.getChild(0).CHAR_KEY():
-                    type = "CHAR"
+                    type_ = "CHAR"
                 elif ctx.getChild(0).INT_KEY():
-                    type = "INT"
+                    type_ = "INT"
                 elif ctx.getChild(0).FLOAT_KEY():
-                    type = "FLOAT"
+                    type_ = "FLOAT"
 
-                ast.nextType = type
+                ast.nextType = type_
 
             # Controleren eerst of de stack niet leeg is
             if len(self.stack_scopes) > 0:
@@ -706,13 +707,13 @@ class ASTprinter(mathGrammerListener):
                         if self.stack_scopes[-1].statement == "FUNC_DEF" and not self.stack_scopes[-1].turn:
                             if self.stack_scopes[-1].createdReturnType:
                                 # We kunnen het type van de identifier van de parameter opslagen
-                                self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] = type
+                                self.stack_scopes[-1].parameters[self.stack_scopes[-1].parametersCounter] = type_
 
                             else:
                                 # Maken eerst een node aan met return type
                                 ast.createNode("RETURN_TYPE", "RETURN_TYPE", 1, ctx.start.line, ctx.start.column)
                                 # Dan maken we de node aan met het juiste type
-                                ast.createNode(type, type, 0, ctx.start.line, ctx.start.column)
+                                ast.createNode(type_, type_, 0, ctx.start.line, ctx.start.column)
                                 self.stack_scopes[-1].createdReturnType = True
                                 # We returnen terug zodat de code hieronder niet wordt uitgevoerd
                     # ast.nextType = type
@@ -758,24 +759,41 @@ class ASTprinter(mathGrammerListener):
             if ctx.getChildCount() == 2:
                 ast.lastCreated.isDeclaration = True
 
-
-        # #Declaration
-        # elif ctx.getChildCount() == 2:
-        #     if ctx.getChild(1).IDENTIFIER():
-        #         ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
-
         elif ctx.getChildCount() == 3:
-            if str(ctx.getChild(1)) == "[":
-                ast.createNode("ARRAY", "ARRAY", 1, ctx.start.line, ctx.start.column)
-        elif ctx.getChildCount() > 3:
-            if str(ctx.getChild(1)) == "[":
-                childs = int((ctx.getChildCount() - 1) / 3)
-                ast.createNode("ARRAY", "ARRAY", 2, ctx.start.line, ctx.start.column)
-                self.createArray = (True, childs)
+            if type(ctx.getChild(1)) != mathGrammerParser.PointerContext and type(ctx.getChild(1)) != mathGrammerParser.ReferenceContext:
+                if str(ctx.getChild(1)) == "[":
+                    childs = int((ctx.getChildCount() - 1) / 3)
+                    ast.createNode("ARRAY", "ARRAY", 2, ctx.start.line, ctx.start.column)
+                    self.createArray = (True, childs)
 
     # Exit a parse tree produced by mathGrammerParser#direct_declarator.
     def exitDirect_declarator(self, ctx: mathGrammerParser.Direct_declaratorContext):
-        pass
+        if ctx.getChildCount() == 3:
+            if type(ctx.getChild(1)) == mathGrammerParser.PointerContext:
+
+                type_ = None
+                if ctx.getChild(0).CHAR_KEY():
+                    type_ = "CHAR"
+                elif ctx.getChild(0).INT_KEY():
+                    type_ = "INT"
+                elif ctx.getChild(0).FLOAT_KEY():
+                    type_ = "FLOAT"
+                ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
+                               ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
+                ast.lastCreated.isDeclaration = True
+
+            elif type(ctx.getChild(1)) == mathGrammerParser.ReferenceContext:
+
+                type_ = None
+                if ctx.getChild(0).CHAR_KEY():
+                    type_ = "CHAR"
+                elif ctx.getChild(0).INT_KEY():
+                    type_ = "INT"
+                elif ctx.getChild(0).FLOAT_KEY():
+                    type_ = "FLOAT"
+                ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
+                               ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
+                ast.lastCreated.isDeclaration = True
 
     # Enter a parse tree produced by mathGrammerParser#initializer_list.
     def enterInitializer_list(self, ctx: mathGrammerParser.Initializer_listContext):
@@ -1670,14 +1688,20 @@ def symbolLookup(varName, symbolTable, sameScope=True, varLine=None, varColumn=N
         if varLine is not None:
             if (symbolTable.dict[str(varName)].line < varLine) or (
                     symbolTable.dict[str(varName)].line == varLine and symbolTable.dict[
-                str(varName)].column < varColumn):
+                str(varName)].column <= varColumn):
                 return True, symbolTable.dict[str(varName)], sameScope
             else:
                 if afterTotalSetup:
                     for i, prevv in reversed(list(enumerate(symbolTable.dict[str(varName)].prevValues))):
                         if prevv[0] < varLine:
+                            if prevv[2].register == 0:
+                                prevv[2].register = symbolTable.dict[str(varName)].register
                             return True, prevv[2], sameScope
-                        elif prevv[0] == varLine and prevv[1] < varColumn:
+
+                        elif prevv[0] == varLine and prevv[1] <= varColumn:
+                            if prevv[2].register == 0:
+                                prevv[2].register = symbolTable.dict[str(varName)].register
+
                             return True, prevv[2], sameScope
 
         else:  # only for when we are looking for 'main'
