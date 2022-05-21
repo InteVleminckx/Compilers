@@ -100,9 +100,9 @@ init_declarator
         | declarator EQ_OP_S initializer
         ;
 declarator
-        : pointer direct_declarator
-        | reference direct_declarator
-        | direct_declarator
+//        : pointer direct_declarator
+//        | reference direct_declarator
+        : direct_declarator
         ;
 initializer
         : log_op1
@@ -121,7 +121,11 @@ func_call
 
 direct_declarator
         : IDENTIFIER
+        | pointer IDENTIFIER
+        | reference IDENTIFIER
         | ttype IDENTIFIER
+        | ttype pointer IDENTIFIER
+        | ttype reference IDENTIFIER
         | direct_declarator LPARENTH parameter_type_list RPARENTH
         | direct_declarator (LBRACKET_SQUARE log_op1 RBRACKET_SQUARE)+
         | direct_declarator LBRACKET_SQUARE RBRACKET_SQUARE

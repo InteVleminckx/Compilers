@@ -386,7 +386,6 @@ class LLVM:
                 symbol_lookup2 = symbolLookup(str(node.children[1].value), symboltable2)[1]
                 reg2 = symbol_lookup2.register
 
-                #TODO: moeten nog geload worden
                 toReg, line = self.load(reg2, symbol_lookup2.type)
                 self.line += line
                 if symbol_lookup.type == "INT" and symbol_lookup2.type == "FLOAT":
@@ -664,6 +663,7 @@ class LLVM:
             reg, type = func(symbol_lookup)
             self.line += reg[1]
             self.functionCallStack.append((reg[0], type, True))  # Ook hier heeft de functioncall voorang
+
         elif self.enteredReturn:
             reg, type = func(symbol_lookup)
             self.line += reg[1]
@@ -873,6 +873,12 @@ class LLVM:
 
         self.logicalStack.append(stackContent)
 
+        #TODO: add
+        if node.parent is not None:
+            #We nemen de parent zijn labels over (moete deze niet kloppen worden deze later toch overschreven)
+            node.trueLabel = node.parent.trueLabel
+            node.falseLabel = node.parent.falseLabel
+
         # We gaan ook een final register alloceren waar de uitkomst in komt
         if self.finalRegLog is None:
             self.finalRegLog = self.register
@@ -887,10 +893,8 @@ class LLVM:
         # We controleren dat de node zijn parent een log is of niet
         parent = node.parent
 
-        if parent.value == "!":
-            print("")
-
         if str(parent.value) in logicals:
+
             # Als dit het geval is gaan we kijken of we het rechter of linkerkind zijn
             if node == parent.children[0]:
                 # Als we het linkerkind zijn kijken we naar de parent zijn logical
@@ -913,7 +917,9 @@ class LLVM:
                     parent.trueLabel = node.trueLabel
 
                 elif logicals[str(parent.value)] == "NOT":
-                    print("")
+                    parent.trueLabel = node.trueLabel
+                    parent.falseLabel = node.falseLabel
+                    parent.fromRegBr = node.fromRegBr
 
             elif node == parent.children[1]:
                 # Als we het rechterkind zijn kijken we naar de parent zijn logical
@@ -922,15 +928,15 @@ class LLVM:
                     # We gaan niet branchen, we geven gewoon de truelabel door aan de parent
                     parent.trueLabel = node.trueLabel
                     parent.fromRegBr = node.fromRegBr
-                    if parent.falseLabel is None:
-                        parent.falseLabel = node.falseLabel
+                    # if parent.falseLabel is None:
+                    #     parent.falseLabel = node.falseLabel
 
                 elif logicals[str(parent.value)] == "OR":
                     # We gaan niet branchen, we geven gewoon het falseLabel door aan de parent
                     parent.falseLabel = node.falseLabel
                     parent.fromRegBr = node.fromRegBr
-                    if parent.trueLabel is None:
-                        parent.trueLabel = node.trueLabel
+                    # if parent.trueLabel is None:
+                    #     parent.trueLabel = node.trueLabel
 
         else:
             # Nu moeten we nog 2 branches maken en de final branch
@@ -1178,6 +1184,13 @@ class LLVM:
 
         # We kijken eerst of we het linkerkind of rechterkind zijn van de node
 
+        if str(parent.parent.value) in logicals:
+            if logicals[str(parent.parent.value)] == "NOT":
+                self.line += "  %" + str(self.register) + " = xor i1 %" + str(fromReg) + ', true\n'
+                parent.fromRegBr = self.register
+                fromReg = self.register
+                self.register += 1
+
 
         if node == parent.children[0]:
             # Nu kijken we of de parent een OR of AND is
@@ -1185,35 +1198,45 @@ class LLVM:
                 # Als dit een AND is gaan we met een True naar het rechterkind en met een False niet
                 # Omdat het rechterkind ook hierna komt gaan we dan ook direct de branch hiervoor maken
 
-                node.trueLabel = self.logLabelCount
-                self.logLabelCount += 1
-
                 # Voor het falseLabel moeten we nog kijken wat de parent zijn parent is
                 # Als dit een and is en de parent is zijn rechterkind pakken we het falseLabel van die and
                 if str(parent.parent.value) in logicals:
-                    if logicals[str(parent.parent.value)] == "AND":
-                        node.falseLabel = parent.parent.falseLabel
+
+                    if parent == parent.parent.children[0]:
+                        if logicals[str(parent.parent.value)] == "AND":
+                            node.falseLabel = parent.parent.falseLabel
+                        
+                        elif logicals[str(parent.parent.value)] == "NOT":
+                            node.falseLabel = self.logLabelCount
+                            self.logLabelCount += 1
+                        
+                        else:
+                            node.falseLabel = self.logLabelCount
+                            self.logLabelCount += 1
                     else:
-                        node.falseLabel = self.logLabelCount
-                        self.logLabelCount += 1
+                        node.falseLabel = parent.falseLabel
+
                 else:
                     node.falseLabel = self.logLabelCount
                     self.logLabelCount += 1
 
+                node.trueLabel = self.logLabelCount
+                self.logLabelCount += 1
+
                 #TODO: aanpassing
-                if str(parent.value) in comparisons and str(parent.parent.value) in logicals:
+                if str(node.value) in comparisons and str(parent.value) in logicals:
                 # if str(parent.value) in comparisons and str(parent.value.value) not in logicals:
+                    self.branch(fromReg, node.trueLabel, node.falseLabel, node.trueLabel, "x")
+                    self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
+                    self.register += 1
+
+                elif (str(node.token) == "IDENTIFIER" or str(node.token) in types) :
                     self.branch(fromReg, node.trueLabel, node.falseLabel, node.trueLabel, "x")
                     self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
                     self.register += 1
 
                 else:
                     self.isComparison = True
-
-                if (str(node.token) == "IDENTIFIER" or str(node.token) in types) :
-                    self.branch(fromReg, node.trueLabel, node.falseLabel, node.trueLabel, "x")
-                    self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
-                    self.register += 1
 
                 # We stellen de parent zijn falseLabel ook gelijk aan dit van deze node
                 parent.falseLabel = node.falseLabel
@@ -1222,12 +1245,23 @@ class LLVM:
                 # Als dit een OR is gaan we met een False naar het rechterkind en met een True niet
                 # Omdat het rechterkind ook hierna komt gaan we dan ook direct de branch hiervoor maken
 
+                # Bepalen van het true of false label
                 if str(parent.parent.value) in logicals:
-                    if logicals[str(parent.parent.value)] == "OR":
-                        node.trueLabel = parent.parent.trueLabel
+
+                    if parent == parent.parent.children[0]:
+                        if logicals[str(parent.parent.value)] == "OR":
+                            node.trueLabel = parent.parent.trueLabel
+
+                        elif logicals[str(parent.parent.value)] == "NOT":
+                            node.trueLabel = self.logLabelCount
+                            self.logLabelCount += 1
+
+                        else:
+                            node.trueLabel = self.logLabelCount
+                            self.logLabelCount += 1
+
                     else:
-                        node.trueLabel = self.logLabelCount
-                        self.logLabelCount += 1
+                        node.trueLabel = parent.trueLabel
                 else:
                     node.trueLabel = self.logLabelCount
                     self.logLabelCount += 1
@@ -1236,8 +1270,13 @@ class LLVM:
                 self.logLabelCount += 1
 
                 #TODO: aanpassing
-                if str(parent.value) in comparisons and str(parent.parent.value) in logicals:
+                if str(node.value) in comparisons and str(parent.value) in logicals:
                 # if str(parent.value) in comparisons and str(parent.value.value) not in logicals:
+                    self.branch(fromReg, node.trueLabel, node.falseLabel, node.falseLabel, "x")
+                    self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
+                    self.register += 1
+
+                elif (str(node.token) == "IDENTIFIER" or str(node.token) in types) :
                     self.branch(fromReg, node.trueLabel, node.falseLabel, node.falseLabel, "x")
                     self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
                     self.register += 1
@@ -1245,14 +1284,22 @@ class LLVM:
                 else:
                     self.isComparison = True
 
-                if (str(node.token) == "IDENTIFIER" or str(node.token) in types):
-                    self.branch(fromReg, node.trueLabel, node.falseLabel, node.falseLabel, "x")
-                    self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
-                    self.register += 1
-
-
                 # We stellen de parent zijn trueLabel gelijk aan dit van deze node
                 parent.trueLabel = node.trueLabel
+
+            elif logicals[str(parent.value)] == "NOT":
+                self.line += "  %" + str(self.register) + " = xor i1 %" + str(fromReg) + ', true\n'
+                parent.fromRegBr = self.register
+                self.register += 1
+
+                if str(parent.parent.value) not in logicals:
+                    node.trueLabel = self.logLabelCount
+                    self.logLabelCount += 1
+                    node.falseLabel = self.logLabelCount
+                    self.logLabelCount += 1
+                    parent.trueLabel = node.trueLabel
+                    parent.falseLabel = node.falseLabel
+
 
         elif node == parent.children[1]:
             if logicals[str(parent.value)] == "AND":
@@ -1262,7 +1309,7 @@ class LLVM:
                 # Voor het trueLabel moeten we nog kijken wat de parent zijn parent is
                 # Als dit een or is en de parent is zijn rechterkind pakken we het trueLabel van die or
                 if str(parent.parent.value) in logicals:
-                    if logicals[str(parent.parent.value)] == "OR":
+                    if logicals[str(parent.parent.value)] == "OR" and parent == parent.parent.children[1]:
                         node.trueLabel = parent.parent.trueLabel
                     else:
                         node.trueLabel = self.logLabelCount
@@ -1271,7 +1318,7 @@ class LLVM:
                     node.trueLabel = self.logLabelCount
                     self.logLabelCount += 1
 
-                node.falseLabel = parent.children[0].falseLabel
+                node.falseLabel = parent.falseLabel
                 # We stellen nu ook de parent zijn trueLabel in
                 parent.trueLabel = node.trueLabel
 
@@ -1283,12 +1330,14 @@ class LLVM:
                 # Als dit een OR is gaan we de true van deze node gelijk stellen aan die van het linkerkind
                 # en gaan we de False als nieuwLabel maken
 
-                node.trueLabel = parent.children[0].trueLabel
+                node.trueLabel = parent.trueLabel
                 # Voor het falseLabel moeten we nog kijken wat de parent zijn parent is
                 # Als dit een and is en de parent is zijn rechterkind pakken we het falseLabel van die and
                 if str(parent.parent.value) in logicals:
-                    if logicals[str(parent.parent.value)] == "AND":
+                    #Als de parent zijn parent een AND is en de parent is zijn rechterkind nemen we deze label over
+                    if logicals[str(parent.parent.value)] == "AND" and parent == parent.parent.children[1]:
                         node.falseLabel = parent.parent.falseLabel
+                    #Anders maken we een nieuw label aan omdat onze parent een or is
                     else:
                         node.falseLabel = self.logLabelCount
                         self.logLabelCount += 1
