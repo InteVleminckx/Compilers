@@ -83,6 +83,11 @@ declaration
         | decl_spec init_decl_list SEMICOLON
         ;
 
+init_declarator
+        : declarator
+        | declarator EQ_OP_S initializer
+        ;
+
 decl_spec
         :
         | ttype
@@ -95,10 +100,6 @@ init_decl_list
         | init_decl_list COMMA init_declarator
         ;
 
-init_declarator
-        : declarator
-        | declarator EQ_OP_S initializer
-        ;
 declarator
 //        : pointer direct_declarator
 //        | reference direct_declarator
@@ -225,7 +226,7 @@ var
         | FLOAT
 		| LPARENTH log_op1 RPARENTH
 		| IDENTIFIER
-		| IDENTIFIER LBRACKET_SQUARE log_op1 RBRACKET_SQUARE
+		| IDENTIFIER (LBRACKET_SQUARE log_op1 RBRACKET_SQUARE)+
 		| func_call
 		;
 

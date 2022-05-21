@@ -152,6 +152,15 @@ class mathGrammerListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by mathGrammerParser#init_declarator.
+    def enterInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
+        pass
+
+    # Exit a parse tree produced by mathGrammerParser#init_declarator.
+    def exitInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
+        pass
+
+
     # Enter a parse tree produced by mathGrammerParser#decl_spec.
     def enterDecl_spec(self, ctx:mathGrammerParser.Decl_specContext):
         pass
@@ -167,15 +176,6 @@ class mathGrammerListener(ParseTreeListener):
 
     # Exit a parse tree produced by mathGrammerParser#init_decl_list.
     def exitInit_decl_list(self, ctx:mathGrammerParser.Init_decl_listContext):
-        pass
-
-
-    # Enter a parse tree produced by mathGrammerParser#init_declarator.
-    def enterInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
-        pass
-
-    # Exit a parse tree produced by mathGrammerParser#init_declarator.
-    def exitInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
         pass
 
 

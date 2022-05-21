@@ -89,6 +89,11 @@ class mathGrammerVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by mathGrammerParser#init_declarator.
+    def visitInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by mathGrammerParser#decl_spec.
     def visitDecl_spec(self, ctx:mathGrammerParser.Decl_specContext):
         return self.visitChildren(ctx)
@@ -96,11 +101,6 @@ class mathGrammerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by mathGrammerParser#init_decl_list.
     def visitInit_decl_list(self, ctx:mathGrammerParser.Init_decl_listContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by mathGrammerParser#init_declarator.
-    def visitInit_declarator(self, ctx:mathGrammerParser.Init_declaratorContext):
         return self.visitChildren(ctx)
 
 

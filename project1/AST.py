@@ -696,6 +696,7 @@ class ASTprinter(mathGrammerListener):
                     type_ = "FLOAT"
 
                 ast.nextType = type_
+                ast.nextOverwrite = False
 
             # Controleren eerst of de stack niet leeg is
             if len(self.stack_scopes) > 0:
@@ -745,9 +746,9 @@ class ASTprinter(mathGrammerListener):
             ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
                            ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
 
-            if self.createArray[0]:
-                ast.createNode("INDICES", "INDICES", self.createArray[1], ctx.start.line, ctx.start.column)
-                self.createArray = (False, 0)
+            # if self.createArray[0]:
+            #     ast.createNode("INDICES", "INDICES", self.createArray[1], ctx.start.line, ctx.start.column)
+            #     self.createArray = (False, 0)
 
             if ast.nextConst:
                 ast.nextConst = False
@@ -758,6 +759,10 @@ class ASTprinter(mathGrammerListener):
 
             if ctx.getChildCount() == 2:
                 ast.lastCreated.isDeclaration = True
+
+            if self.createArray[0]:
+                ast.createNode("INDICES", "INDICES", self.createArray[1], ctx.start.line, ctx.start.column)
+                self.createArray = (False, 0)
 
         elif ctx.getChildCount() == 3:
             if type(ctx.getChild(1)) != mathGrammerParser.PointerContext and type(ctx.getChild(1)) != mathGrammerParser.ReferenceContext:
@@ -838,6 +843,7 @@ class ASTprinter(mathGrammerListener):
         #             #We returnen terug zodat de code hieronder niet wordt uitgevoerd
 
         ast.nextType = type
+        ast.nextOverwrite = False
 
     # Exit a parse tree produced by mathGrammerParser#ttype.
     def exitTtype(self, ctx: mathGrammerParser.TtypeContext):
@@ -1662,7 +1668,7 @@ def getValuesChildren(child):
 # ----------------------------------------------------------------------------------------------------------------------#
 
 #########################################################################################################################
-# Looks for the symbol table that is connected to the current node, if the node hasn't a symbol table we look in        #
+# Looks for the symbol table that is connected to the current node, if the node hasn't got a symbol table we look in        #
 # the parent of this node. And so go on until we find the symbol table that belongs to the scope of this node.          #
 #########################################################################################################################
 def tableLookup(node):
@@ -1693,8 +1699,7 @@ def symbolLookup(varName, symbolTable, sameScope=True, varLine=None, varColumn=N
     if str(varName) in symbolTable.dict:
         if varLine is not None:
             if (symbolTable.dict[str(varName)].line < varLine) or (
-                    symbolTable.dict[str(varName)].line == varLine and symbolTable.dict[
-                str(varName)].column <= varColumn):
+                    symbolTable.dict[str(varName)].line == varLine and symbolTable.dict[str(varName)].column <= varColumn):
                 return True, symbolTable.dict[str(varName)], sameScope
             else:
                 if afterTotalSetup:
@@ -1724,8 +1729,6 @@ def setupSymbolTables(tree, node=None):
         return None
 
     elif node is None:  # Hebben we de root
-
-        # symbolTable = SymbolTable()
 
         if len(tree.root.children) > 0:
 
@@ -1871,7 +1874,7 @@ def setupSymbolTables(tree, node=None):
             tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
 
         elif node.token == "IDENTIFIER" and not node.parent.token == "=" and node.isDeclaration:
-            if not node.type == "":
+            if not node.type == "": #not a function call identifier
                 value = node
                 type = node.type
                 isConst = node.isConst
@@ -1886,13 +1889,13 @@ def setupSymbolTables(tree, node=None):
             else:
                 semanticAnalysis(node)
 
-        elif node.token == "IDENTIFIER" and node.type == "":
+        elif node.token == "IDENTIFIER" and node.type == "": #function call identifier
             semanticAnalysis(node, f=True)
 
         elif node.token == "UN_OP":
             if str(node.value) == "*":
                 if len(node.children) < 2:
-                    if not node.token == "IDENTIFIER":
+                    if not node.token == "IDENTIFIER": #TODO node.children[1]
                         print("[ Warning ] line " + str(node.line) + ", position " + str(
                             node.column) + " : " + "Dereference type mismatch.")
                     else:
