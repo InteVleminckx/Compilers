@@ -2,7 +2,7 @@ class Value:
     def __init__(self, type=None, value=None, isConst=False,
                  isOverwritten=False, inputTypes=None, outputTypes=None,
                  functionParameters = None, pointer=None, reference=None,
-                 line=None, column=None):
+                 line=None, column=None, arrayData=False):
         self.type = type
         self.value = value
         self.isConst = isConst # bool
@@ -23,6 +23,7 @@ class Value:
 
         self.prevValues = list() # list of tuples (line, column, value) associated with the variable
 
+        self.arrayData = arrayData # [dimensions] if True (array), False if not array
 
 class SymbolTable:
     def __init__(self):

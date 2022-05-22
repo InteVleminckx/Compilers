@@ -1802,62 +1802,68 @@ def setupSymbolTables(tree, node=None):
         ## geval 2: we openen geen nieuw block ##
 
         if node.token == "=":  # variabele toevoegen aan symbol table
-            # if node.children[0].isDeclaration:
-            if not node.children[0].isDeclaration:
+
+            if node.children[0].token == "ARRAY":
+
+                semanticAnalysis(node.children[0].children[0])
+
+            else:
+
+                if not node.children[0].isDeclaration:
+                    table = tableLookup(node.children[0])
+                    symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
+                                                 varColumn=node.children[0].column)
+                    if symbol_lookup[0]:
+                        type = symbol_lookup[1].type
+                        node.children[0].type = type
+                        # symbol_lookup[1].isOverwritten = True
+
+                value = node.children[1]
+                type = node.children[0].type
+                isConst = node.children[0].isConst
+                tuple = []  # prevValues tuple
+
+                isOverwritten = False
+
                 table = tableLookup(node.children[0])
                 symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
                                              varColumn=node.children[0].column)
+
+                # if str(node.children[0].value) in tree.symbolTableStack[-1].dict:  # als de variabele ervoor al gedeclareerd was.
                 if symbol_lookup[0]:
-                    type = symbol_lookup[1].type
-                    node.children[0].type = type
-                    # symbol_lookup[1].isOverwritten = True
 
-            value = node.children[1]
-            type = node.children[0].type
-            isConst = node.children[0].isConst
-            tuple = []  # prevValues tuple
+                    isOverwritten = True  # de variabele krijgt de status "overwritten"
 
-            isOverwritten = False
+                    table = tableLookup(node.children[0])
+                    symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
+                                                 varColumn=node.children[0].column)
+                    if not node.children[
+                        0].isDeclaration:  # als het een declaration is, maar in een nieuwe (andere) scope, moeten onderste twee lijnen niet gebeuren
+                        type = symbol_lookup[1].type
+                        isConst = symbol_lookup[1].isConst
 
-            table = tableLookup(node.children[0])
-            symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
-                                         varColumn=node.children[0].column)
+                    tuple = [symbol_lookup[1].line, symbol_lookup[1].column, symbol_lookup[1]]
 
-            # if str(node.children[0].value) in tree.symbolTableStack[-1].dict:  # als de variabele ervoor al gedeclareerd was.
-            if symbol_lookup[0]:
+                semanticAnalysis(node, node.children[0], node.children[1])
 
-                isOverwritten = True  # de variabele krijgt de status "overwritten"
+                tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.children[0].pointer,
+                                   node.children[0].reference, line=node.children[0].line, column=node.children[0].column)
+                if isOverwritten:
+                    prevValues = copy(symbol_lookup[1].prevValues)
 
-                table = tableLookup(node.children[0])
-                symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
-                                             varColumn=node.children[0].column)
-                if not node.children[
-                    0].isDeclaration:  # als het een declaration is, maar in een nieuwe (andere) scope, moeten onderste twee lijnen niet gebeuren
-                    type = symbol_lookup[1].type
-                    isConst = symbol_lookup[1].isConst
+                    # deepcopy doet echt raar, een "cannot pickle error"
+                    # prevValues = []
+                    # for item in range(len(symbol_lookup[1].prevValues)):
+                    #     prevValuesTuple = []
+                    #     for tupleItem in range(len(symbol_lookup[1].prevValues[item])):
+                    #         prevValuesTuple.append(copy(symbol_lookup[1].prevValues[item][tupleItem]))
+                    #     # prevValues.append(deepcopy(symbol_lookup[1].prevValues[item]))
+                    #     prevValues.append(prevValuesTuple)
 
-                tuple = [symbol_lookup[1].line, symbol_lookup[1].column, symbol_lookup[1]]
+                    prevValues.append(tuple)
+                    tableValue.prevValues = prevValues
 
-            semanticAnalysis(node, node.children[0], node.children[1])
-
-            tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.children[0].pointer,
-                               node.children[0].reference, line=node.children[0].line, column=node.children[0].column)
-            if isOverwritten:
-                prevValues = copy(symbol_lookup[1].prevValues)
-
-                # deepcopy doet echt raar, een "cannot pickle error"
-                # prevValues = []
-                # for item in range(len(symbol_lookup[1].prevValues)):
-                #     prevValuesTuple = []
-                #     for tupleItem in range(len(symbol_lookup[1].prevValues[item])):
-                #         prevValuesTuple.append(copy(symbol_lookup[1].prevValues[item][tupleItem]))
-                #     # prevValues.append(deepcopy(symbol_lookup[1].prevValues[item]))
-                #     prevValues.append(prevValuesTuple)
-
-                prevValues.append(tuple)
-                tableValue.prevValues = prevValues
-
-            tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
+                tree.symbolTableStack[-1].addVar(str(node.children[0].value), tableValue)
 
         elif node.parent.token == "PARAMETERS" and not (
                 node.token == "=" or node.token == "NONE") and not node.parent.parent.token == "FUNC_CALL":  # parametervariabelen van een functie toevoegen aan symbol table
@@ -1874,20 +1880,37 @@ def setupSymbolTables(tree, node=None):
             tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
 
         elif node.token == "IDENTIFIER" and not node.parent.token == "=" and node.isDeclaration:
-            if not node.type == "": #not a function call identifier
+            if node.parent.token == "ARRAY":
+
                 value = node
                 type = node.type
                 isConst = node.isConst
                 isOverwritten = False
+                arraydata = []
+                for i in range(len(node.parent.children[1].children)):
+                    arraydata.append(node.parent.children[1].children[i].value)
 
-                semanticAnalysis(node, node,
-                                 node)  # child1 is the node itself, we need to check that reference (if it is one)
+                semanticAnalysis(node, node, node)
 
                 tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference,
-                                   line=node.line, column=node.column)
+                                   line=node.line, column=node.column, arrayData=arraydata)
                 tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
+
             else:
-                semanticAnalysis(node)
+                if not node.type == "": #not a function call identifier
+                    value = node
+                    type = node.type
+                    isConst = node.isConst
+                    isOverwritten = False
+
+                    semanticAnalysis(node, node,
+                                     node)  # child1 is the node itself, we need to check that reference (if it is one)
+
+                    tableValue = Value(type, value, isConst, isOverwritten, None, None, None, node.pointer, node.reference,
+                                       line=node.line, column=node.column)
+                    tree.symbolTableStack[-1].addVar(str(node.value), tableValue)
+                else:
+                    semanticAnalysis(node)
 
         elif node.token == "IDENTIFIER" and node.type == "": #function call identifier
             semanticAnalysis(node, f=True)
