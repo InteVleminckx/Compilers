@@ -162,6 +162,12 @@ class CodeGeneration:
             else:
                 self.llvm.exitCondition(node)
 
+        elif node.token == "ARRAY":
+            if enter:
+                self.llvm.enterArray(node)
+            else:
+                self.llvm.exitArray(node)
+
 
 def getSymbolFromTable(node):
     searchNode = node
