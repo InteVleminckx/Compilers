@@ -124,49 +124,65 @@ class CodeGeneration:
         elif node.token == "BIN_OP1" or node.token == "BIN_OP2":
             if enter:
                 self.llvm.enterBinOperation(node)
+                self.mips.enterBinOperation(node)
             else:
                 self.llvm.exitBinOperation(node)
+                self.mips.exitBinOperation(node)
         elif node.token == "IDENTIFIER":
             if enter:
                 self.llvm.enterIdentifier(node)
+                self.mips.enterIdentifier(node)
             else:
                 self.llvm.exitIdentifier(node)
+                self.mips.exitIdentifier(node)
 
         elif node.token == "INT" or node.token == "FLOAT" or node.token == "CHAR":
             if enter:
                 self.llvm.enterType(node)
+                self.mips.enterType(node)
             else:
                 self.llvm.exitType(node)
+                self.mips.exitType(node)
 
         elif node.token == "STRING" or node.token == "PRINTTEXT":
             if enter:
                 self.llvm.enterString(node)
+                self.mips.enterString(node)
             else:
                 self.llvm.exitString(node)
+                self.mips.exitString(node)
 
         elif node.token == "COMP_OP" or node.token == "EQ_OP":
             if enter:
                 self.llvm.enterComparison(node)
+                self.mips.enterComparison(node)
             else:
                 self.llvm.exitComparison(node)
+                self.mips.exitComparison(node)
 
         elif node.token == "LOG_OR" or node.token == "LOG_AND" or node.token == "LOG_NOT":
             if enter:
                 self.llvm.enterLogical(node)
+                self.mips.enterLogical(node)
             else:
                 self.llvm.exitLogical(node)
+                self.mips.exitLogical(node)
 
         elif node.token == "CONDITION":
             if enter:
                 self.llvm.enterCondition(node)
+                self.mips.enterCondition(node)
             else:
                 self.llvm.exitCondition(node)
+                self.mips.exitCondition(node)
 
         elif node.token == "ARRAY":
             if enter:
                 self.llvm.enterArray(node)
+                self.mips.enterArray(node)
             else:
                 self.llvm.exitArray(node)
+                self.mips.exitArray(node)
 
 
 def getSymbolFromTable(node):
