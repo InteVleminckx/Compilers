@@ -447,7 +447,7 @@ class ASTprinter(mathGrammerListener):
         # Geeft aan er een for loop is of niet, anders doet het zijn normale gang
         isFor = False
 
-        # We controleren if we net een for statement gepushed hebben
+        # We controleren of we net een for statement gepushed hebben
         # Controleren dus eerst of de stack niet leeg is
         if len(self.stack_scopes) > 0:
             curStatement = self.stack_scopes[-1]
@@ -489,6 +489,22 @@ class ASTprinter(mathGrammerListener):
                 ast.nextOverwrite = False
                 ast.pointerAmount = 0
                 ast.referenceAmount = 0
+
+            elif ctx.getChildCount() > 3:
+                # if ctx.getChild(0).IDENTIFIER():
+
+                if str(ctx.getChild(1)) == "[":
+                    childs = int((ctx.getChildCount() - 1) / 3)
+                    ast.createNode("ARRAY", "ARRAY", 2, ctx.start.line, ctx.start.column)
+                    self.createArray = (True, childs)
+
+                ast.createNode(str(ctx.getChild(0)), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
+                               ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
+
+                if self.createArray[0]:
+                    ast.createNode("INDICES", "INDICES", self.createArray[1], ctx.start.line, ctx.start.column)
+                    self.createArray = (False, 0)
+
 
     # Exit a parse tree produced by mathGrammerParser#var.
     def exitVar(self, ctx: mathGrammerParser.VarContext):
