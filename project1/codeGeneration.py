@@ -184,6 +184,14 @@ class CodeGeneration:
                 self.llvm.exitArray(node)
                 self.mips.exitArray(node)
 
+        elif node.token == "INDICES":
+            if enter:
+                self.llvm.enterIndices(node)
+                # self.mips.enterIndices(node)
+            else:
+                self.llvm.exitIndices(node)
+                # self.mips.exitIndices(node)
+
 
 def getSymbolFromTable(node):
     searchNode = node

@@ -20,16 +20,16 @@
 | printf2               | V             | X             |
 | printf3               | V             | X             |
 | scanf1                | V             | X             |
-| scanf2                | X             | X             |
+| scanf2                | V             | X             |
 | scoping               | V             | X             |
 | unaryOperations       | X             | X             |
 | variables1            | V             | X             |
 | variables2            | V             | X             |
-| variables3            | X             | X             |
+| variables3            | V             | X             |
 | variables4            | V             | X             |
 | variables5            | V             | X             |
 | variables6            | V             | X             |
-| variables7            | X             | X             |
-| variables8            | X             | X             |
+| variables7            | V             | X             |
+| variables8            | V             | X             |
 | while                 | V             | X             |
 
