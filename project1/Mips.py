@@ -1,9 +1,17 @@
 from AST import *
 
-types = {"INT": ("i32", "align 4"), "FLOAT": ("float", "align 4"), "CHAR": ("i8", "align 1"), None: ("void", "")}
+# types = {"INT": ("i32", "align 4"), "FLOAT": ("float", "align 4"), "CHAR": ("i8", "align 1"), None: ("void", "")}
 calculations_ = {"+": "add", "-": "sub", "*": "mul", "/": "div", "%": "srem"}
 logicals = {"||": "OR", "&&": "AND", "!": "NOT"}
 
+global_types = {"INT": "word", "FLOAT": "float", "CHAR": "asciiz", None: ("void", "")}
+syscalls = {"print_int": [1, "$a0", None],
+            "print_float": [2, "$f12", None],
+            "print_string": [4, "$a0", None],
+            "read_int": [5, None, "$v0"],
+            "read_float": [6, None, "$f0"],
+            "read_string": [8, ("$a0", "$a1"), None],
+            "exit": [10, None, None],} # list(Code, Args, Result)
 data_comp_instr = {"==": "seq", "!=": "sne", ">=": "sge", ">": "sgt", "<=": "sle", "<": "slt"}
 branch_intr_bin = {"uncond": "b", "==": "beq", "<=": "ble", "<": "blt", ">=": "bge", ">": "bgt", "!=": "bne"} # branch instructions for binary check (2 registers)
 branch_intr_un = {"==": "beqz", "<=": "blez", "<": "bltz", ">=": "bgez", ">": "bgtz", "!=": "bnez"} # branch instructions for unary check (1 register), comparison with 0
@@ -56,17 +64,12 @@ class Mips:
         # We enteren een nieuwe functie dus kunnen de registercount terug op 0 zetten
         self.register = 0
 
-        # We beginnen eerst met de functie naam, return type ne parameters op te vragen
+        # We beginnen eerst met de functie naam, return type en parameters op te vragen
         self.returnType = node.parent.children[0].children[0].token
         functionName = str(node.parent.children[1].children[0].value)
         parameters = [(str(child.value), child.type) for child in node.parent.children[2].children]
 
-        # We voegen het begin al toe aan de lijn van de functie
-        self.line += "define dso_local "
-
-        if self.returnType == "CHAR":
-            self.line += "signext "
-        self.line += types[self.returnType][0] + " @" + functionName + "("
+        self.line += functionName + ":"
 
         symboltable = tableLookup(node)
 
@@ -1150,8 +1153,9 @@ class Mips:
         type = symbolTable.type
         value = str(symbolTable.value.value)
         name = str(node.value)
-        symbolTable.register = name
-        line = "@" + name + " = dso_local global " + types[type][0] + " " + value + ", " + types[type][1] + "\n"
+        # symbolTable.register = name
+        # line = "@" + name + " = dso_local global " + types[type][0] + " " + value + ", " + types[type][1] + "\n"
+        line = name + ":" + "\t" + global_types[type] + " " + value + "\n"
         self.globals.append(line)
 
     def store(self, fromRegister, toRegister, type, isReg1, isReg2, numberOfPointer=0):
