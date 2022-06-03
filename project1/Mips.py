@@ -1152,10 +1152,12 @@ class Mips:
         symbolLookup(node.value, tableLookup_, afterTotalSetup=True, varLine=node.line, varColumn=node.column)[1]
         type = symbolTable.type
         value = str(symbolTable.value.value)
+        if type == 'CHAR':
+            value = value.replace("'", '"')
         name = str(node.value)
         # symbolTable.register = name
         # line = "@" + name + " = dso_local global " + types[type][0] + " " + value + ", " + types[type][1] + "\n"
-        line = name + ":" + "\t" + global_types[type] + " " + value + "\n"
+        line = name + ":" + "\t" + "." + global_types[type] + " " + value + "\n"
         self.globals.append(line)
 
     def store(self, fromRegister, toRegister, type, isReg1, isReg2, numberOfPointer=0):
@@ -1521,6 +1523,7 @@ class Mips:
         file = open("testfiles/generated/" + filename, "w")
 
         file.write(".data")
+        file.write("\n")
 
         for global_ in self.globals:
             file.write(global_)
