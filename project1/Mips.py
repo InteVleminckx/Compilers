@@ -858,7 +858,7 @@ class Mips:
         print("exitComparison")
 
         func = lambda node1, stack, condition: (
-            self.compare(comparisons[str(node1.value)], stack[-2][0], stack[-1][0], stack[-2][1], stack[-1][1],
+            self.compare(data_comp_instr[str(node1.value)], stack[-2][0], stack[-1][0], stack[-2][1], stack[-1][1],
                          stack[-2][2], stack[-1][2], condition))
 
         toReg = None
@@ -1344,7 +1344,7 @@ class Mips:
                 self.logLabelCount += 1
 
                 # TODO: aanpassing
-                if str(node.value) in comparisons and str(parent.value) in logicals:
+                if str(node.value) in data_comp_instr and str(parent.value) in logicals:
                     # if str(parent.value) in comparisons and str(parent.value.value) not in logicals:
                     self.branch(fromReg, node.trueLabel, node.falseLabel, node.trueLabel, "x")
                     self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
