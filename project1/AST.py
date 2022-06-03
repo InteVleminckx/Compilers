@@ -616,6 +616,35 @@ class ASTprinter(mathGrammerListener):
             # We pushen dan de function definition op de stack
             self.stack_scopes.append(Statement("FUNC_DEF"))
 
+        elif ctx.getChildCount() >= 5:
+        #We hebben een forward declaration
+        #We maken gewoon een Dec node met 3 kinderen voor type, name en parameters
+            ast.createNode("FORDECL", "FORDECL", 3, ctx.start.line, ctx.start.column)
+
+            #We gaan ook al direct de returntype node toevoegen en name toevoegen
+            ast.createNode("RETURN_TYPE", "RETURN_TYPE", 1, ctx.getChild(0).start.line, ctx.getChild(0).start.column)
+
+            type = None
+            if ctx.getChild(0).CHAR_KEY():
+                type = "CHAR"
+            elif ctx.getChild(0).INT_KEY():
+                type = "INT"
+            elif ctx.getChild(0).FLOAT_KEY():
+                type = "FLOAT"
+
+            ast.createNode(type, type, 0, ctx.getChild(0).start.line, ctx.getChild(0).start.column)
+
+            #Nu voegen we de name toe
+            ast.createNode("NAME", "NAME", 1, ctx.start.line, ctx.start.column)
+            ast.createNode(str(ctx.IDENTIFIER()), "IDENTIFIER", 0, ctx.start.line, ctx.start.column)
+
+            #De parameters worden bij de parameters list toegevoegd moesten er parameters zijn
+            #anders moeten we dit nog toevoegen
+            if ctx.getChildCount() == 5:
+                ast.createNode("PARAMETERS", "PARAMETERS", 1, ctx.start.line, ctx.start.column)
+                ast.createNode("NONE", "NONE", 0, ctx.start.line, ctx.start.column)
+
+
     # Exit a parse tree produced by mathGrammerParser#function_def.
     def exitFunction_def(self, ctx: mathGrammerParser.Function_defContext):
         pass

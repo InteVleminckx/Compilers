@@ -8,6 +8,7 @@ class CodeGeneration:
     def __init__(self, tree):
         self.tree = tree
         self.llvm = LLVM()
+        self.enterdForwardDecl = False
         # self.mips = Mips()
 
     def generateCode(self, inputfile):
@@ -34,6 +35,16 @@ class CodeGeneration:
                 return
 
         print(node.token)
+
+        if node.token == "FORDECL":
+            if enter:
+                self.enterdForwardDecl = True
+            else:
+                self.enterdForwardDecl = False
+
+        #We kunnen alles skippen want dit is niet nodig op te genereren
+        if self.enterdForwardDecl:
+            return
 
         if node.token == "FUNC_DEF":
             if enter:
