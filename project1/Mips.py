@@ -2,11 +2,11 @@ from AST import *
 
 types = {"INT": ("i32", "align 4"), "FLOAT": ("float", "align 4"), "CHAR": ("i8", "align 1"), None: ("void", "")}
 calculations_ = {"+": "add", "-": "sub", "*": "mul", "/": "div", "%": "srem"}
-comparisons = {"==": "eq", "!=": "ne", ">": "sgt", "<": "slt", ">=": "sge", "<=": "sle"}
 logicals = {"||": "OR", "&&": "AND", "!": "NOT"}
 
-data_op = {}
-
+data_comp_instr = {"==": "seq", "!=": "sne", ">=": "sge", ">": "sgt", "<=": "sle", "<": "slt"}
+branch_intr_bin = {"uncond": "b", "==": "beq", "<=": "ble", "<": "blt", ">=": "bge", ">": "bgt", "!=": "bne"} # branch instructions for binary check (2 registers)
+branch_intr_un = {"==": "beqz", "<=": "blez", "<": "bltz", ">=": "bgez", ">": "bgtz", "!=": "bnez"} # branch instructions for unary check (1 register), comparison with 0
 
 class Mips:
 
@@ -1513,7 +1513,7 @@ class Mips:
         pos = afterSlash.start()
         inputfile = inputfile[pos:]
         filename = str(inputfile[:len(inputfile) - 2]) + ".asm"
-        # self.file = open("files/GeneratedLLVM/" + filename, "w")
+        # self.file = open("files/GeneratedMIPS/" + filename, "w")
         file = open("testfiles/generated/" + filename, "w")
 
         file.write(".data")
