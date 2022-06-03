@@ -5,6 +5,8 @@ calculations_ = {"+": "add", "-": "sub", "*": "mul", "/": "div", "%": "srem"}
 comparisons = {"==": "eq", "!=": "ne", ">": "sgt", "<": "slt", ">=": "sge", "<=": "sle"}
 logicals = {"||": "OR", "&&": "AND", "!": "NOT"}
 
+data_op = {}
+
 
 class Mips:
 
@@ -1510,9 +1512,11 @@ class Mips:
         afterSlash = re.search("[^/]+$", inputfile)
         pos = afterSlash.start()
         inputfile = inputfile[pos:]
-        filename = str(inputfile[:len(inputfile) - 2]) + ".ll"
+        filename = str(inputfile[:len(inputfile) - 2]) + ".asm"
         # self.file = open("files/GeneratedLLVM/" + filename, "w")
         file = open("testfiles/generated/" + filename, "w")
+
+        file.write(".data")
 
         for global_ in self.globals:
             file.write(global_)
@@ -1525,6 +1529,8 @@ class Mips:
                 line = str_ + " = private unnamed_addr constant " + inbound + " c\"" + str(string[2]) + "\", align 1\n"
                 file.write(line)
 
+        file.write("\n")
+        file.write(".text")
         file.write("\n")
         file.write(self.line)
 

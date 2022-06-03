@@ -18,6 +18,7 @@ class CodeGeneration:
         self.convert(self.tree.root)
 
         self.llvm.writeToFile(inputfile)
+        self.mips.writeToFile(inputfile)
 
     def convert(self, node):
 
