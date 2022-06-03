@@ -98,7 +98,7 @@ class Mips:
                 self.line += ", "
 
         # sluiten de functie definitie
-        self.line += ") {\n"
+        self.line += "\n"
 
         # We verhogen de registercount nog maals 1 keer
         self.register += 1
@@ -127,7 +127,7 @@ class Mips:
             else:
                 self.line += "  ret void"
 
-            self.line += "\n}\n\n"
+            self.line += "\n\n"
 
     def enterReturn(self, node):
         print("enterReturn")
@@ -1156,7 +1156,6 @@ class Mips:
             value = value.replace("'", '"')
         name = str(node.value)
         # symbolTable.register = name
-        # line = "@" + name + " = dso_local global " + types[type][0] + " " + value + ", " + types[type][1] + "\n"
         line = name + ":" + "\t" + "." + global_types[type] + " " + value + "\n"
         self.globals.append(line)
 
@@ -1531,9 +1530,11 @@ class Mips:
         if self.printf:
             self.strings.sort(key=lambda x: x[1])
             for string in self.strings:
-                inbound = "[" + str(string[0]) + " x i8]"
-                str_ = "@.str" + str(string[1]) if int(string[1]) > 0 else "@.str"
-                line = str_ + " = private unnamed_addr constant " + inbound + " c\"" + str(string[2]) + "\", align 1\n"
+                # str_ = "@.str" + str(string[1]) if int(string[1]) > 0 else "@.str"
+                # line = str_ + " = private unnamed_addr constant " + inbound + " c\"" + str(string[2]) + "\", align 1\n"
+                name = "" #TODO naam verkrijgen (moet normaal op het moment dat we de printf zelf tegenkomen gemaakt worden) + stringvorm
+                str_ = name + ":\t"
+                line = str_ + "." + "asciiz" + " " + str(string[2]) + "\n"
                 file.write(line)
 
         file.write("\n")
