@@ -405,7 +405,7 @@ class Mips:
                         toReg = self.floatToInt(toReg)
                     elif symbol_lookup.type == "FLOAT" and symbol_lookup2.type == "INT":
                         toReg = self.intToFloat(toReg)
-                    self.store(toReg, reg1, type1, True, True, symboltable.pointer)
+                    self.store(toReg, reg1, type1, True, True, symbol_lookup.pointer)
                 else:
                     # We nemen hier gewoon de waarde zelf van het attribuut
                     val = str(node.children[1].value)

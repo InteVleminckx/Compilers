@@ -22,6 +22,7 @@ class LLVM:
         self.ifStack = []
         self.whileStack = []
         self.scanfStack = []
+        self.arrayStack = []
 
         self.enteredAssignment = False
         self.enteredFunctionCall = 0
@@ -29,6 +30,7 @@ class LLVM:
         self.enteredPrintf = False
         self.enteredCondition = False
         self.enteredScanf = False
+        self.enteredArray = False
 
         self.returnType = ""
         self.hasReturnNode = (False, 0)
@@ -223,11 +225,11 @@ class LLVM:
                     self.line += " " + str_ + ", i64 0, i64 0)"
                 else:
 
-                    if elem[1] == "CHAR":
+                    if elem[1] == "CHAR" and elem[3] is False:
                         self.line += "i32 "
                         self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
                     else:
-                        self.line += types[elem[1]][0] + " "
+                        self.line += types[elem[1]][0] + " " if elem[3] is False else types[elem[1]][0] + "* "
                         self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
 
             self.printfStack.clear()
@@ -259,7 +261,7 @@ class LLVM:
             for i in range(1, len(self.scanfStack)):
                 elem = self.scanfStack[i]
                 self.line += ", "
-                self.line += types[elem[1]][0] + "* "
+                self.line += types[elem[1]][0] + "* " if elem[3][0] is False else "[" + str(elem[3][1]) + " x " + types[elem[1]][0] + "]* "
                 self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
 
             self.scanfStack.clear()
@@ -400,7 +402,7 @@ class LLVM:
                         toReg = self.floatToInt(toReg)
                     elif symbol_lookup.type == "FLOAT" and symbol_lookup2.type == "INT":
                         toReg = self.intToFloat(toReg)
-                    self.store(toReg, reg1, type1, True, True, symboltable.pointer)
+                    self.store(toReg, reg1, type1, True, True, symbol_lookup.pointer)
                 else:
                     # We nemen hier gewoon de waarde zelf van het attribuut
                     val = str(node.children[1].value)
@@ -414,41 +416,42 @@ class LLVM:
                 # Na we dit hebben gedaan kunnen we enterAss terug afzetten
                 self.enteredAssignment = False
         else:
-            if len(node.children[1].children) == 0:
-                # We vragen de symbol lookup op van het linker deel
-                symboltable = tableLookup(node)
-                symbol_lookup = symbolLookup(str(node.children[0].children[0].value), symboltable, afterTotalSetup=True,
-                                             varLine=node.children[0].children[0].line,
-                                             varColumn=node.children[0].children[0].column)[1]
-                type1 = symbol_lookup.type
-                reg1 = self.loadArray(symbol_lookup.register, symbol_lookup.arrayData[0], type1, node.children[0].children[1].children[0].value)
-                # Dan controleren we nog of de rechterkant een identifier is of niet
-                if node.children[1].token == "IDENTIFIER":
-                    # Moeten hiervoor zijn register ook terug opvragen
-                    symboltable2 = tableLookup(node.children[1])
-                    symbol_lookup2 = symbolLookup(str(node.children[1].value), symboltable2, afterTotalSetup=True,
-                                                  varLine=node.children[1].line, varColumn=node.children[1].column)[1]
-                    reg2 = symbol_lookup2.register
-
-                    toReg, line = self.load(reg2, symbol_lookup2.type, symbol_lookup2.pointer)
-                    self.line += line
-                    if symbol_lookup.type == "INT" and symbol_lookup2.type == "FLOAT":
-                        toReg = self.floatToInt(toReg)
-                    elif symbol_lookup.type == "FLOAT" and symbol_lookup2.type == "INT":
-                        toReg = self.intToFloat(toReg)
-                    self.store(toReg, reg1, type1, True, True, symboltable.pointer)
-                else:
-                    # We nemen hier gewoon de waarde zelf van het attribuut
-                    val = str(node.children[1].value)
-                    if symbol_lookup.type == "INT" and node.children[1].type == "FLOAT":
-                        val = val.partition('.')[0]
-                    # elif symbol_lookup.type == "FLOAT" and node.children[1].type == "INT":
-                    #     toReg = self.intToFloat(toReg)
-
-                    self.store(val, reg1, type1, False, True)
-
-                # Na we dit hebben gedaan kunnen we enterAss terug afzetten
-                self.enteredAssignment = False
+            self.enteredAssignment = True
+            # if len(node.children[1].children) == 0:
+            #     # We vragen de symbol lookup op van het linker deel
+            #     symboltable = tableLookup(node)
+            #     symbol_lookup = symbolLookup(str(node.children[0].children[0].value), symboltable, afterTotalSetup=True,
+            #                                  varLine=node.children[0].children[0].line,
+            #                                  varColumn=node.children[0].children[0].column)[1]
+            #     type1 = symbol_lookup.type
+            #     reg1 = self.loadArray(symbol_lookup.register, symbol_lookup.arrayData[0], type1, node.children[0].children[1].children[0].value, symbol_lookup.isGlobal)
+            #     # Dan controleren we nog of de rechterkant een identifier is of niet
+            #     if node.children[1].token == "IDENTIFIER":
+            #         # Moeten hiervoor zijn register ook terug opvragen
+            #         symboltable2 = tableLookup(node.children[1])
+            #         symbol_lookup2 = symbolLookup(str(node.children[1].value), symboltable2, afterTotalSetup=True,
+            #                                       varLine=node.children[1].line, varColumn=node.children[1].column)[1]
+            #         reg2 = symbol_lookup2.register
+            #
+            #         toReg, line = self.load(reg2, symbol_lookup2.type, symbol_lookup2.pointer)
+            #         self.line += line
+            #         if symbol_lookup.type == "INT" and symbol_lookup2.type == "FLOAT":
+            #             toReg = self.floatToInt(toReg)
+            #         elif symbol_lookup.type == "FLOAT" and symbol_lookup2.type == "INT":
+            #             toReg = self.intToFloat(toReg)
+            #         self.store(toReg, reg1, type1, True, True, symboltable.pointer)
+            #     else:
+            #         # We nemen hier gewoon de waarde zelf van het attribuut
+            #         val = str(node.children[1].value)
+            #         if symbol_lookup.type == "INT" and node.children[1].type == "FLOAT":
+            #             val = val.partition('.')[0]
+            #         # elif symbol_lookup.type == "FLOAT" and node.children[1].type == "INT":
+            #         #     toReg = self.intToFloat(toReg)
+            #
+            #         self.store(val, reg1, type1, False, True)
+            #
+            #     # Na we dit hebben gedaan kunnen we enterAss terug afzetten
+            #     self.enteredAssignment = False
 
     def exitAssignment(self, node):
         print("exitAssignment")
@@ -474,19 +477,20 @@ class LLVM:
                 self.enteredAssignment = False
 
             else:
-                # We vragen het register en type op van de variable
-                symboltable = tableLookup(node.children[0].children[0])
-                symbol_lookup = \
-                    symbolLookup(str(node.children[0].children[0].value), symboltable, afterTotalSetup=True,
-                                 varLine=node.children[0].children[0].line,
-                                 varColumn=node.children[0].children[0].column)[1]
-                reg = symbol_lookup.register
-                type = symbol_lookup.type
-
-                reg = self.loadArray(reg, symbol_lookup.arrayData[0], type, node.children[0].children[1].children[0].value)
+                # # We vragen het register en type op van de variable
+                # symboltable = tableLookup(node.children[0].children[0])
+                # symbol_lookup = \
+                #     symbolLookup(str(node.children[0].children[0].value), symboltable, afterTotalSetup=True,
+                #                  varLine=node.children[0].children[0].line,
+                #                  varColumn=node.children[0].children[0].column)[1]
+                # reg = symbol_lookup.register
+                # type = symbol_lookup.type
+                #
+                # reg = self.loadArray(reg, symbol_lookup.arrayData[0], type, node.children[0].children[1].children[0].value, symbol_lookup.isGlobal)
 
                 # En we doen store
-                self.store(elem[0], reg, type, True, True, symbol_lookup.pointer)
+                self.store(elem[0], self.assignmentStack[-1][0], elem[1], elem[2], True)
+                self.assignmentStack.pop()
                 self.enteredAssignment = False
 
     def enterUnaryOperation(self, node):
@@ -619,10 +623,12 @@ class LLVM:
         elif self.enteredReturn:
             self.returnStack.append((str(self.register - 1), outputtype, True))
 
+        elif self.enteredArray:
+            self.arrayStack.append((str(self.register - 1), outputtype, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
-            self.printfStack.append((str(self.register - 1), outputtype, True))
+            self.printfStack.append((str(self.register - 1), outputtype, True, False))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredCondition:
@@ -666,6 +672,12 @@ class LLVM:
             self.returnStack.pop()
             self.returnStack.append((toReg, toType, True))
 
+        elif self.enteredArray:
+            toReg, toType, line = func(node, self.arrayStack)
+            self.line += line
+            self.arrayStack.pop()
+            self.arrayStack.pop()
+            self.arrayStack.append((toReg, toType, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
@@ -675,7 +687,7 @@ class LLVM:
             self.line += line
             self.printfStack.pop()
             self.printfStack.pop()
-            self.printfStack.append((toReg, toType, True))
+            self.printfStack.append((toReg, toType, True, False))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredCondition:
@@ -716,46 +728,64 @@ class LLVM:
             self.makeGlobal(node)
             return
 
+        if node.parent.token == "ARRAY":
+            return
+
         symboltable = tableLookup(node)
         # Betekent dat we de naam van de functie hebben, hier moeten we niets mee doen
         symbol_lookup = \
         symbolLookup(str(node.value), symboltable, afterTotalSetup=True, varLine=node.line, varColumn=node.column)[1]
 
-        func = lambda symbol_lookup: (
-        self.load(symbol_lookup.register, symbol_lookup.type, symbol_lookup.pointer), symbol_lookup.type)
+        func = lambda register, type, pointer, nodeArr: (
+        self.load(register, type, pointer, nodeArr), type)
+
 
         reg = None
         type = None
 
         # als we een functioncall hebben dan heeft dit voorrang op een assignment omdat een functioncall in een assignment kan voorkomen
         if self.enteredFunctionCall > 0:
-            reg, type = func(symbol_lookup)
+            reg, type = func(symbol_lookup.register, symbol_lookup.type, symbol_lookup.pointer, (symbol_lookup, node))
             self.line += reg[1]
             self.functionCallStack.append((reg[0], type, True))  # Ook hier heeft de functioncall voorang
 
         elif self.enteredReturn:
-            reg, type = func(symbol_lookup)
+            reg, type = func(symbol_lookup.register, symbol_lookup.type, symbol_lookup.pointer, (symbol_lookup, node))
             self.line += reg[1]
             self.returnStack.append((reg[0], type, True))
 
+        elif self.enteredArray:
+            reg, type = func(symbol_lookup.register, symbol_lookup.type, symbol_lookup.pointer, (symbol_lookup, node))
+            self.line += reg[1]
+            self.arrayStack.append((reg[0], type, True))
+
         # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
-            reg, type = func(symbol_lookup)
-            self.line += reg[1]
 
-            # Als het een char is moeten we deze ook nog is omzetten naar een int
-            if type == "CHAR":
-                self.line += "  %" + str(self.register) + " = sext i8 %" + str(reg[0]) + " to i32\n"
-                reg = self.register, reg[1]
-                self.register += 1
-            self.printfStack.append((reg[0], type, True))
+            if symbol_lookup.arrayData is False:
+
+                reg, type = func(symbol_lookup.register, symbol_lookup.type, symbol_lookup.pointer, (symbol_lookup, node))
+                self.line += reg[1]
+
+                # Als het een char is moeten we deze ook nog is omzetten naar een int
+                if type == "CHAR":
+                    self.line += "  %" + str(self.register) + " = sext i8 %" + str(reg[0]) + " to i32\n"
+                    reg = self.register, reg[1]
+                    self.register += 1
+
+            else:
+                reg = self.loadArray(symbol_lookup.register, str(symbol_lookup.arrayData[0]), symbol_lookup.type, 0, symbol_lookup.isGlobal, False)
+                reg = (reg,)
+                type = symbol_lookup.type
+
+            self.printfStack.append((reg[0], type, True, True if symbol_lookup.arrayData is not False else False))
 
         elif self.enteredScanf:
-            self.scanfStack.append((symbol_lookup.register, symbol_lookup.type, True))
+            self.scanfStack.append((symbol_lookup.register, symbol_lookup.type, True, (True, str(symbol_lookup.arrayData[0])) if symbol_lookup.arrayData is not False else (False, 0)))
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredCondition:
-            reg, type = func(symbol_lookup)
+            reg, type = func(symbol_lookup.register, symbol_lookup.type, symbol_lookup.pointer, (symbol_lookup, node))
             self.line += reg[1]
             self.conditionStack.append((reg[0], type, True))
 
@@ -767,7 +797,7 @@ class LLVM:
             reg = [symbol_lookup.register]
             if str(node.parent.value) != "&":
                 # if symbol_lookup.pointer == 0:
-                reg, type = func(symbol_lookup)
+                reg, type = func(symbol_lookup.register, symbol_lookup.type, symbol_lookup.pointer, (symbol_lookup, node))
                 self.line += reg[1]
             # We geven het register mee en het type en zeggen dat een register is
             self.assignmentStack.append((reg[0], type, True))
@@ -789,6 +819,9 @@ class LLVM:
     def exitType(self, node):
         print("exitType")
 
+        # if node.parent.token == "INDICES":
+        #     return
+
         # Functioncall krijgt voorrang
         if self.enteredFunctionCall > 0:
             self.functionCallStack.append((str(node.value), node.token, False))
@@ -797,9 +830,12 @@ class LLVM:
         elif self.enteredReturn:
             self.returnStack.append((str(node.value), node.token, False))
 
+        elif self.enteredArray:
+            self.arrayStack.append((str(node.value), node.token, False))
+
         # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
-            self.printfStack.append((str(node.value), node.token, False))
+            self.printfStack.append((str(node.value), node.token, False, False))
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredCondition:
@@ -828,6 +864,9 @@ class LLVM:
             textsize = len(text)
             addsize = 0
 
+
+            #TODO: controleren of er midden in de string ook nog een \\n zit zoals dit: printf("print i\\nnte\\nger %d", x);
+
             # We controleren of er een \n bij de tekst staat, moest dit niet zo zijn dan doen we nog +1
             if textsize > 1:
                 if text[len(text) - 2:len(text)] != "\\n":
@@ -839,11 +878,11 @@ class LLVM:
             text += "\\00"
             if self.enteredPrintf:
                 self.strings.append((textsize, str(self.stringCount), text))
-                self.printfStack.append((str(self.stringCount), "TEXT", False, textsize))
+                self.printfStack.append((str(self.stringCount), "TEXT", False, textsize, False))
                 self.stringCount += 1
             elif self.enteredScanf:
                 self.strings.append((textsize, str(self.stringCount), text))
-                self.scanfStack.append((str(self.stringCount), "TEXT", False, textsize))
+                self.scanfStack.append((str(self.stringCount), "TEXT", False, textsize, (False, 0)))
                 self.stringCount += 1
 
     def enterComparison(self, node):
@@ -886,7 +925,7 @@ class LLVM:
             self.line += line
             self.printfStack.pop()
             self.printfStack.pop()
-            self.printfStack.append((toReg, toType, True))
+            self.printfStack.append((toReg, toType, True, False))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredCondition:
@@ -1057,13 +1096,17 @@ class LLVM:
             elif self.enteredReturn:
                 self.returnStack.append((toReg, toType, True))
 
+            elif self.enteredArray:
+                self.arrayStack.append((toReg, toType, True, False))
+
                 # Ook hier heeft de functioncall eerst voorrang
             elif self.enteredPrintf:
-                self.printfStack.append((toReg, toType, True))
+                self.printfStack.append((toReg, toType, True, False))
 
                 # Ook hier heeft de functioncall eerst voorrang
             elif self.enteredCondition:
-                self.conditionStack.append((toReg, toType, True))
+
+                self.conditionStack.append((toReg, toType, False))
 
             elif self.enteredAssignment:
                 self.assignmentStack.append((toReg, toType, True))
@@ -1089,18 +1132,69 @@ class LLVM:
         print("exitCondition")
         if self.enteredCondition:
             # controleren nog voor de zekerheid
+
+            if len(self.conditionStack) > 1:
+                    print("")
             self.enteredCondition = False
 
     def enterArray(self, node):
         print("enterArray")
 
-        # We checken of het een declaration is of niet
-
-        if not node.children[0].isDeclaration:
-            pass
-
     def exitArray(self, node):
         print("exitArray")
+
+    def enterIndices(self, node):
+        print("enterIndices")
+        if not node.parent.children[0].isDeclaration:
+            self.enteredArray = True
+
+    def exitIndices(self, node):
+        print("exitIndices")
+
+        if self.enteredArray:
+            print("")
+            node_ = node.parent.children[0]
+            lookup = tableLookup(node_)
+            symbol = symbolLookup(node_.value, lookup, afterTotalSetup=True, varLine=node_.line, varColumn=node_.column)[1]
+
+            toReg = self.loadArray(symbol.register, symbol.arrayData[0], symbol.type, self.arrayStack[-1][0], symbol.isGlobal, self.arrayStack[-1][2])
+            self.arrayStack.pop()
+
+            # Functioncall krijgt voorrang
+            if self.enteredFunctionCall > 0:
+
+                toReg,line = self.load(toReg, symbol.type)
+                self.line += line
+
+                self.functionCallStack.append((str(toReg), symbol.type, True))
+
+            # Ook hier heeft de functioncall voorang
+            elif self.enteredReturn:
+                toReg,line = self.load(toReg, symbol.type)
+                self.line += line
+                self.returnStack.append((str(toReg), symbol.type, True))
+
+            # Ook hier heeft de functioncall voorang
+            elif self.enteredPrintf:
+                toReg,line = self.load(toReg, symbol.type)
+                self.line += line
+                self.printfStack.append((str(toReg), symbol.type, True, False))
+
+            # Ook hier heeft de functioncall voorang
+            elif self.enteredCondition:
+                toReg,line = self.load(toReg, symbol.type)
+                self.line += line
+                self.conditionStack.append((str(toReg), symbol.type, True))
+
+            # We controleren of we in een assignment zijn gegaan
+            elif self.enteredAssignment:
+                # We voegen het toe aan de stack
+                # We geven de value mee en het type en zeggen dat het geen register is
+                # toReg,line = self.load(toReg, symbol.type)
+                # self.line += line
+                self.assignmentStack.append((str(toReg), symbol.type, True))
+
+        self.enteredArray = False
 
     def allocateVariables(self, symbolTable):
         # We vragen de dict op met alle variable
@@ -1149,7 +1243,15 @@ class LLVM:
         value = str(symbolTable.value.value)
         name = str(node.value)
         symbolTable.register = name
-        line = "@" + name + " = dso_local global " + types[type][0] + " " + value + ", " + types[type][1] + "\n"
+        line = ""
+        symbolTable.isGlobal = True
+        if symbolTable.arrayData is not False:
+            length = str(symbolTable.arrayData[0])
+
+            line = "@" + name + " = dso_local global [" + length + " x " + types[type][0] + "] zeroinitializer, " + types[type][1] + "\n"
+        else:
+            line = "@" + name + " = dso_local global " + types[type][0] + " " + value + ", " + types[type][1] + "\n"
+
         self.globals.append(line)
 
     def store(self, fromRegister, toRegister, type, isReg1, isReg2, numberOfPointer=0):
@@ -1178,7 +1280,7 @@ class LLVM:
                                            ", " + \
                      types[type][1] + "\n"
 
-    def load(self, fromReg, type, numberOfPointer=0):
+    def load(self, fromReg, type, numberOfPointer=0, nodeArr=None):
 
         leftPoint = "" + "*" * numberOfPointer
         rightPoint = "*" + "*" * numberOfPointer
@@ -1196,10 +1298,19 @@ class LLVM:
 
         return self.register - 1, line
 
-    def loadArray(self, fromReg, length, type, index):
+    def loadArray(self, fromReg, length, type, index, isGlobal, isReg):
+
+        if isReg:
+            self.line += "  %" + str(self.register) + " = sext " + types[type][0] + " %" + str(index) + " to i64\n"
+            index = self.register
+            self.register += 1
 
         self.line += "  %" + str(self.register) + " = getelementptr inbounds [" + str(length) + " x " + types[type][
-            0] + "], [" + str(length) + " x " + types[type][0] + "]* %" + str(fromReg) + ", i64 0, i64 " + str(index) + "\n"
+            0] + "], [" + str(length) + " x " + types[type][0] + "]*"
+
+        self.line += " %" + str(fromReg) + ", i64 0, i64 " if not isGlobal else " @" + str(fromReg) + ", i64 0, i64 "
+        self.line += "%" if isReg else ""
+        self.line += str(index) + "\n"
 
         self.register += 1
 
