@@ -39,6 +39,8 @@ function_def
         : decl_spec declarator comp_stat
 //        | declarator declaration_list comp_stat
         | declarator comp_stat
+        | ttype IDENTIFIER LPARENTH RPARENTH SEMICOLON
+        | ttype IDENTIFIER LPARENTH parameter_type_list RPARENTH SEMICOLON
         ;
 
 stat

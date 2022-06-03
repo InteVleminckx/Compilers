@@ -107,6 +107,8 @@ class LLVM:
             self.noReturn()
         elif node.children[-1].token != "RETURN" and self.returnType is not None:
             self.noReturn()
+        elif node.children[-1].token != "RETURN" and self.returnType is None:
+            self.hasReturnNode = False, None
         else:
             self.hasReturnNode = True, 0
 
@@ -597,24 +599,30 @@ class LLVM:
         symbol_lookup = symbolLookup(funcName, symboltable, afterTotalSetup=True)[1]
         outputtype = symbol_lookup.outputTypes[0]
 
-        self.line += "  %" + str(self.register) + " = call " + types[outputtype][0] + " @" + funcName + "("
-        # Er zouden nu op zijn minst even elementen in de stack moeten zitten dan er parameters zijn voor de functie
-        numberOfParams = len(node.children[1].children)
-        for i in range(numberOfParams):
-            # Zit er omgekeerd in dus moeten het er ook omgekeerd terug uithalen
-            elem = self.functionCallStack[-(numberOfParams - i)]
-            self.line += types[elem[1]][0]
-            self.line += " %" + str(elem[0]) if elem[2] else " " + str(elem[0])
-            if i < numberOfParams - 1:
-                self.line += ", "
+        self.line += "  %" + str(self.register) + " = "  if outputtype is not None else "  "
 
-        for i in range(numberOfParams):
-            self.functionCallStack.pop()
+        self.line += "call " + types[outputtype][0] + " @" + funcName + "("
+        # Er zouden nu op zijn minst even elementen in de stack moeten zitten dan er parameters zijn voor de functie
+
+        if len(node.children) > 1:
+
+            numberOfParams = len(node.children[1].children)
+            for i in range(numberOfParams):
+                # Zit er omgekeerd in dus moeten het er ook omgekeerd terug uithalen
+                elem = self.functionCallStack[-(numberOfParams - i)]
+                self.line += types[elem[1]][0]
+                self.line += " %" + str(elem[0]) if elem[2] else " " + str(elem[0])
+                if i < numberOfParams - 1:
+                    self.line += ", "
+
+            for i in range(numberOfParams):
+                self.functionCallStack.pop()
 
         self.line += ")\n"
 
         self.enteredFunctionCall -= 1
-        self.register += 1
+
+        self.register += 1 if outputtype is not None else 0
 
         if self.enteredFunctionCall > 0:
             self.functionCallStack.append((str(self.register - 1), outputtype, True))
@@ -1593,11 +1601,6 @@ class LLVM:
     def noReturn(self):
         self.line += "  %" + str(self.register) + " = alloca " + types[self.returnType][0] + ", " + \
                      types[self.returnType][1] + "\n"
-        # TODO: dit is maar iets raars wat ik hier heb gedaan, nog eens bekijken op deze gevallen
-        # self.register += 1
-        # self.line += "  %" + str(self.register) + " = load " + types[self.returnType][0] + ", " + \
-        #              types[self.returnType][0] + "* %" + str(self.register - 1) + ", " + types[self.returnType][
-        #                  1] + "\n"
         self.hasReturnNode = (False, self.register)
         self.register += 1
 

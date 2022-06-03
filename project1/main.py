@@ -51,13 +51,13 @@ def main(argv):
 
     a = ast
     # a.inorderTraversal(print)
-    # createGraph(a, argv[1], 0)
+    createGraph(a, argv[1], 0)
     setupSymbolTables(a)
     checkMain(a)
     #TODO: Dit terug aanzetten
     # optimize(a)
     semanticAnalysisVisitor(a.root)
-    # createGraph(a, argv[1], 1)
+    createGraph(a, argv[1], 1)
     generation = CodeGeneration(a)
     generation.generateCode(argv[1])
     print("")
