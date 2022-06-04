@@ -84,7 +84,7 @@ class Mips:
 
             # We vragen het symbool ook op uit de symbol table zodat we het juiste
             # register eraan kunnen toekennen
-            # TODO: check lines and colums with function
+            # TODO: check lines and columns with function
             symbol_lookup = symbolLookup(param[0], symboltable, afterTotalSetup=True)[1]
             symbol_lookup.register = i
 
@@ -206,10 +206,18 @@ class Mips:
     def exitPrintf(self, node):
         print("exitPrintf")
         if self.enteredPrintf:
-            self.enteredPrintf = False
             text = self.printfStack[0]
-            textsize = text[3]
-            textcount = text[0]
+            # textsize = text[3]
+            # textcount = text[0]
+
+
+
+
+            """
+            la $a0, message1  # load het adres van message1 in $a0
+            li $v0, 4  # load code for print_string
+            syscall
+            """
             inbound = "[" + str(textsize) + " x i8], [" + str(textsize) + " x i8]*"
             str_ = "@.str"
             str_ += str(textcount) if int(textcount) > 0 else ""
@@ -235,9 +243,19 @@ class Mips:
                         self.line += types[elem[1]][0] + " "
                         self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
 
+            name = "str" + str(0)
+            self.line += "la $a0, " + name + "\n"
+            if int:
+                self.line += "li $v0"
+            elif float:
+                pass
+            else:
+                pass
+            self.line += "syscall"
+
             self.printfStack.clear()
             self.enteredPrintf = False
-            self.line += ")\n"
+            self.line += "\n"
 
     def enterScanf(self, node):
         print("enterScanf")
@@ -831,17 +849,8 @@ class Mips:
             # Ookal kan dit enkel hier voorkomen, een check kan geen kwaad
             text = str(node.value)
             textsize = len(text)
-            addsize = 0
+            text = "\"" + text + "\""
 
-            # We controleren of er een \n bij de tekst staat, moest dit niet zo zijn dan doen we nog +1
-            if textsize > 1:
-                if text[len(text) - 2:len(text)] != "\\n":
-                    addsize += 1
-                else:
-                    text = text[0:len(text) - 2]
-                    text += "\\0A"
-            textsize += addsize
-            text += "\\00"
             if self.enteredPrintf:
                 self.strings.append((textsize, str(self.stringCount), text))
                 self.printfStack.append((str(self.stringCount), "TEXT", False, textsize))
@@ -1390,7 +1399,7 @@ class Mips:
                 self.logLabelCount += 1
 
                 # TODO: aanpassing
-                if str(node.value) in comparisons and str(parent.value) in logicals:
+                if str(node.value) in data_comp_instr and str(parent.value) in logicals:
                     # if str(parent.value) in comparisons and str(parent.value.value) not in logicals:
                     self.branch(fromReg, node.trueLabel, node.falseLabel, node.falseLabel, "x")
                     self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
@@ -1532,9 +1541,9 @@ class Mips:
             for string in self.strings:
                 # str_ = "@.str" + str(string[1]) if int(string[1]) > 0 else "@.str"
                 # line = str_ + " = private unnamed_addr constant " + inbound + " c\"" + str(string[2]) + "\", align 1\n"
-                name = "" #TODO naam verkrijgen (moet normaal op het moment dat we de printf zelf tegenkomen gemaakt worden) + stringvorm
+                name = "str" + string[1] #TODO naam verkrijgen (moet normaal op het moment dat we de printf zelf tegenkomen gemaakt worden) + stringvorm
                 str_ = name + ":\t"
-                line = str_ + "." + "asciiz" + " " + str(string[2]) + "\n"
+                line = str_ + "." + "asciiz\t" + str(string[2]) + "\n"
                 file.write(line)
 
         file.write("\n")
@@ -1542,9 +1551,12 @@ class Mips:
         file.write("\n")
         file.write(self.line)
 
-        if self.printf:
-            file.write("declare dso_local i32 @printf(i8*, ...)\n")
-        if self.scanf:
-            file.write("declare dso_local i32 @__isoc99_scanf(i8*, ...)\n")
+        # if self.printf:
+        #     file.write("declare dso_local i32 @printf(i8*, ...)\n")
+        # if self.scanf:
+        #     file.write("declare dso_local i32 @__isoc99_scanf(i8*, ...)\n")
+
+        exit = "exit:\n\t" + "li $v0, 10\n\t" + "syscall"
+        file.write(exit)
 
         file.close()
