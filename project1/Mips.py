@@ -207,8 +207,8 @@ class Mips:
         print("exitPrintf")
         if self.enteredPrintf:
             text = self.printfStack[0]
-            # textsize = text[3]
-            # textcount = text[0]
+            textsize = text[3]
+            textcount = text[0]
 
 
 
@@ -243,15 +243,15 @@ class Mips:
                         self.line += types[elem[1]][0] + " "
                         self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
 
-            name = "str" + str(0)
-            self.line += "la $a0, " + name + "\n"
-            if int:
-                self.line += "li $v0"
-            elif float:
-                pass
-            else:
-                pass
-            self.line += "syscall"
+            # name = "str" + str(0)
+            # self.line += "la $a0, " + name + "\n"
+            # if int:
+            #     self.line += "li $v0"
+            # elif float:
+            #     pass
+            # else:
+            #     pass
+            # self.line += "syscall"
 
             self.printfStack.clear()
             self.enteredPrintf = False
@@ -850,15 +850,28 @@ class Mips:
             text = str(node.value)
             textsize = len(text)
             text = "\"" + text + "\""
+            strCount = None
+            for i in range(len(self.strings)):
+                if text == self.strings[i][2]:
+                    strCount = self.strings[i][1]
+                    break
 
             if self.enteredPrintf:
-                self.strings.append((textsize, str(self.stringCount), text))
-                self.printfStack.append((str(self.stringCount), "TEXT", False, textsize))
-                self.stringCount += 1
+                if strCount is not None:
+                    self.printfStack.append((strCount, "TEXT", False, textsize))
+                else:
+                    self.strings.append((textsize, str(self.stringCount), text))
+                    self.printfStack.append((str(self.stringCount), "TEXT", False, textsize))
+                    self.stringCount += 1
+
             elif self.enteredScanf:
-                self.strings.append((textsize, str(self.stringCount), text))
-                self.scanfStack.append((str(self.stringCount), "TEXT", False, textsize))
-                self.stringCount += 1
+                if strCount is not None:
+                    self.scanfStack.append((strCount, "TEXT", False, textsize))
+                    self.stringCount += 1
+                else:
+                    self.strings.append((textsize, str(self.stringCount), text))
+                    self.scanfStack.append((str(self.stringCount), "TEXT", False, textsize))
+                    self.stringCount += 1
 
     def enterComparison(self, node):
         print("enterComparison")

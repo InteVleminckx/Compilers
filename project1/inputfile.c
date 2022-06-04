@@ -14,6 +14,8 @@ float b = 6.6;
 char c = 'c';
 int main(){
     printf("Hello World!\n");
+    printf("Hello!");
+    printf("Hello World!\n");
 }
 //#include <stdio.h>
 //int f(int b){
