@@ -13,8 +13,8 @@ int a = 5;
 float b = 6.6;
 char c = 'c';
 int main(){
-    printf("Hello World!\n");
-    printf("Hello!");
+    printf("Hello %c World %c !", 'a', 'b');
+    printf("Hello! %f", 5.5);
     printf("Hello World!\n");
 }
 //#include <stdio.h>

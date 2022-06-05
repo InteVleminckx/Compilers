@@ -209,40 +209,114 @@ class Mips:
             text = self.printfStack[0]
             textsize = text[3]
             textcount = text[0]
+            stringElem = None
+            deleteIndex = 0
+            for i in range(len(self.strings)): # om uiteindelijk de string zelf te verkrijgen
+                if textcount == self.strings[i][1]:
+                    stringElem = self.strings[i]
+                    deleteIndex = i
+                    break
 
 
+            splitString = []
+            actualString = stringElem[2][1:-1]
+            if len(self.printfStack) > 1: # we hebben extra argumenten bij de printf
+                char = 0
+                curString = ""
+                while char != len(actualString):
+                    if actualString[char] == "%":
+                        splitString.append(curString)
+                        curString = actualString[char] + actualString[char+1]
+                        splitString.append(curString)
+                        curString = ""
+                        char += 2
+                    else:
+                        curString += actualString[char]
+                        char += 1
+                        if char == len(actualString):
+                            splitString.append(curString)
+            else:
+                splitString.append(actualString)
 
+            del self.strings[deleteIndex]
+            printfStackIndex = 1
+            for i in range(len(splitString)):
+                if splitString[i][0] == "%":
+
+                    elem = self.printfStack[printfStackIndex]
+                    name = ""
+                    if elem[1] == "TEXT":
+                        str_ = "str"
+                        str_ += str(elem[0])
+                        name = str_
+                    else:
+                        if elem[1] == "CHAR":
+                            name = str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
+                            # self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
+                        else:
+                            # self.line += types[elem[1]][0] + " "
+                            # self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
+                            name = str(elem[0])
+
+                    if splitString[i][1] == "d":
+
+                        self.line += "\tla $a0, " + name + "\n"
+                        self.line += "\tli $v0, 1\n"
+                        self.line += "\tsyscall\n\n"
+
+                    elif splitString[i][1] == "f":
+
+                        self.line += "\tla $f12, " + name + "\n"
+                        self.line += "\tli $v0, 2\n"
+                        self.line += "\tsyscall\n\n"
+
+                    elif splitString[i][1] == "c":
+
+                        self.line += "\tla $a0, " + name + "\n"
+                        self.line += "\tli $v0, 4\n"
+                        self.line += "\tsyscall\n\n"
+
+                    elif splitString[i][1] == "s":
+
+                        self.line += "\tla $a0, " + name + "\n"
+                        self.line += "\tli $v0, 4\n"
+                        self.line += "\tsyscall\n\n"
+
+                    printfStackIndex += 1
+                else:
+                    name = "str" + str(self.stringCount)
+                    self.stringCount += 1
+                    line = name + ":\t" + ".asciiz\t" + "\"" + splitString[i] + "\"\n"
+                    self.globals.append(line)
+                    self.line += "\tla $a0, " + name + "\n"
+                    self.line += "\tli $v0, 4\n"
+                    self.line += "\tsyscall\n\n"
+
+            # str_ = "str"
+            # # str_ += str(textcount) if int(textcount) > 0 else ""
+            # str_ += str(textcount)
+            # self.line += str_
+            # # self.register += 1
+            # for i in range(1, len(self.printfStack)):
+            #     elem = self.printfStack[i]
+            #     if elem[1] == "TEXT":
+            #
+            #         str_ = "@.str"
+            #         str_ += str(elem[0]) if int(elem[0]) > 0 else ""
+            #         self.line += " " + str_ + ", i64 0, i64 0)"
+            #     else:
+            #
+            #         if elem[1] == "CHAR":
+            #             self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
+            #         else:
+            #             self.line += types[elem[1]][0] + " "
+            #             self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
 
             """
             la $a0, message1  # load het adres van message1 in $a0
             li $v0, 4  # load code for print_string
             syscall
             """
-            inbound = "[" + str(textsize) + " x i8], [" + str(textsize) + " x i8]*"
-            str_ = "@.str"
-            str_ += str(textcount) if int(textcount) > 0 else ""
-            self.line += "  %" + str(
-                self.register) + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds (" + inbound + " " + str_ + ", i64 0, i64 0)"
-            self.register += 1
-            for i in range(1, len(self.printfStack)):
-                elem = self.printfStack[i]
-                self.line += ", "
-                if elem[1] == "TEXT":
-                    self.line += "i8* getelementptr inbounds ("
-                    inbound = "[" + str(elem[3]) + " x i8], [" + str(elem[3]) + " x i8]*"
-                    self.line += inbound
-                    str_ = "@.str"
-                    str_ += str(elem[0]) if int(elem[0]) > 0 else ""
-                    self.line += " " + str_ + ", i64 0, i64 0)"
-                else:
-
-                    if elem[1] == "CHAR":
-                        self.line += "i32 "
-                        self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
-                    else:
-                        self.line += types[elem[1]][0] + " "
-                        self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
-
             # name = "str" + str(0)
             # self.line += "la $a0, " + name + "\n"
             # if int:
