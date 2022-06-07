@@ -63,6 +63,8 @@ class Mips:
 
         self.register = 0
 
+        self.isMain = False
+
     def enterFunction(self, node):
         print("enterFunction")
 
@@ -130,56 +132,57 @@ class Mips:
     def exitFunction(self, node):
         print("exitFunction")
 
-        if not self.hasReturnNode[0]:
-            if self.returnType is not None:
-                reg, line = self.load(str(self.hasReturnNode[1]), self.returnType)
-                self.line += line
-                self.line += "  ret " + types[self.returnType][0] + " %" + str(reg)
-            else:
-                self.line += "  ret void"
+        if not self.hasReturnNode:
+            line = "\n\tlw $ra, " + str(self.stackOffset - 8) + "($sp)\n" + \
+                   "\taddi\t$sp,$fp,0\n" + \
+                   "\tlw\t$fp, -4($sp)\n"
 
-            self.line += "\n\n"
+            if not self.isMain:
+                line += "\tjr\t$ra\n\n"
+                self.isMain = False
+
+            self.line += line
 
     def enterReturn(self, node):
         print("enterReturn")
 
         self.enteredReturn = True
-
-        # We kunnen een return hebben in een if of else of while of for
-        # Als deze stacks nog niet leeg zijn betekent dat we hier een return aanroepen dus we
-        # voeren geen return uit maar gaan branchen naar de laatste return, dit wordt automatisch gedaan
-        if len(self.ifStack) > 0 or len(self.whileStack) > 0:
-            return
-
-        if self.returnType is None:
-            self.line += "  ret void"
-            self.enteredReturn = False
-
-        # Als we een return hebben met 1 child (enkel identifier of value) kunnen we dit al direct doen
-        # Wanneer dit niet het geval is zullen er eerst andere dingen moeten gebeuren en daarom zal de return in de exit functie gebeuren
-        elif len(node.children[0].children) == 0:
-            self.enteredReturn = False
-            # Controleren of de node als kind een value of indentifier heeft
-            if node.children[0].token == "IDENTIFIER":
-                # We moeten dan de register hiervan opvragen en returnen
-                symboltable = tableLookup(node.children[0])
-                symbol_lookup = symbolLookup(str(node.children[0].value), symboltable, afterTotalSetup=True,
-                                             varLine=node.children[0].line, varColumn=node.children[0].column)[1]
-                reg = symbol_lookup.register
-                reg, line = self.load(reg, self.returnType, symbol_lookup.pointer)
-                self.line += line
-                self.line += "  ret " + types[self.returnType][0] + " %" + str(reg)
-
-            else:
-                # Als het een char is moeten we deze eerst nog omzetten naar een integer
-                val = str(node.children[0].value)
-                if self.returnType == "CHAR":
-                    val = str(ord(str(node.children[0].value)[1]))
-
-                self.line += "  ret " + types[self.returnType][0] + " " + val
-
-        if not self.enteredReturn:
-            self.line += "\n}\n\n"
+        #
+        # # We kunnen een return hebben in een if of else of while of for
+        # # Als deze stacks nog niet leeg zijn betekent dat we hier een return aanroepen dus we
+        # # voeren geen return uit maar gaan branchen naar de laatste return, dit wordt automatisch gedaan
+        # if len(self.ifStack) > 0 or len(self.whileStack) > 0:
+        #     return
+        #
+        # if self.returnType is None:
+        #     self.line += "  ret void"
+        #     self.enteredReturn = False
+        #
+        # # Als we een return hebben met 1 child (enkel identifier of value) kunnen we dit al direct doen
+        # # Wanneer dit niet het geval is zullen er eerst andere dingen moeten gebeuren en daarom zal de return in de exit functie gebeuren
+        # elif len(node.children[0].children) == 0:
+        #     self.enteredReturn = False
+        #     # Controleren of de node als kind een value of indentifier heeft
+        #     if node.children[0].token == "IDENTIFIER":
+        #         # We moeten dan de register hiervan opvragen en returnen
+        #         symboltable = tableLookup(node.children[0])
+        #         symbol_lookup = symbolLookup(str(node.children[0].value), symboltable, afterTotalSetup=True,
+        #                                      varLine=node.children[0].line, varColumn=node.children[0].column)[1]
+        #         reg = symbol_lookup.register
+        #         reg, line = self.load(reg, self.returnType, symbol_lookup.pointer)
+        #         self.line += line
+        #         self.line += "  ret " + types[self.returnType][0] + " %" + str(reg)
+        #
+        #     else:
+        #         # Als het een char is moeten we deze eerst nog omzetten naar een integer
+        #         val = str(node.children[0].value)
+        #         if self.returnType == "CHAR":
+        #             val = str(ord(str(node.children[0].value)[1]))
+        #
+        #         self.line += "  ret " + types[self.returnType][0] + " " + val
+        #
+        # if not self.enteredReturn:
+        #     self.line += "\n}\n\n"
 
     def exitReturn(self, node):
         print("exitReturn")
@@ -189,23 +192,39 @@ class Mips:
             # We kunnen een return hebben in een if of else of while of for
             # Als deze stacks nog niet leeg zijn betekent dat we hier een return aanroepen dus we
             # voeren geen return uit maar gaan branchen naar de laatste return, dit wordt automatisch gedaan
-            if len(self.returnStack) > 0:
-                if self.returnStack[-1][2] is False:
-                    self.store(self.returnStack[-1][0], self.hasReturnNode[1], self.returnStack[-1][1], False, True)
-                    self.returnStack.pop()
-                    self.enteredReturn = False
-                else:
-                    self.store(self.returnStack[-1][0], self.hasReturnNode[1], self.returnStack[-1][1], True, True)
-                    self.returnStack.pop()
-                    self.enteredReturn = False
-            else:
-                # Op dit moment zou er ook nog maar 1 element in de stack mogen zitten die die uitkomst bevat
-                elem = self.returnStack[-1]
-                self.returnStack.pop()
-                # We returen dit register nog
-                self.line += "  ret " + types[elem[1]][0] + " %" + str(elem[0])
-                self.enteredReturn = False
-                self.line += "\n}\n\n"
+            # if len(self.returnStack) > 0:
+            #     if self.returnStack[-1][2] is False:
+            #         self.store(self.returnStack[-1][0], self.hasReturnNode[1], self.returnStack[-1][1], False, True)
+            #         self.returnStack.pop()
+            #         self.enteredReturn = False
+            #     else:
+            #         self.store(self.returnStack[-1][0], self.hasReturnNode[1], self.returnStack[-1][1], True, True)
+            #         self.returnStack.pop()
+            #         self.enteredReturn = False
+            # else:
+            #     # Op dit moment zou er ook nog maar 1 element in de stack mogen zitten die die uitkomst bevat
+            #     elem = self.returnStack[-1]
+            #     self.returnStack.pop()
+            #     # We returen dit register nog
+            #     # self.line += "  ret " + types[elem[1]][0] + " %" + str(elem[0])
+            #     self.enteredReturn = False
+            #     self.line += "\n"
+
+
+            returnReg = self.returnStack[-1][0]
+            self.returnStack.pop()
+            line = "\n\tsw\t" + returnReg + ", 0($fp)\n" + \
+                   "\tlw $ra, " + str(self.stackOffset - 8) + "($sp)\n" + \
+                   "\taddi\t$sp,$fp,0\n" + \
+                   "\tlw\t$fp, -4($sp)\n"
+
+            if not self.isMain:
+                line += "\tjr\t$ra\n\n"
+                self.isMain = False
+
+            self.line += line
+            self.line += "\n"
+            self.enteredReturn = False
 
     def enterPrintf(self, node):
         print("enterPrintf")
@@ -511,7 +530,7 @@ class Mips:
                     elif symbol_lookup.type == "FLOAT" and symbol_lookup2.type == "INT":
                         toReg = self.intToFloat(toReg)
 
-                    self.store(toReg, offset1, type1, True, True, symbol_lookup.pointer)
+                    self.store(toReg, offset1)
 
                 else:  # non-identifier rechts
                     # We nemen hier gewoon de waarde zelf van het attribuut
@@ -846,20 +865,23 @@ class Mips:
         reg = None
         type = None
 
+        child = "left" if node.parent.children[0] == node else "right"
+        tempReg = "$t1" if child == "left" else "$t2"
+
         # als we een functioncall hebben dan heeft dit voorrang op een assignment omdat een functioncall in een assignment kan voorkomen
         if self.enteredFunctionCall > 0:
-            reg, type = func(symbol_lookup)
+            reg, type = func(symbol_lookup, tempReg)
             self.line += reg[1]
             self.functionCallStack.append((reg[0], type, True))  # Ook hier heeft de functioncall voorang
 
         elif self.enteredReturn:
-            reg, type = func(symbol_lookup)
+            reg, type = func(symbol_lookup, tempReg)
             self.line += reg[1]
             self.returnStack.append((reg[0], type, True))
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
-            reg, type = func(symbol_lookup)
+            reg, type = func(symbol_lookup, tempReg)
             self.line += reg[1]
 
             # Als het een char is moeten we deze ook nog is omzetten naar een int
@@ -1294,31 +1316,32 @@ class Mips:
         line = name + ":" + "\t" + "." + global_types[type] + " " + value + "\n"
         self.globals.append(line)
 
-    def store(self, fromRegister, toRegister, type, isReg1, isReg2, numberOfPointer=0):
+    def store(self, fromRegister, offset):
 
-        leftPoint = ""
-        rightPoint = "*"
-
-        for i in range(numberOfPointer):
-            leftPoint += "*"
-            rightPoint += "*"
-
-        reg1 = "%" + str(fromRegister) if isReg1 else str(fromRegister)
-        reg2 = "%" + str(toRegister) if isReg2 else str(toRegister)
-
-        if type == "CHAR" and not isReg1:
-            reg1 = str(ord(str(reg1[1])))
-
-        if type == "FLOAT":
-            if not isReg1:
-                reg1 = str(reg1) + "e+00"
-            if not isReg2:
-                reg2 = str(reg2) + "e+00"
-
-        self.line += "  store " + types[type][0] + leftPoint + " " + reg1 + ", " + types[type][
-            0] + rightPoint + " " + reg2 + "" \
-                                           ", " + \
-                     types[type][1] + "\n"
+        # leftPoint = ""
+        # rightPoint = "*"
+        #
+        # for i in range(numberOfPointer):
+        #     leftPoint += "*"
+        #     rightPoint += "*"
+        #
+        # reg1 = "%" + str(fromRegister) if isReg1 else str(fromRegister)
+        # reg2 = "%" + str(toRegister) if isReg2 else str(toRegister)
+        #
+        # if type == "CHAR" and not isReg1:
+        #     reg1 = str(ord(str(reg1[1])))
+        #
+        # if type == "FLOAT":
+        #     if not isReg1:
+        #         reg1 = str(reg1) + "e+00"
+        #     if not isReg2:
+        #         reg2 = str(reg2) + "e+00"
+        #
+        # self.line += "  store " + types[type][0] + leftPoint + " " + reg1 + ", " + types[type][
+        #     0] + rightPoint + " " + reg2 + "" \
+        #                                    ", " + \
+        #              types[type][1] + "\n"
+        self.line += "\tsw\t" + str(fromRegister) + "," + str(offset) + "($sp)\n"
 
     def load(self, fromReg, type, toReg_=None):
 
@@ -1338,6 +1361,11 @@ class Mips:
         #     if numberOfPointer > 0:
         #         leftPoint = leftPoint[0:(len(leftPoint) - 1)]
         #         rightPoint = rightPoint[0:(len(rightPoint) - 1)]
+        if type != "FLOAT":
+            line += "\tlw\t"+ toReg +", " + str(fromReg) + "($sp)\n"
+
+        else:
+            pass
 
         return toReg, line
 
@@ -1351,9 +1379,11 @@ class Mips:
 
         return self.register - 1
 
-    def operate(self, operation, num1, num2, type1, type2, isReg1, isReg2):
+    def operate(self, operation, num1, num2, type1, type2, isReg1, isReg2): # num1 = t1, num 2 = t2, operation = see calculations global var
+
         line = ""
         type = "INT"
+        resultReg = "$t0"
         if type1 == "FLOAT" or type2 == "FLOAT":
             type = "FLOAT"
 
@@ -1396,17 +1426,16 @@ class Mips:
                 line += str(num2) + "\n"
 
         elif type == "INT":
-            if operation == "div":
-                operation = "sdiv"
-
-            line += "  %" + str(self.register) + " = " + operation + " i32 "
-            line += "%" if isReg1 else ""
-            line += str(num1) + ", "
-            line += "%" if isReg2 else ""
-            line += str(num2) + "\n"
-
-        self.register += 1
-        return self.register - 1, type, line
+            # if operation == "div":
+            #     operation = "sdiv"
+            #
+            # line += "  %" + str(self.register) + " = " + operation + " i32 "
+            # line += "%" if isReg1 else ""
+            # line += str(num1) + ", "
+            # line += "%" if isReg2 else ""
+            # line += str(num2) + "\n"
+            line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
+        return resultReg, type, line
 
     def compare(self, comparison, num1, num2, type1, type2, isReg1, isReg2, isCondition=False):
 
@@ -1635,6 +1664,22 @@ class Mips:
         #                  1] + "\n"
         self.hasReturnNode = (False, self.register)
         self.register += 1
+
+    def loadInReg(self, value, type1):
+
+        toReg = None
+        line = ""
+
+        if type1 != "FLOAT":  # int or char
+
+            line += "\tli " + "$t0, " + str(value) + "\n"
+            toReg = "$t0"
+
+        else:  # TODO voor floats
+            line = ""
+            self.globals.append(line)
+
+        return toReg, line
 
     def popRightStack(self):
         if self.enteredFunctionCall > 0:
