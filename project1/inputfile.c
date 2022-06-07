@@ -8,10 +8,10 @@
 //    return 0;
 //}
 #include <stdio.h>
-
-int a = 5;
-float b = 6.6;
-char c = 'c';
+//
+//int a = 5;
+//float b = 6.6;
+//char c = 'c';
 int main(){
     int a = 5;
     int b = 4;
@@ -45,6 +45,3 @@ int main(){
 ////	b = b + 1;
 ////	int c = 7;
 ////	c = c + 1;
-//}
-
-

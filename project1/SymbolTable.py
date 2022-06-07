@@ -11,6 +11,7 @@ class Value:
         self.outputTypes = outputTypes # return type (e.g. for functions)
         self.functionParameters = functionParameters
         self.register = int()
+        self.stackOffset = int()
         self.isAssigned = False
         self.isGlobal = False
         self.isParam = False

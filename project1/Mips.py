@@ -58,11 +58,14 @@ class Mips:
         self.ifLabelCount = 0
         self.whileLabelCount = 0
 
+
+        self.register = 0
+
     def enterFunction(self, node):
         print("enterFunction")
 
         # We enteren een nieuwe functie dus kunnen de registercount terug op 0 zetten
-        self.register = 0
+        self.stackOffset = 0
 
         # We beginnen eerst met de functie naam, return type en parameters op te vragen
         self.returnType = node.parent.children[0].children[0].token
@@ -116,12 +119,11 @@ class Mips:
 
         line = "\tsw\t$fp, -4($sp)\n" + \
                "\taddi\t$fp,$sp,0\n" + \
-               "\taddi\t$sp,$sp," + str(-size) + "\n" + \
-               "\tsw $ra, " + str(offset1) + "($sp)\n"
+               "\taddi\t$sp,$sp," + str(-self.stackOffset) + "\n" + \
+               "\tsw $ra, " + str(self.stackOffset-8) + "($sp)\n"
 
         self.line += line
         self.line += "\n"
-
 
 
     def exitFunction(self, node):
@@ -497,16 +499,21 @@ class Mips:
                     symboltable2 = tableLookup(node.children[1])
                     symbol_lookup2 = symbolLookup(str(node.children[1].value), symboltable2, afterTotalSetup=True,
                                                   varLine=node.children[1].line, varColumn=node.children[1].column)[1]
-                    reg2 = symbol_lookup2.register
 
-                    toReg, line = self.load(reg2, symbol_lookup2.type, symbol_lookup2.pointer)
+                    offset2 = symbol_lookup2.stackOffset
+
+                    toReg, line = self.load(offset2, symbol_lookup2.type, symbol_lookup2.pointer)
+
                     self.line += line
                     if symbol_lookup.type == "INT" and symbol_lookup2.type == "FLOAT":
                         toReg = self.floatToInt(toReg)
+
                     elif symbol_lookup.type == "FLOAT" and symbol_lookup2.type == "INT":
                         toReg = self.intToFloat(toReg)
-                    self.store(toReg, reg1, type1, True, True, symbol_lookup.pointer)
-                else:
+
+                    self.store(toReg, offset1, type1, True, True, symbol_lookup.pointer)
+
+                else: # non-identifier rechts
                     # We nemen hier gewoon de waarde zelf van het attribuut
                     val = str(node.children[1].value)
                     if symbol_lookup.type == "INT" and node.children[1].type == "FLOAT":
@@ -514,7 +521,7 @@ class Mips:
                     # elif symbol_lookup.type == "FLOAT" and node.children[1].type == "INT":
                     #     toReg = self.intToFloat(toReg)
 
-                    self.store(val, reg1, type1, False, True)
+                    self.store(val, offset1, type1, False, True)
 
                 # Na we dit hebben gedaan kunnen we enterAss terug afzetten
                 self.enteredAssignment = False
@@ -1222,8 +1229,9 @@ class Mips:
             # We checken dan voor de zekerheid of het wel een identifier is
             if toAllocate[key].value.token == "IDENTIFIER" or toAllocate[key].value.parent.children[
                 0].token == "IDENTIFIER":
-                tempReg = toAllocate[key].register
-                toAllocate[key].register = self.register
+                # tempReg = toAllocate[key].stackOffset
+
+                toAllocate[key].stackOffset = self.stackOffset
                 if toAllocate[key].arrayData is not False:
                     pass
                     # self.line += "  %" + str(self.register) + " = alloca ["
@@ -1231,13 +1239,13 @@ class Mips:
                     # self.line += length + " x " + types[type][0] + "], " + types[type][1] + "\n"
                 else:
                     self.allocate(self.register, type, toAllocate[key].pointer)
-                self.register += 1
-                if toAllocate[key].isParam:
-                    params.append((tempReg, toAllocate[key].register, toAllocate[key].type, toAllocate[key].pointer))
+                self.stackOffset += 4
+                # if toAllocate[key].isParam:
+                #     params.append((tempReg, toAllocate[key].register, toAllocate[key].type, toAllocate[key].pointer))
 
         # Nu gaan we de parameters hun waarde storen in de nieuwe registers
-        for param in params:
-            self.store(param[0], param[1], param[2], True, True, param[3])
+        # for param in params:
+        #     self.store(param[0], param[1], param[2], True, True, param[3])
 
     def allocate(self, register, type, numberOfPointer=0):
         pass
