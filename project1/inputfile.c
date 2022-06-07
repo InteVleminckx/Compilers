@@ -13,9 +13,13 @@ int a = 5;
 float b = 6.6;
 char c = 'c';
 int main(){
-    printf("Hello %c World %c !", 'a', 'b');
-    printf("Hello! %f", 5.5);
-    printf("Hello World!\n");
+    int a = 5;
+    int b = 4;
+    int c = 10;
+    int d = 7;
+//    printf("Hello %c World %c !", 'a', 'b');
+//    printf("Hello! %f", 5.5);
+//    printf("Hello World!\n");
 }
 //#include <stdio.h>
 //int f(int b){

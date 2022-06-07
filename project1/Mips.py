@@ -20,7 +20,7 @@ class Mips:
 
     def __init__(self):
         self.line = ""
-        self.register = 0
+        self.stackOffset = 0
         self.stringCount = 0
 
         self.assignmentStack = []
@@ -103,18 +103,17 @@ class Mips:
         # We gaan eerst nog controleren of we een return node hebben
         # Zoniet en het is geen void dan maken we hier ook nog een register voor vrij
 
-        if len(node.children) == 0:
-            self.noReturn()
-        elif node.children[-1].token != "RETURN" and self.returnType is not None:
-            self.noReturn()
-        else:
-            self.hasReturnNode = True, 0
+        # if len(node.children) == 0:
+        #     self.noReturn()
+        # elif node.children[-1].token != "RETURN" and self.returnType is not None:
+        #     self.noReturn()
+        # else:
+        #     self.hasReturnNode = True, 0
 
         # We gaan nu alle variable alloceren binnen de scope
+        self.stackOffset += 4
         self.allTables(symboltable)
 
-        size = 12
-        offset1 = size - 8
         line = "\tsw\t$fp, -4($sp)\n" + \
                "\taddi\t$fp,$sp,0\n" + \
                "\taddi\t$sp,$sp," + str(-size) + "\n" + \
@@ -485,12 +484,12 @@ class Mips:
 
         if str(node.children[0].token) != "ARRAY":
 
-            if len(node.children[1].children) == 0:
+            if len(node.children[1].children) == 0: # e.g. int a = 5; of int a = b;
                 # We vragen de symbol lookup op van het linker deel
                 symboltable = tableLookup(node)
                 symbol_lookup = symbolLookup(str(node.children[0].value), symboltable, afterTotalSetup=True,
                                              varLine=node.children[0].line, varColumn=node.children[0].column)[1]
-                reg1 = symbol_lookup.register
+                offset1 = symbol_lookup.stackOffset
                 type1 = node.children[0].type
                 # Dan controleren we nog of de rechterkant een identifier is of niet
                 if node.children[1].token == "IDENTIFIER":
@@ -519,6 +518,7 @@ class Mips:
 
                 # Na we dit hebben gedaan kunnen we enterAss terug afzetten
                 self.enteredAssignment = False
+
         else:
             if len(node.children[1].children) == 0:
                 # We vragen de symbol lookup op van het linker deel
@@ -1225,9 +1225,10 @@ class Mips:
                 tempReg = toAllocate[key].register
                 toAllocate[key].register = self.register
                 if toAllocate[key].arrayData is not False:
-                    self.line += "  %" + str(self.register) + " = alloca ["
-                    length = str(toAllocate[key].arrayData[0])
-                    self.line += length + " x " + types[type][0] + "], " + types[type][1] + "\n"
+                    pass
+                    # self.line += "  %" + str(self.register) + " = alloca ["
+                    # length = str(toAllocate[key].arrayData[0])
+                    # self.line += length + " x " + types[type][0] + "], " + types[type][1] + "\n"
                 else:
                     self.allocate(self.register, type, toAllocate[key].pointer)
                 self.register += 1
@@ -1239,11 +1240,12 @@ class Mips:
             self.store(param[0], param[1], param[2], True, True, param[3])
 
     def allocate(self, register, type, numberOfPointer=0):
-        pointerAm = ""
-        for i in range(numberOfPointer):
-            pointerAm += "*"
-
-        self.line += "  %" + str(register) + " = alloca " + types[type][0] + pointerAm + ", " + types[type][1] + "\n"
+        pass
+        # pointerAm = ""
+        # for i in range(numberOfPointer):
+        #     pointerAm += "*"
+        #
+        # self.line += "  %" + str(register) + " = alloca " + types[type][0] + pointerAm + ", " + types[type][1] + "\n"
 
     def allTables(self, symbolTable):
         self.allocateVariables(symbolTable)
@@ -1292,19 +1294,17 @@ class Mips:
 
     def load(self, fromReg, type, numberOfPointer=0):
 
-        leftPoint = "" + "*" * numberOfPointer
-        rightPoint = "*" + "*" * numberOfPointer
         line = ""
-        for i in range(numberOfPointer + 1):
-            line += "  %" + str(self.register) + " = load " + types[type][0] + leftPoint + ", " + types[type][
-                0] + rightPoint + " "
-            line += "%" + str(fromReg) + ", " + types[type][1] + "\n" if str(fromReg).isdigit() else "@" + str(
-                fromReg) + ", " + types[type][1] + "\n"
-            fromReg = self.register
-            self.register += 1
-            if numberOfPointer > 0:
-                leftPoint = leftPoint[0:(len(leftPoint) - 1)]
-                rightPoint = rightPoint[0:(len(rightPoint) - 1)]
+        # for i in range(numberOfPointer + 1):
+        #     line += "  %" + str(self.register) + " = load " + types[type][0] + leftPoint + ", " + types[type][
+        #         0] + rightPoint + " "
+        #     line += "%" + str(fromReg) + ", " + types[type][1] + "\n" if str(fromReg).isdigit() else "@" + str(
+        #         fromReg) + ", " + types[type][1] + "\n"
+        #     fromReg = self.register
+        #     self.register += 1
+        #     if numberOfPointer > 0:
+        #         leftPoint = leftPoint[0:(len(leftPoint) - 1)]
+        #         rightPoint = rightPoint[0:(len(rightPoint) - 1)]
 
         return self.register - 1, line
 
