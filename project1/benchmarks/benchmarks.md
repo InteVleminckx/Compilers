@@ -9,7 +9,7 @@
 | fibonacciRecursive    | V             | X             |
 | floatToIntConversion  | V             | X             |
 | for                   | V             | X             |
-| forwardDeclarations   | X             | X             |
+| forwardDeclarations   | V             | X             |
 | if                    | V             | X             |
 | ifElse                | V             | X             |
 | intToFloatConversion  | V             | X             |

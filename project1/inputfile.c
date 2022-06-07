@@ -14,9 +14,7 @@
 //char c = 'c';
 int main(){
     int a = 5;
-    int b = 4;
-    int c = 10;
-    int d = 7;
+    char b = 'g';
 //    printf("Hello %c World %c !", 'a', 'b');
 //    printf("Hello! %f", 5.5);
 //    printf("Hello World!\n");
