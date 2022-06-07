@@ -80,28 +80,25 @@ class Mips:
                 break
 
             # We voegen de types toe en de registers hiervoor
-            self.line += types[param[1]][0] + " %" + str(i)
+            # self.line += types[param[1]][0] + " %" + str(i)
 
             # We vragen het symbool ook op uit de symbol table zodat we het juiste
             # register eraan kunnen toekennen
             # TODO: check lines and columns with function
             symbol_lookup = symbolLookup(param[0], symboltable, afterTotalSetup=True)[1]
             symbol_lookup.register = i
-
             # Als het een parameter is zetten we dit ook op true
             symbol_lookup.isParam = True
-
             # We verhogen ook de registercount al
-            self.register += 1
-
-            if i < len(parameters) - 1:
-                self.line += ", "
+            # self.register += 1
+            # if i < len(parameters) - 1:
+            #     self.line += ", "
 
         # sluiten de functie definitie
         self.line += "\n"
 
         # We verhogen de registercount nog maals 1 keer
-        self.register += 1
+        # self.register += 1
 
         # We gaan eerst nog controleren of we een return node hebben
         # Zoniet en het is geen void dan maken we hier ook nog een register voor vrij
@@ -115,6 +112,18 @@ class Mips:
 
         # We gaan nu alle variable alloceren binnen de scope
         self.allTables(symboltable)
+
+        size = 12
+        offset1 = size - 8
+        line = "\tsw\t$fp, -4($sp)\n" + \
+               "\taddi\t$fp,$sp,0\n" + \
+               "\taddi\t$sp,$sp," + str(-size) + "\n" + \
+               "\tsw $ra, " + str(offset1) + "($sp)\n"
+
+        self.line += line
+        self.line += "\n"
+
+
 
     def exitFunction(self, node):
         print("exitFunction")
@@ -211,6 +220,7 @@ class Mips:
             textcount = text[0]
             stringElem = None
             deleteIndex = 0
+            # self.line += "printf" + textcount + ":" + "\n"
             for i in range(len(self.strings)): # om uiteindelijk de string zelf te verkrijgen
                 if textcount == self.strings[i][1]:
                     stringElem = self.strings[i]
@@ -329,7 +339,6 @@ class Mips:
 
             self.printfStack.clear()
             self.enteredPrintf = False
-            self.line += "\n"
 
     def enterScanf(self, node):
         print("enterScanf")
