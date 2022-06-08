@@ -64,6 +64,8 @@ class Mips:
         self.whileLabelCount = 0
 
         self.register = 0
+        #NOTE: We houden een globale offset bij zodat we weten wat de huidige offset is
+        # self.offset = 0
 
         self.isMain = False
 
@@ -290,27 +292,30 @@ class Mips:
                             # self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
                             name = str(elem[0])
 
+
+                    #TODO: ik heb hier overal gewoon haakjes rond gezet, gingen we er vanuit dat elke non-identifier
+                    # ook in een register werd geplaatst?
                     if splitString[i][1] == "d":
 
-                        self.line += "\tla $a0, " + name + "\n"
+                        self.line += "\tla $a0, (" + name + ")\n"
                         self.line += "\tli $v0, 1\n"
                         self.line += "\tsyscall\n\n"
 
                     elif splitString[i][1] == "f":
 
-                        self.line += "\tla $f12, " + name + "\n"
+                        self.line += "\tla $f12, (" + name + ")\n"
                         self.line += "\tli $v0, 2\n"
                         self.line += "\tsyscall\n\n"
 
                     elif splitString[i][1] == "c":
 
-                        self.line += "\tla $a0, " + name + "\n"
+                        self.line += "\tla $a0, (" + name + ")\n"
                         self.line += "\tli $v0, 4\n"
                         self.line += "\tsyscall\n\n"
 
                     elif splitString[i][1] == "s":
 
-                        self.line += "\tla $a0, " + name + "\n"
+                        self.line += "\tla $a0, (" + name + ")\n"
                         self.line += "\tli $v0, 4\n"
                         self.line += "\tsyscall\n\n"
 
@@ -782,6 +787,8 @@ class Mips:
             self.operate(calculations_[str(node1.value)], stack[-2][0], stack[-1][0], stack[-2][1], stack[-1][1],
                          stack[-2][2], stack[-1][2]))
 
+        #NOTE: na het poppen van de stacks gaan we die self.offset ook telkens verhogen met 4, want deze gaat de negatieve richting uit
+
         toReg = None
         toType = None
 
@@ -863,6 +870,13 @@ class Mips:
         func = lambda symbol_lookup, toReg: (
             self.load(symbol_lookup.stackOffset, symbol_lookup.type, toReg), symbol_lookup.type)
 
+
+        #NOTE: We moeten eerst onze value van de locale variable uit onze stack halen
+        # we loaden deze variable dan in $t0
+        # we storen dan terug deze variable op de stack met de offset self.offset (in negatieve richting)
+        # we plaatsen dan deze offset terug in onze eigen stack's zodat we weten waar we deze variable terug kunnen vinden
+        # telkens bij het pushen van een item op de stack gaan we de self.offset verlagen met 4 want deze gaat de negatieve richting uit
+
         reg = None
         type = None
 
@@ -930,6 +944,13 @@ class Mips:
 
     def exitType(self, node):
         print("exitType")
+
+
+        #NOTE: We gaan eerst de value inladen in register $t0
+        # daarna gaan we deze value op de stack plaatsen
+        # en slagen dan de stackoffset op in onze eigen stack
+        # telkens bij het pushen van een item op de stack gaan we de self.offset verlagen met 4 want deze gaat de negatieve richting uit
+
 
         # Functioncall krijgt voorrang
         if self.enteredFunctionCall > 0:
