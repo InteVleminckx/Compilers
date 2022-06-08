@@ -13,6 +13,7 @@ syscalls = {"print_int": [1, "$a0", None],
             "read_string": [8, ("$a0", "$a1"), None],
             "exit": [10, None, None], }  # list(Code, Args, Result)
 data_comp_instr = {"==": "seq", "!=": "sne", ">=": "sge", ">": "sgt", "<=": "sle", "<": "slt"}
+data_comp_instr_f = {"==": "c.eq.s", "!=": "c.ne.s", ">=": "c.ge.s", ">": "c.gt.s", "<=": "c.le.s", "<": "c.lt.s"}
 branch_intr_bin = {"uncond": "b", "==": "beq", "<=": "ble", "<": "blt", ">=": "bge", ">": "bgt",
                    "!=": "bne"}  # branch instructions for binary check (2 registers)
 branch_intr_un = {"==": "beqz", "<=": "blez", "<": "bltz", ">=": "bgez", ">": "bgtz",
@@ -68,6 +69,8 @@ class Mips:
         self.offset = -4
 
         self.isMain = False
+
+        self.compBranchNr = 0
 
     def enterFunction(self, node):
         print("enterFunction")
@@ -263,7 +266,8 @@ class Mips:
                 curString = ""
                 while char != len(actualString):
                     if actualString[char] == "%":
-                        splitString.append(curString)
+                        if curString != "":
+                            splitString.append(curString)
                         curString = actualString[char] + actualString[char + 1]
                         splitString.append(curString)
                         curString = ""
@@ -323,48 +327,24 @@ class Mips:
 
                     printfStackIndex += 1
                 else:
-                    name = "str" + str(self.stringCount)
-                    self.stringCount += 1
-                    line = name + ":\t" + ".asciiz\t" + "\"" + splitString[i] + "\"\n"
-                    self.globals.append(line)
+                    name = str(self.stringCount)
+                    isAanwezig = False
+                    for j in range(len(self.strings)):
+                        if self.strings[j][2] == splitString[i]:
+                            name = self.strings[j][1]
+                            isAanwezig = True
+                            break
+                    name = "str" + name
+
+                    if not isAanwezig:
+                        self.strings.append((0, str(self.stringCount), splitString[i]))
+                        self.stringCount += 1
+                        line = name + ":\t" + ".asciiz\t" + "\"" + splitString[i] + "\"\n"
+                        self.globals.append(line)
+
                     self.line += "\tla $a0, " + name + "\n"
                     self.line += "\tli $v0, 4\n"
                     self.line += "\tsyscall\n\n"
-
-            # str_ = "str"
-            # # str_ += str(textcount) if int(textcount) > 0 else ""
-            # str_ += str(textcount)
-            # self.line += str_
-            # # self.register += 1
-            # for i in range(1, len(self.printfStack)):
-            #     elem = self.printfStack[i]
-            #     if elem[1] == "TEXT":
-            #
-            #         str_ = "@.str"
-            #         str_ += str(elem[0]) if int(elem[0]) > 0 else ""
-            #         self.line += " " + str_ + ", i64 0, i64 0)"
-            #     else:
-            #
-            #         if elem[1] == "CHAR":
-            #             self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
-            #         else:
-            #             self.line += types[elem[1]][0] + " "
-            #             self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
-
-            """
-            la $a0, message1  # load het adres van message1 in $a0
-            li $v0, 4  # load code for print_string
-            syscall
-            """
-            # name = "str" + str(0)
-            # self.line += "la $a0, " + name + "\n"
-            # if int:
-            #     self.line += "li $v0"
-            # elif float:
-            #     pass
-            # else:
-            #     pass
-            # self.line += "syscall"
 
             self.printfStack.clear()
             self.enteredPrintf = False
@@ -1411,34 +1391,51 @@ class Mips:
     def compare(self, comparison, num1, num2, type1, type2, isReg1, isReg2, isCondition=False):
 
         line = ""
-        cmp = "icmp"
-        type = "INT"
+        resultReg = "$t0"
+        num1 = str(num1)
+        num2 = str(num2)
+
         if type1 == "FLOAT" or type2 == "FLOAT":
-            type = "FLOAT"
-            cmp = "fcmp"
-            if comparison == "ne":
-                comparison = "one"
-            if str(num2).isdigit():
-                num2 = str(num2) + ".0"
-            elif str(num1).isdigit():
-                num1 = str(num1) + ".0"
-            else:
-                comparison = "o" + comparison[1:3]
 
-        num1 = "%" + str(num1) if isReg1 else str(num1)
-        num2 = "%" + str(num2) if isReg2 else str(num2)
+            if type1 == "INT":
+                num1 = self.intToFloat(num1)
 
-        line += "  %" + str(self.register) + " = " + cmp + " " + str(comparison) + " " + str(
-            types[type][0]) + " " + num1 + ", " + num2 + "\n"
-        self.register += 1
+            elif type2 == "INT":
+                num2 = self.intToFloat(num2)
+
+            if comparison == "c.gt.s":
+                comparison = "c.lt.s"
+                temp = num1
+                num1 = num2
+                num2 = temp
+            elif comparison == "c.ge.s":
+                comparison = "c.le.s"
+                temp = num1
+                num1 = num2
+                num2 = temp
+
+            label = "__false" + str(self.compBranchNr) + "__\n"
+            line += "\t" + comparison + "\t" + num1 + ", " + num2 + "\n"
+            line += "\t" + "bc1f, " + label
+            line += "\tli\t" + "$t0, " + "1\n" # resultReg is t0
+            line += "\tb\t" + "__resumeComparison" + str(self.compBranchNr) + "__\n\n"
+
+            line += "__false" + str(self.compBranchNr) + "__:\n"
+            line += "\tli $t0, 0\n\n"
+            line += "__resumeComparison" + str(self.compBranchNr) + "__:\n"
+
+            self.compBranchNr += 1
+        else:
+            line += "\t" + comparison + "\t" + resultReg + ", " + num1 + ", " + num2 + "\n"
 
         if not isCondition and len(self.logicalStack) == 0:
             # Geeft een bool terug dus deze moeten we dan nog omzetten naar een integer, dit moet enkel wanneer we geen conditie hebben
             # Want conditions hebben wel bools nodig
-            line += "  %" + str(self.register) + " = zext i1 %" + str(self.register - 1) + " to i32\n"
-            self.register += 1
+            # line += "  %" + str(self.register) + " = zext i1 %" + str(self.register - 1) + " to i32\n"
+            # self.register += 1
+            pass
 
-        return self.register - 1, "INT", line
+        return resultReg, "INT", line
 
     def determineBranch(self, node, parent, fromReg):
 
@@ -1656,12 +1653,12 @@ class Mips:
             floatName = "fl" + str(self.floatCount)
             isDuplicateFloatName = False
             for i in range(len(self.floats)):
-                if self.floats[i][1] == value:
+                if self.floats[i][1] == str(value):
                     isDuplicateFloatName = True
                     floatName = self.floats[i][0]
                     break
             if not isDuplicateFloatName:
-                self.floats.append((floatName, value))
+                self.floats.append((floatName, str(value)))
                 self.floatCount += 1
 
                 globalvar = str(floatName) + ":" + "\t" + "." + global_types[type1] + "\t" + str(value) + "\n"
@@ -1769,11 +1766,11 @@ class Mips:
             for string in self.strings:
                 # str_ = "@.str" + str(string[1]) if int(string[1]) > 0 else "@.str"
                 # line = str_ + " = private unnamed_addr constant " + inbound + " c\"" + str(string[2]) + "\", align 1\n"
-                name = "str" + string[
-                    1]  # TODO naam verkrijgen (moet normaal op het moment dat we de printf zelf tegenkomen gemaakt worden) + stringvorm
-                str_ = name + ":\t"
-                line = str_ + "." + "asciiz\t" + str(string[2]) + "\n"
-                file.write(line)
+                if string[0] != 0:
+                    name = "str" + string[1]  # TODO naam verkrijgen (moet normaal op het moment dat we de printf zelf tegenkomen gemaakt worden) + stringvorm
+                    str_ = name + ":\t"
+                    line = str_ + "." + "asciiz\t" + str(string[2]) + "\n"
+                    file.write(line)
 
         file.write("\n")
         file.write(".text")
