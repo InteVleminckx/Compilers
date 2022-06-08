@@ -1634,7 +1634,7 @@ class Mips:
         # self.line += "  %" + str(self.register) + " = fptosi float %" + str(reg) + " to i32\n"
         # self.register += 1
         self.line += "\tcvt.w.s\t" + reg + "," + reg + "\n" + \
-                     "\tmfc1\t $t0," + reg + "\n"
+                     "\tmfc1\t" + "$t0" + "," + reg + "\n"
         return "$t0"
 
     def intToFloat(self, reg):
