@@ -65,7 +65,7 @@ class Mips:
 
         self.register = 0
         #NOTE: We houden een globale offset bij zodat we weten wat de huidige offset is
-        # self.offset = 0
+        self.offset = -4
 
         self.isMain = False
 
@@ -284,19 +284,17 @@ class Mips:
                         str_ += str(elem[0])
                         name = str_
                     else:
-                        if elem[1] == "CHAR":
+                        if elem[1] == "CHAR": #TODO: dit ook nog bekijken
                             name = str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
                             # self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
                         else:
                             # self.line += types[elem[1]][0] + " "
                             # self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
                             name = str(elem[0])
+                            name, line = self.load(name, elem[1])
+                            self.line += line
 
-
-                    #TODO: ik heb hier overal gewoon haakjes rond gezet, gingen we er vanuit dat elke non-identifier
-                    # ook in een register werd geplaatst?
                     if splitString[i][1] == "d":
-
                         self.line += "\tla $a0, (" + name + ")\n"
                         self.line += "\tli $v0, 1\n"
                         self.line += "\tsyscall\n\n"
@@ -612,7 +610,9 @@ class Mips:
                 offset = symbol_lookup.stackOffset
 
                 # En we doen store
-                self.store(elem[0], offset)
+                toReg, line = self.load(elem[0], elem[1])
+                self.line += line
+                self.store(toReg, offset)
                 self.enteredAssignment = False
 
             else:
@@ -783,11 +783,9 @@ class Mips:
         print("exitBinOperation")
         # We controleren of we in een assignment zijn gegaan
 
-        func = lambda node1, stack: (
-            self.operate(calculations_[str(node1.value)], stack[-2][0], stack[-1][0], stack[-2][1], stack[-1][1],
+        func = lambda node1, stack, reg1, reg2: (
+            self.operate(calculations_[str(node1.value)], reg1, reg2, stack[-2][1], stack[-1][1],
                          stack[-2][2], stack[-1][2]))
-
-        #NOTE: na het poppen van de stacks gaan we die self.offset ook telkens verhogen met 4, want deze gaat de negatieve richting uit
 
         toReg = None
         toType = None
@@ -795,51 +793,31 @@ class Mips:
         if self.enteredFunctionCall > 0:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            toReg, toType, line = func(node, self.functionCallStack)
-            self.line += line
-            self.functionCallStack.pop()
-            self.functionCallStack.pop()
-            self.functionCallStack.append((toReg, toType, True))
+            self.exitBinOperationStackHandler(self.functionCallStack, node, func)
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredReturn:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            toReg, toType, line = func(node, self.returnStack)
-            self.line += line
-            self.returnStack.pop()
-            self.returnStack.pop()
-            self.returnStack.append((toReg, toType, True))
+            self.exitBinOperationStackHandler(self.returnStack, node, func)
 
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            toReg, toType, line = func(node, self.printfStack)
-            self.line += line
-            self.printfStack.pop()
-            self.printfStack.pop()
-            self.printfStack.append((toReg, toType, True))
+            self.exitBinOperationStackHandler(self.printfStack, node, func)
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredCondition:
-            toReg, toType, line = func(node, self.conditionStack)
-            self.line += line
-            self.conditionStack.pop()
-            self.conditionStack.pop()
-            self.conditionStack.append((toReg, toType, True))
+            self.exitBinOperationStackHandler(self.conditionStack, node, func)
 
         elif self.enteredAssignment:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            toReg, toType, line = func(node, self.assignmentStack)
-            self.line += line
-            self.assignmentStack.pop()
-            self.assignmentStack.pop()
-            self.assignmentStack.append((toReg, toType, True))
+            self.exitBinOperationStackHandler(self.assignmentStack, node, func)
 
-        if len(self.logicalStack) > 0:
+        if len(self.logicalStack) > 0: #TODO: nog behandelen
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 toReg__, type, line = self.compare("ne", toReg, 0, toType, "INT", True, False, True)
                 self.popRightStack()
@@ -867,68 +845,55 @@ class Mips:
             symbolLookup(str(node.value), symboltable, afterTotalSetup=True, varLine=node.line, varColumn=node.column)[
                 1]
 
-        func = lambda symbol_lookup, toReg: (
-            self.load(symbol_lookup.stackOffset, symbol_lookup.type, toReg), symbol_lookup.type)
-
-
-        #NOTE: We moeten eerst onze value van de locale variable uit onze stack halen
-        # we loaden deze variable dan in $t0
-        # we storen dan terug deze variable op de stack met de offset self.offset (in negatieve richting)
-        # we plaatsen dan deze offset terug in onze eigen stack's zodat we weten waar we deze variable terug kunnen vinden
-        # telkens bij het pushen van een item op de stack gaan we de self.offset verlagen met 4 want deze gaat de negatieve richting uit
+        func = lambda symbol_lookup: (
+            self.load(symbol_lookup.stackOffset, symbol_lookup.type), symbol_lookup.type)
 
         reg = None
         type = None
 
-        child = "left" if node.parent.children[0] == node else "right"
-        tempReg = "$t1" if child == "left" else "$t2"
 
         # als we een functioncall hebben dan heeft dit voorrang op een assignment omdat een functioncall in een assignment kan voorkomen
         if self.enteredFunctionCall > 0:
-            reg, type = func(symbol_lookup, tempReg)
-            self.line += reg[1]
-            self.functionCallStack.append((reg[0], type, True))  # Ook hier heeft de functioncall voorang
+            self.exitIdentifierStackHandler(self.functionCallStack, symbol_lookup, func)
 
         elif self.enteredReturn:
-            reg, type = func(symbol_lookup, tempReg)
-            self.line += reg[1]
-            self.returnStack.append((reg[0], type, True))
+            self.exitIdentifierStackHandler(self.returnStack, symbol_lookup, func)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
-            reg, type = func(symbol_lookup, tempReg)
-            self.line += reg[1]
+            self.exitIdentifierStackHandler(self.printfStack, symbol_lookup, func)
 
-            # Als het een char is moeten we deze ook nog is omzetten naar een int
-            if type == "CHAR":
-                self.line += "  %" + str(self.register) + " = sext i8 %" + str(reg[0]) + " to i32\n"
-                reg = self.register, reg[1]
-                self.register += 1
-            self.printfStack.append((reg[0], type, True))
+            # # Als het een char is moeten we deze ook nog is omzetten naar een int
+            # if type == "CHAR":
+            #     self.line += "  %" + str(self.register) + " = sext i8 %" + str(reg[0]) + " to i32\n"
+            #     reg = self.register, reg[1]
+            #     self.register += 1
+            # self.printfStack.append((reg[0], type, True))
 
         elif self.enteredScanf:
-            self.scanfStack.append((symbol_lookup.register, symbol_lookup.type, True))
+            self.exitIdentifierStackHandler(self.scanfStack, symbol_lookup, func)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredCondition:
-            reg, type = func(symbol_lookup, tempReg)
-            self.line += reg[1]
-            self.conditionStack.append((reg[0], type, True))
+            self.exitIdentifierStackHandler(self.conditionStack, symbol_lookup, func)
 
         # We controleren of we in een assignment zijn gegaan en dat het niet het linkerdeel is van de assign
         elif self.enteredAssignment and node.parent.token != "=":
             # We voegen het toe aan de stack
             # We laden eerst de variable in een nieuw register
             # Moet wel eerst het huidige register opvragen
-            reg = [symbol_lookup.register]
-            if str(node.parent.value) != "&":
-                # if symbol_lookup.pointer == 0:
-                reg, type = func(symbol_lookup, tempReg)
-                self.line += reg[1]
-            # We geven het register mee en het type en zeggen dat een register is
-            self.assignmentStack.append((reg[0], type, True))
+            # reg = [symbol_lookup.register]
+            # if str(node.parent.value) != "&":
+            #     # if symbol_lookup.pointer == 0:
+            #     reg, type = func(symbol_lookup, tempReg)
+            #     self.line += reg[1]
+            # # We geven het register mee en het type en zeggen dat een register is
+            # self.assignmentStack.append((reg[0], type, True))
 
-        if len(self.logicalStack) > 0:
+            self.exitIdentifierStackHandler(self.assignmentStack, symbol_lookup, func)
+
+
+        if len(self.logicalStack) > 0: #TODO: later afhandelen
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 # We gaan nu de compare opartion uitvoeren
                 toReg__, type, line = self.compare("ne", reg[0], 0, type, "INT", True, False, True)
@@ -945,48 +910,25 @@ class Mips:
     def exitType(self, node):
         print("exitType")
 
-
-        #NOTE: We gaan eerst de value inladen in register $t0
-        # daarna gaan we deze value op de stack plaatsen
-        # en slagen dan de stackoffset op in onze eigen stack
-        # telkens bij het pushen van een item op de stack gaan we de self.offset verlagen met 4 want deze gaat de negatieve richting uit
-
-
         # Functioncall krijgt voorrang
         if self.enteredFunctionCall > 0:
-            child = "left" if node.parent.children[0] == node else "right"
-            tempReg = "$t1" if child == "left" else "$t2"
-            self.line += "\tli\t" + tempReg + "," + str(node.value) + "\n"
-            self.functionCallStack.append((tempReg, node.token, True))
+            self.exitTypeStackHandler(self.functionCallStack, node)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredReturn:
-            child = "left" if node.parent.children[0] == node else "right"
-            tempReg = "$t1" if child == "left" else "$t2"
-            self.line += "\tli\t" + tempReg + "," + str(node.value) + "\n"
-            self.returnStack.append((tempReg, node.token, True))
+            self.exitTypeStackHandler(self.returnStack, node)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
-            child = "left" if node.parent.children[0] == node else "right"
-            tempReg = "$t1" if child == "left" else "$t2"
-            self.line += "\tli\t" + tempReg + "," + str(node.value) + "\n"
-            self.printfStack.append((tempReg, node.token, True))
+            self.exitTypeStackHandler(self.printfStack, node)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredCondition:
-            child = "left" if node.parent.children[0] == node else "right"
-            tempReg = "$t1" if child == "left" else "$t2"
-            self.line += "\tli\t" + tempReg + "," + str(node.value) + "\n"
-            self.conditionStack.append((tempReg, node.token, True))
+            self.exitTypeStackHandler(self.conditionStack, node)
 
         # We controleren of we in een assignment zijn gegaan
         elif self.enteredAssignment:
-            child = "left" if node.parent.children[0] == node else "right"
-            tempReg = "$t1" if child == "left" else "$t2"
-            self.line += "\tli\t" + tempReg + "," + str(node.value) + "\n"
-            # We voegen het toe aan de stack
-            self.assignmentStack.append((tempReg, node.token, True))
+            self.exitTypeStackHandler(self.assignmentStack, node)
 
         if len(self.logicalStack) > 0:  # TODO: dit later nog afhandelen
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
@@ -1364,7 +1306,7 @@ class Mips:
         #                                    ", " + \
         #              types[type][1] + "\n"
 
-        storeCommand = "sw" if fromRegister[1] != "f" else "swc1"
+        storeCommand = "sw" if str(fromRegister)[1] != "f" else "swc1"
         self.line += "\t" + storeCommand + "\t" + str(fromRegister) + "," + str(offset) + "($sp)\n"
 
     def load(self, fromReg, type, toReg_=None):
@@ -1674,9 +1616,12 @@ class Mips:
         return self.register - 1
 
     def intToFloat(self, reg):
-        self.line += "  %" + str(self.register) + " = sitofp i32 %" + str(reg) + " to float\n"
-        self.register += 1
-        return self.register - 1
+        # self.line += "  %" + str(self.register) + " = sitofp i32 %" + str(reg) + " to float\n"
+        # self.register += 1
+
+        self.line += "\tmtc1\t" + reg + ", $f6\n" + \
+                     "\tcvt.s.w\t $f6, $f6\n"
+        return "$f6"
 
     def noReturn(self):
         self.line += "  %" + str(self.register) + " = alloca " + types[self.returnType][0] + ", " + \
@@ -1721,6 +1666,43 @@ class Mips:
 
 
         return toReg, line
+
+    def exitTypeStackHandler(self, stack, node):
+        toReg, line = self.loadInReg(node.value, node.token)
+        self.line += line
+        self.store(toReg, self.offset)
+        stack.append((self.offset, node.token, True))
+        self.offset -= 4
+
+    def exitIdentifierStackHandler(self, stack, symbol_lookup, function):
+        reg, type = function(symbol_lookup)
+        self.line += reg[1]
+        self.store(reg[0], self.offset)
+        stack.append((self.offset, type, True))  # Ook hier heeft de functioncall voorang
+        self.offset -= 4
+
+    def exitBinOperationStackHandler(self, stack, node, function):
+
+        reg1 = '$t0' if stack[-2][1] != "FLOAT" else '$f0'
+        reg2 = '$t1' if stack[-2][1] != "FLOAT" else '$f1'
+
+        reg1, line = self.load(stack[-2][0], stack[-2][1], reg1)
+        self.line += line
+
+        reg2, line = self.load(stack[-1][0], stack[-1][1], reg2)
+        self.line += line
+
+        toReg, toType, line = function(node, stack, reg1, reg2)
+        self.line += line
+
+        stack.pop()
+        stack.pop()
+        self.offset += 8
+
+        self.store(toReg, self.offset)
+
+        stack.append((self.offset, toType, True))
+        self.offset -= 4
 
     def popRightStack(self):
         if self.enteredFunctionCall > 0:
