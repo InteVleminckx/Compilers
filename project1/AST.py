@@ -729,7 +729,7 @@ class ASTprinter(mathGrammerListener):
         if (ctx.getChildCount() == 2 or ctx.getChildCount() == 1) and ctx.IDENTIFIER():
 
             type_ = None
-            if ctx.getChildCount() == 2:
+            if ctx.getChildCount() == 2 and type(ctx.getChild(0)) != mathGrammerParser.PointerContext:
                 # Als we een function definition bovenaan de stack hebben en we hebben de scope hiervan nog niet geopend
                 # Gaan we een node toevoegen als return type van de function
 
@@ -802,7 +802,7 @@ class ASTprinter(mathGrammerListener):
             ast.pointerAmount = 0
             ast.referenceAmount = 0
 
-            if ctx.getChildCount() == 2:
+            if ctx.getChildCount() == 2 and type(ctx.getChild(0)) != mathGrammerParser.PointerContext:
                 ast.lastCreated.isDeclaration = True
 
             if self.createArray[0]:

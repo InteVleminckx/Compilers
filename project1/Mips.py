@@ -215,9 +215,13 @@ class Mips:
             #     self.line += "\n"
 
 
-            returnReg = self.returnStack[-1][0]
+            returnReg = self.returnStack[-1]
             self.returnStack.pop()
-            line = "\n\tsw\t" + returnReg + ", 0($fp)\n" + \
+
+            toReg, line = self.load(returnReg[0], returnReg[1])
+            self.line += line
+
+            line = "\n\tsw\t" + str(toReg) + ", 0($fp)\n" + \
                    "\tlw $ra, " + str(self.stackOffset - 8) + "($sp)\n" + \
                    "\taddi\t$sp,$fp,0\n" + \
                    "\tlw\t$fp, -4($sp)\n"
@@ -284,15 +288,15 @@ class Mips:
                         str_ += str(elem[0])
                         name = str_
                     else:
-                        if elem[1] == "CHAR": #TODO: dit ook nog bekijken
-                            name = str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
-                            # self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
-                        else:
+                        # if elem[1] == "CHAR": #TODO: dit ook nog bekijken
+                        #     name = str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
+                        #     # self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
+                        # else:
                             # self.line += types[elem[1]][0] + " "
                             # self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
-                            name = str(elem[0])
-                            name, line = self.load(name, elem[1])
-                            self.line += line
+                        name = str(elem[0])
+                        name, line = self.load(name, elem[1])
+                        self.line += line
 
                     if splitString[i][1] == "d":
                         self.line += "\tla $a0, (" + name + ")\n"
@@ -308,12 +312,12 @@ class Mips:
                     elif splitString[i][1] == "c":
 
                         self.line += "\tla $a0, (" + name + ")\n"
-                        self.line += "\tli $v0, 4\n"
+                        self.line += "\tli $v0, 11\n"
                         self.line += "\tsyscall\n\n"
 
                     elif splitString[i][1] == "s":
 
-                        self.line += "\tla $a0, (" + name + ")\n"
+                        self.line += "\tla $a0, " + name + "\n"
                         self.line += "\tli $v0, 4\n"
                         self.line += "\tsyscall\n\n"
 
@@ -979,8 +983,8 @@ class Mips:
     def exitComparison(self, node):
         print("exitComparison")
 
-        func = lambda node1, stack, condition: (
-            self.compare(data_comp_instr[str(node1.value)], stack[-2][0], stack[-1][0], stack[-2][1], stack[-1][1],
+        func = lambda node1, stack, condition, reg1, reg2: (
+            self.compare(data_comp_instr[str(node1.value)] if stack[-2][1] == "INT" and stack[-1][1] == "INT" else data_comp_instr_f[str(node1.value)], reg1, reg2, stack[-2][1], stack[-1][1],
                          stack[-2][2], stack[-1][2], condition))
 
         toReg = None
@@ -989,50 +993,31 @@ class Mips:
         if self.enteredFunctionCall > 0:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            toReg, toType, line = func(node, self.functionCallStack, False)
-            self.line += line
-            self.functionCallStack.pop()
-            self.functionCallStack.pop()
-            self.functionCallStack.append((toReg, toType, True))
+            self.exitComparisonStackHandler(self.functionCallStack, node, func, False)
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredReturn:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            toReg, toType, line = func(node, self.returnStack, False)
-            self.line += line
-            self.returnStack.pop()
-            self.returnStack.pop()
-            self.returnStack.append((toReg, toType, True))
+            self.exitComparisonStackHandler(self.returnStack, node, func, False)
+
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            toReg, toType, line = func(node, self.printfStack, False)
-            self.line += line
-            self.printfStack.pop()
-            self.printfStack.pop()
-            self.printfStack.append((toReg, toType, True))
+            self.exitComparisonStackHandler(self.printfStack, node, func, False)
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredCondition:
-            toReg, toType, line = func(node, self.conditionStack, True)
-            self.line += line
-            self.conditionStack.pop()
-            self.conditionStack.pop()
-            self.conditionStack.append((toReg, toType, True))
+            self.exitComparisonStackHandler(self.conditionStack, node, func, True)
 
         elif self.enteredAssignment:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            toReg, toType, line = func(node, self.assignmentStack, False)
-            self.line += line
-            self.assignmentStack.pop()
-            self.assignmentStack.pop()
-            self.assignmentStack.append((toReg, toType, True))
+            self.exitComparisonStackHandler(self.assignmentStack, node, func, False)
 
-        if len(self.logicalStack) > 0:
+        if len(self.logicalStack) > 0: #TODO: dit nog bekijken
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 # Omdat we da waarde uit de stack al hebben gebruikt moeten we deze nog wel terug verwijderen
                 self.popRightStack()
@@ -1679,7 +1664,7 @@ class Mips:
                 self.floats.append((floatName, value))
                 self.floatCount += 1
 
-                globalvar = floatName + ":" + "\t" + "." + global_types[type1] + "\t" + value + "\n"
+                globalvar = str(floatName) + ":" + "\t" + "." + global_types[type1] + "\t" + str(value) + "\n"
                 self.globals.append(globalvar)
 
             line = "\tl.s\t" + "$f0, " + floatName + "\n"
@@ -1725,6 +1710,29 @@ class Mips:
 
         stack.append((self.offset, toType, True))
         self.offset -= 4
+
+    def exitComparisonStackHandler(self, stack, node, function, condition):
+        reg1 = '$t0' if stack[-2][1] != "FLOAT" else '$f0'
+        reg2 = '$t1' if stack[-1][1] != "FLOAT" else '$f1'
+
+        reg1, line = self.load(stack[-2][0], stack[-2][1], reg1)
+        self.line += line
+
+        reg2, line = self.load(stack[-1][0], stack[-1][1], reg2)
+        self.line += line
+
+        toReg, toType, line = function(node, stack, condition,reg1, reg2)
+        self.line += line
+
+        stack.pop()
+        stack.pop()
+        self.offset += 8
+
+        self.store(toReg, self.offset)
+
+        stack.append((self.offset, toType, True))
+        self.offset -= 4
+
 
     def popRightStack(self):
         if self.enteredFunctionCall > 0:
