@@ -1,7 +1,7 @@
 from AST import *
 
 # types = {"INT": ("i32", "align 4"), "FLOAT": ("float", "align 4"), "CHAR": ("i8", "align 1"), None: ("void", "")}
-calculations_ = {"+": "add", "-": "sub", "*": "mul", "/": "div", "%": "srem"}
+calculations_ = {"+": "add", "-": "sub", "*": "mul", "/": "div", "%": "mfhi"}
 logicals = {"||": "OR", "&&": "AND", "!": "NOT"}
 
 global_types = {"INT": "word", "FLOAT": "float", "CHAR": "asciiz", None: ("void", "")}
@@ -301,7 +301,7 @@ class Mips:
 
                     elif splitString[i][1] == "f":
 
-                        self.line += "\tla $f12, (" + name + ")\n"
+                        self.line += "\tmov.s $f12, " + name + "\n"
                         self.line += "\tli $v0, 2\n"
                         self.line += "\tsyscall\n\n"
 
@@ -1352,44 +1352,51 @@ class Mips:
         resultReg = "$t0"
         if type1 == "FLOAT" or type2 == "FLOAT":
             type = "FLOAT"
+            operation += ".s"
 
         if type == "FLOAT":
+            resultReg = "$f0"
             # Moest 1 van de 2 types een int zijn moeten we deze eerst nog omzetten naar een float
             if type1 == "INT":
                 # Check of het een register is of niet.
                 if not isReg1:
-                    num1 = str(num1) + ".0e+00"
+                    # num1 = str(num1) + ".0e+00"
+                    pass
                 else:
                     toReg = self.intToFloat(str(num1))
                     num1 = str(toReg)
 
-                line += "  %" + str(self.register) + " = f" + operation + " float "
-                line += "%" if isReg1 else ""
-                line += str(num1) + ", "
-                line += "%" if isReg2 else ""
-                line += str(num2) + "\n"
+                # line += "  %" + str(self.register) + " = f" + operation + " float "
+                # line += "%" if isReg1 else ""
+                # line += str(num1) + ", "
+                # line += "%" if isReg2 else ""
+                # line += str(num2) + "\n"
+                line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
 
             elif type2 == "INT":
                 # Check of het een register is of niet.
                 if not isReg2:
-                    num2 = str(num2) + ".0e+00"
+                    # num2 = str(num2) + ".0e+00"
+                    pass
                 else:
                     toReg = self.intToFloat(str(num2))
                     num2 = str(toReg)
 
-                line += "  %" + str(self.register) + " = f" + operation + " float "
-                line += "%" if isReg1 else ""
-                line += str(num1) + ", "
-                line += "%" if isReg2 else ""
-                line += str(num2) + "\n"
+                # line += "  %" + str(self.register) + " = f" + operation + " float "
+                # line += "%" if isReg1 else ""
+                # line += str(num1) + ", "
+                # line += "%" if isReg2 else ""
+                # line += str(num2) + "\n"
+                line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
 
             else:
                 # Allebei float
-                line += "  %" + str(self.register) + " = f" + operation + " float "
-                line += "%" if isReg1 else ""
-                line += str(num1) + ", "
-                line += "%" if isReg2 else ""
-                line += str(num2) + "\n"
+                # line += "  %" + str(self.register) + " = f" + operation + " float "
+                # line += "%" if isReg1 else ""
+                # line += str(num1) + ", "
+                # line += "%" if isReg2 else ""
+                # line += str(num2) + "\n"
+                line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
 
         elif type == "INT":
             # if operation == "div":
@@ -1400,7 +1407,13 @@ class Mips:
             # line += str(num1) + ", "
             # line += "%" if isReg2 else ""
             # line += str(num2) + "\n"
-            line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
+            if operation == "mfhi":
+                line += "\tdiv\t" + str(num1) + "," + str(num2) + " \t#mod\n"
+                line += "\tmfhi\t $t6  \t# temp for the mod\n"
+                resultReg = "$t6"
+            else:
+                line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
+
         return resultReg, type, line
 
     def compare(self, comparison, num1, num2, type1, type2, isReg1, isReg2, isCondition=False):
@@ -1611,9 +1624,11 @@ class Mips:
         self.line += symbol + str(next) + ":\n"
 
     def floatToInt(self, reg):
-        self.line += "  %" + str(self.register) + " = fptosi float %" + str(reg) + " to i32\n"
-        self.register += 1
-        return self.register - 1
+        # self.line += "  %" + str(self.register) + " = fptosi float %" + str(reg) + " to i32\n"
+        # self.register += 1
+        self.line += "\tcvt.w.s\t" + reg + "," + reg + "\n" + \
+                     "\tmfc1\t $t0," + reg + "\n"
+        return "$t0"
 
     def intToFloat(self, reg):
         # self.line += "  %" + str(self.register) + " = sitofp i32 %" + str(reg) + " to float\n"
