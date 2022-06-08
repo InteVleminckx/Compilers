@@ -52,6 +52,11 @@ class Node:
         self.falseLabel = None
         self.fromRegBr = None
 
+        # Voor mips
+        self.trueLabelM = None
+        self.falseLabelM = None
+        self.fromRegBrM = None
+
     def getValue(self):
         return self.value
 

@@ -65,7 +65,7 @@ class Mips:
         self.whileLabelCount = 0
 
         self.register = 0
-        #NOTE: We houden een globale offset bij zodat we weten wat de huidige offset is
+        # NOTE: We houden een globale offset bij zodat we weten wat de huidige offset is
         self.offset = -4
 
         self.isMain = False
@@ -217,7 +217,6 @@ class Mips:
             #     self.enteredReturn = False
             #     self.line += "\n"
 
-
             returnReg = self.returnStack[-1]
             self.returnStack.pop()
 
@@ -296,8 +295,8 @@ class Mips:
                         #     name = str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
                         #     # self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
                         # else:
-                            # self.line += types[elem[1]][0] + " "
-                            # self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
+                        # self.line += types[elem[1]][0] + " "
+                        # self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
                         name = str(elem[0])
                         name, line = self.load(name, elem[1])
                         self.line += line
@@ -775,8 +774,7 @@ class Mips:
         toType = None
 
         if node.parent.token == "=":
-           toType = node.parent.children[0].type
-
+            toType = node.parent.children[0].type
 
         if self.enteredFunctionCall > 0:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
@@ -805,7 +803,7 @@ class Mips:
             # Waar we de operation moeten uitvoeren
             self.exitBinOperationStackHandler(self.assignmentStack, node, func, toType)
 
-        if len(self.logicalStack) > 0: #TODO: nog behandelen
+        if len(self.logicalStack) > 0:  # TODO: nog behandelen
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 toReg__, type, line = self.compare("ne", toReg, 0, toType, "INT", True, False, True)
                 self.popRightStack()
@@ -838,7 +836,6 @@ class Mips:
 
         reg = None
         type = None
-
 
         # als we een functioncall hebben dan heeft dit voorrang op een assignment omdat een functioncall in een assignment kan voorkomen
         if self.enteredFunctionCall > 0:
@@ -880,8 +877,7 @@ class Mips:
 
             self.exitIdentifierStackHandler(self.assignmentStack, symbol_lookup, func)
 
-
-        if len(self.logicalStack) > 0: #TODO: later afhandelen
+        if len(self.logicalStack) > 0:  # TODO: later afhandelen
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 # We gaan nu de compare opartion uitvoeren
                 toReg__, type, line = self.compare("ne", reg[0], 0, type, "INT", True, False, True)
@@ -920,7 +916,10 @@ class Mips:
 
         if len(self.logicalStack) > 0:  # TODO: dit later nog afhandelen
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
-                toReg__, type, line = self.compare("ne", str(node.value), 0, node.type, "INT", False, False, True)
+                self.popRightStack()
+                toReg__, type, line = self.compare(
+                    "sne" if self.logicalStack[-1][0].type == "INT" and self.logicalStack[-1][1].type == "INT" else "c.ne.s", "$zero",str(node.value), node.type, "INT", True, True, True)
+
                 self.line += line
                 self.determineBranch(node, node.parent, toReg__)
 
@@ -964,7 +963,8 @@ class Mips:
         print("exitComparison")
 
         func = lambda node1, stack, condition, reg1, reg2: (
-            self.compare(data_comp_instr[str(node1.value)] if stack[-2][1] == "INT" and stack[-1][1] == "INT" else data_comp_instr_f[str(node1.value)], reg1, reg2, stack[-2][1], stack[-1][1],
+            self.compare(data_comp_instr[str(node1.value)] if stack[-2][1] == "INT" and stack[-1][1] == "INT" else
+                         data_comp_instr_f[str(node1.value)], reg1, reg2, stack[-2][1], stack[-1][1],
                          stack[-2][2], stack[-1][2], condition))
 
         toReg = None
@@ -997,13 +997,13 @@ class Mips:
             # Waar we de operation moeten uitvoeren
             self.exitComparisonStackHandler(self.assignmentStack, node, func, False)
 
-        if len(self.logicalStack) > 0: #TODO: dit nog bekijken
+        if len(self.logicalStack) > 0:  # TODO: dit nog bekijken
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 # Omdat we da waarde uit de stack al hebben gebruikt moeten we deze nog wel terug verwijderen
                 self.popRightStack()
                 self.determineBranch(node, node.parent, toReg)
                 if self.isComparison:
-                    node.parent.fromRegBr = toReg
+                    node.parent.fromRegBrM = toReg
 
     def enterLogical(self, node):
         print("enterLogical")
@@ -1038,14 +1038,14 @@ class Mips:
         # TODO: add
         if node.parent is not None:
             # We nemen de parent zijn labels over (moete deze niet kloppen worden deze later toch overschreven)
-            node.trueLabel = node.parent.trueLabel
-            node.falseLabel = node.parent.falseLabel
+            node.trueLabelM = node.parent.trueLabelM
+            node.falseLabelM = node.parent.falseLabelM
 
         # We gaan ook een final register alloceren waar de uitkomst in komt
-        if self.finalRegLog is None:
-            self.finalRegLog = self.register
-            self.register += 1
-            self.allocate(self.finalRegLog, "INT")
+        # if self.finalRegLog is None:
+        #     self.finalRegLog = self.register
+        #     self.register += 1
+        #     self.allocate(self.finalRegLog, "INT")
 
     def exitLogical(self, node):
         print("exitLogical")
@@ -1065,35 +1065,35 @@ class Mips:
                     # We branchen dan met de Truelabel van de node
                     # We voeren nog een comparison uit
 
-                    self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.trueLabel, "x")
-                    self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
-                    self.register += 1
-                    parent.falseLabel = node.falseLabel
+                    self.branch(node.fromRegBrM, node.trueLabelM, node.falseLabelM, node.trueLabelM, "x")
+                    self.line = self.line.replace("x" + str(node.trueLabelM), "__label" + str(self.labelCount) + "__")
+                    self.labelCount += 1
+                    parent.falseLabelM = node.falseLabelM
 
                 elif logicals[str(parent.value)] == "OR":
                     # We branchen met het Falselabel van de node
-                    self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.falseLabel, "x")
-                    self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
-                    self.register += 1
-                    parent.trueLabel = node.trueLabel
+                    self.branch(node.fromRegBrM, node.trueLabelM, node.falseLabelM, node.falseLabelM, "x")
+                    self.line = self.line.replace("x" + str(node.falseLabelM), "__label" + str(self.labelCount) + "__")
+                    self.labelCount += 1
+                    parent.trueLabelM = node.trueLabelM
 
                 elif logicals[str(parent.value)] == "NOT":
-                    parent.trueLabel = node.trueLabel
-                    parent.falseLabel = node.falseLabel
-                    parent.fromRegBr = node.fromRegBr
+                    parent.trueLabelM = node.trueLabelM
+                    parent.falseLabelM = node.falseLabelM
+                    parent.fromRegBrM = node.fromRegBrM
 
             elif node == parent.children[1]:
                 # Als we het rechterkind zijn kijken we naar de parent zijn logical
 
                 if logicals[str(parent.value)] == "AND":
                     # We gaan niet branchen, we geven gewoon de truelabel door aan de parent
-                    parent.trueLabel = node.trueLabel
-                    parent.fromRegBr = node.fromRegBr
+                    parent.trueLabelM = node.trueLabelM
+                    parent.fromRegBrM = node.fromRegBrM
 
                 elif logicals[str(parent.value)] == "OR":
                     # We gaan niet branchen, we geven gewoon het falseLabel door aan de parent
-                    parent.falseLabel = node.falseLabel
-                    parent.fromRegBr = node.fromRegBr
+                    parent.falseLabelM = node.falseLabelM
+                    parent.fromRegBrM = node.fromRegBrM
 
         else:
             # Nu moeten we nog 2 branches maken en de final branch
@@ -1102,67 +1102,69 @@ class Mips:
 
             if not self.isComparison:
                 # We maken eerst de branch aan met een nieuw falseLabel
-                self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.falseLabel, "x")
-                self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
-                self.register += 1
+                self.branch(node.fromRegBrM, node.trueLabelM, node.falseLabelM, node.falseLabelM, "x")
+                self.line = self.line.replace("x" + str(node.falseLabelM), "__label" + str(self.labelCount) + "__")
+                self.labelCount += 1
             else:
                 self.isComparison = False
                 self.wasLogical = True
-                self.branch(node.fromRegBr, node.trueLabel, node.falseLabel, node.falseLabel, "x")
-                self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
-                self.register += 1
+                self.branch(node.fromRegBrM, node.trueLabelM, node.falseLabelM, node.falseLabelM, "x")
+                self.line = self.line.replace("x" + str(node.falseLabelM), "__label" + str(self.labelCount) + "__")
+                self.labelCount += 1
 
             # Nu gaan we hier een false in het eind register plaatsen
-            self.store(0, self.finalRegLog, "INT", False, True)
+            toReg, line = self.loadInReg(0, "INT")
+            self.line += line
 
             # We doen hier een branch naar het final label
-            self.line += "  br label %x" + str(self.logLabelCount) + "\n\n"
+            self.line += "\tb x" + str(self.logLabelCount) + "\n\n"
 
             # Nu de true branch
-            self.line += "x" + str(node.trueLabel) + ":\n"
+            self.line += "x" + str(node.trueLabelM) + ":\n"
 
-            self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
-            self.register += 1
+            self.line = self.line.replace("x" + str(node.trueLabelM), "__label" + str(self.labelCount) + "__")
+            self.labelCount += 1
 
             # We storen een true in het eind register
-            self.store(1, self.finalRegLog, "INT", False, True)
+            toReg, line = self.loadInReg(1, "INT")
+            self.line += line
 
             # We doen hier een branch naar het final label
-            self.line += "  br label %x" + str(self.logLabelCount) + "\n\n"
+            self.line += "\tb x" + str(self.logLabelCount) + "\n\n"
 
             # We maken de final branch aan
 
             self.line += "x" + str(self.logLabelCount) + ":\n"
 
-            self.line = self.line.replace("x" + str(self.logLabelCount), str(self.register))
-            self.register += 1
+            self.line = self.line.replace("x" + str(self.logLabelCount),  "__label" + str(self.labelCount) + "__")
+            self.labelCount += 1
 
-            # Nu moeten we de gealloceerde value nog uit het register halen en in de correcte stack pushen
             toType = "INT"
-            toReg, line = self.load(self.finalRegLog, toType)
-            self.line += line
+
+            self.store(toReg, self.offset)
 
             if self.enteredFunctionCall > 0:
-                self.functionCallStack.append((toReg, toType, True))
+                self.functionCallStack.append((self.offset, toType, True))
 
                 # Ook hier heeft de functioncall eerst voorrang
             elif self.enteredReturn:
-                self.returnStack.append((toReg, toType, True))
+                self.returnStack.append((self.offset, toType, True))
 
                 # Ook hier heeft de functioncall eerst voorrang
             elif self.enteredPrintf:
-                self.printfStack.append((toReg, toType, True))
+                self.printfStack.append((self.offset, toType, True))
 
                 # Ook hier heeft de functioncall eerst voorrang
             elif self.enteredCondition:
-                self.conditionStack.append((toReg, toType, True))
+                self.conditionStack.append((self.offset, toType, True))
 
             elif self.enteredAssignment:
-                self.assignmentStack.append((toReg, toType, True))
+                self.assignmentStack.append((self.offset, toType, True))
 
             # We resetten de values
             self.finalRegLog = None
             self.logLabelCount = 0
+            self.offset -= 4
 
     def enterCondition(self, node):
         print("enterCondition")
@@ -1314,7 +1316,8 @@ class Mips:
 
         return self.register - 1
 
-    def operate(self, operation, num1, num2, type1, type2, isReg1, isReg2, LHStype=None): # num1 = t1, num 2 = t2, operation = see calculations global var
+    def operate(self, operation, num1, num2, type1, type2, isReg1, isReg2,
+                LHStype=None):  # num1 = t1, num 2 = t2, operation = see calculations global var
 
         line = ""
         type = "INT"
@@ -1417,7 +1420,7 @@ class Mips:
             label = "__false" + str(self.compBranchNr) + "__\n"
             line += "\t" + comparison + "\t" + num1 + ", " + num2 + "\n"
             line += "\t" + "bc1f, " + label
-            line += "\tli\t" + "$t0, " + "1\n" # resultReg is t0
+            line += "\tli\t" + "$t0, " + "1\n"  # resultReg is t0
             line += "\tb\t" + "__resumeComparison" + str(self.compBranchNr) + "__\n\n"
 
             line += "__false" + str(self.compBranchNr) + "__:\n"
@@ -1444,7 +1447,7 @@ class Mips:
         if str(parent.parent.value) in logicals:
             if logicals[str(parent.parent.value)] == "NOT":
                 self.line += "  %" + str(self.register) + " = xor i1 %" + str(fromReg) + ', true\n'
-                parent.fromRegBr = self.register
+                parent.fromRegBrM = self.register
                 fromReg = self.register
                 self.register += 1
 
@@ -1460,42 +1463,42 @@ class Mips:
 
                     if parent == parent.parent.children[0]:
                         if logicals[str(parent.parent.value)] == "AND":
-                            node.falseLabel = parent.parent.falseLabel
+                            node.falseLabelM = parent.parent.falseLabelM
 
                         elif logicals[str(parent.parent.value)] == "NOT":
-                            node.falseLabel = self.logLabelCount
+                            node.falseLabelM = self.logLabelCount
                             self.logLabelCount += 1
 
                         else:
-                            node.falseLabel = self.logLabelCount
+                            node.falseLabelM = self.logLabelCount
                             self.logLabelCount += 1
                     else:
-                        node.falseLabel = parent.falseLabel
+                        node.falseLabelM = parent.falseLabelM
 
                 else:
-                    node.falseLabel = self.logLabelCount
+                    node.falseLabelM = self.logLabelCount
                     self.logLabelCount += 1
 
-                node.trueLabel = self.logLabelCount
+                node.trueLabelM = self.logLabelCount
                 self.logLabelCount += 1
 
                 # TODO: aanpassing
                 if str(node.value) in data_comp_instr and str(parent.value) in logicals:
                     # if str(parent.value) in comparisons and str(parent.value.value) not in logicals:
-                    self.branch(fromReg, node.trueLabel, node.falseLabel, node.trueLabel, "x")
-                    self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
-                    self.register += 1
+                    self.branch(fromReg, node.trueLabelM, node.falseLabelM, node.trueLabelM, "x")
+                    self.line = self.line.replace("x" + str(node.trueLabelM), "__label" + str(self.labelCount) + "__")
+                    self.labelCount += 1
 
                 elif (str(node.token) == "IDENTIFIER" or str(node.token) in types):
-                    self.branch(fromReg, node.trueLabel, node.falseLabel, node.trueLabel, "x")
-                    self.line = self.line.replace("x" + str(node.trueLabel), str(self.register))
-                    self.register += 1
+                    self.branch(fromReg, node.trueLabelM, node.falseLabelM, node.trueLabelM, "x")
+                    self.line = self.line.replace("x" + str(node.trueLabelM), "__label" + str(self.labelCount) + "__")
+                    self.labelCount += 1
 
                 else:
                     self.isComparison = True
 
                 # We stellen de parent zijn falseLabel ook gelijk aan dit van deze node
-                parent.falseLabel = node.falseLabel
+                parent.falseLabelM = node.falseLabelM
 
             elif logicals[str(parent.value)] == "OR":
                 # Als dit een OR is gaan we met een False naar het rechterkind en met een True niet
@@ -1506,55 +1509,55 @@ class Mips:
 
                     if parent == parent.parent.children[0]:
                         if logicals[str(parent.parent.value)] == "OR":
-                            node.trueLabel = parent.parent.trueLabel
+                            node.trueLabelM = parent.parent.trueLabelM
 
                         elif logicals[str(parent.parent.value)] == "NOT":
-                            node.trueLabel = self.logLabelCount
+                            node.trueLabelM = self.logLabelCount
                             self.logLabelCount += 1
 
                         else:
-                            node.trueLabel = self.logLabelCount
+                            node.trueLabelM = self.logLabelCount
                             self.logLabelCount += 1
 
                     else:
-                        node.trueLabel = parent.trueLabel
+                        node.trueLabelM = parent.trueLabelM
                 else:
-                    node.trueLabel = self.logLabelCount
+                    node.trueLabelM = self.logLabelCount
                     self.logLabelCount += 1
 
-                node.falseLabel = self.logLabelCount
+                node.falseLabelM = self.logLabelCount
                 self.logLabelCount += 1
 
                 # TODO: aanpassing
                 if str(node.value) in data_comp_instr and str(parent.value) in logicals:
                     # if str(parent.value) in comparisons and str(parent.value.value) not in logicals:
-                    self.branch(fromReg, node.trueLabel, node.falseLabel, node.falseLabel, "x")
-                    self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
-                    self.register += 1
+                    self.branch(fromReg, node.trueLabelM, node.falseLabelM, node.falseLabelM, "x")
+                    self.line = self.line.replace("x" + str(node.falseLabelM), "__label" + str(self.labelCount) + "__")
+                    self.labelCount += 1
 
                 elif (str(node.token) == "IDENTIFIER" or str(node.token) in types):
-                    self.branch(fromReg, node.trueLabel, node.falseLabel, node.falseLabel, "x")
-                    self.line = self.line.replace("x" + str(node.falseLabel), str(self.register))
-                    self.register += 1
+                    self.branch(fromReg, node.trueLabelM, node.falseLabelM, node.falseLabelM, "x")
+                    self.line = self.line.replace("x" + str(node.falseLabelM), "__label" + str(self.labelCount) + "__")
+                    self.labelCount += 1
 
                 else:
                     self.isComparison = True
 
                 # We stellen de parent zijn trueLabel gelijk aan dit van deze node
-                parent.trueLabel = node.trueLabel
+                parent.trueLabelM = node.trueLabelM
 
             elif logicals[str(parent.value)] == "NOT":
                 self.line += "  %" + str(self.register) + " = xor i1 %" + str(fromReg) + ', true\n'
-                parent.fromRegBr = self.register
+                parent.fromRegBrM = self.register
                 self.register += 1
 
                 if str(parent.parent.value) not in logicals:
-                    node.trueLabel = self.logLabelCount
+                    node.trueLabelM = self.logLabelCount
                     self.logLabelCount += 1
-                    node.falseLabel = self.logLabelCount
+                    node.falseLabelM = self.logLabelCount
                     self.logLabelCount += 1
-                    parent.trueLabel = node.trueLabel
-                    parent.falseLabel = node.falseLabel
+                    parent.trueLabelM = node.trueLabelM
+                    parent.falseLabelM = node.falseLabelM
 
 
         elif node == parent.children[1]:
@@ -1566,19 +1569,19 @@ class Mips:
                 # Als dit een or is en de parent is zijn rechterkind pakken we het trueLabel van die or
                 if str(parent.parent.value) in logicals:
                     if logicals[str(parent.parent.value)] == "OR" and parent == parent.parent.children[1]:
-                        node.trueLabel = parent.parent.trueLabel
+                        node.trueLabelM = parent.parent.trueLabelM
                     else:
-                        node.trueLabel = self.logLabelCount
+                        node.trueLabelM = self.logLabelCount
                         self.logLabelCount += 1
                 else:
-                    node.trueLabel = self.logLabelCount
+                    node.trueLabelM = self.logLabelCount
                     self.logLabelCount += 1
 
-                node.falseLabel = parent.falseLabel
+                node.falseLabelM = parent.falseLabelM
                 # We stellen nu ook de parent zijn trueLabel in
-                parent.trueLabel = node.trueLabel
+                parent.trueLabelM = node.trueLabelM
 
-                parent.fromRegBr = fromReg
+                parent.fromRegBrM = fromReg
 
                 # We gaan hierna een exit doen, dus we behandelen dan dit geval verder in de log node zelf
 
@@ -1586,24 +1589,24 @@ class Mips:
                 # Als dit een OR is gaan we de true van deze node gelijk stellen aan die van het linkerkind
                 # en gaan we de False als nieuwLabel maken
 
-                node.trueLabel = parent.trueLabel
+                node.trueLabelM = parent.trueLabelM
                 # Voor het falseLabel moeten we nog kijken wat de parent zijn parent is
                 # Als dit een and is en de parent is zijn rechterkind pakken we het falseLabel van die and
                 if str(parent.parent.value) in logicals:
                     # Als de parent zijn parent een AND is en de parent is zijn rechterkind nemen we deze label over
                     if logicals[str(parent.parent.value)] == "AND" and parent == parent.parent.children[1]:
-                        node.falseLabel = parent.parent.falseLabel
+                        node.falseLabelM = parent.parent.falseLabelM
                     # Anders maken we een nieuw label aan omdat onze parent een or is
                     else:
-                        node.falseLabel = self.logLabelCount
+                        node.falseLabelM = self.logLabelCount
                         self.logLabelCount += 1
                 else:
-                    node.falseLabel = self.logLabelCount
+                    node.falseLabelM = self.logLabelCount
                     self.logLabelCount += 1
                 # We stellen nu ook de parent zijn falseLabel in
-                parent.falseLabel = node.falseLabel
+                parent.falseLabelM = node.falseLabelM
 
-                parent.fromRegBr = fromReg
+                parent.fromRegBrM = fromReg
 
                 # We gaan hierna een exit doen, dus we behandelen dan dit geval verder in de log node zelf
 
@@ -1668,7 +1671,6 @@ class Mips:
 
             toReg = "$f0"
 
-
         return toReg, line
 
     def exitTypeStackHandler(self, stack, node):
@@ -1718,7 +1720,7 @@ class Mips:
         reg2, line = self.load(stack[-1][0], stack[-1][1], reg2)
         self.line += line
 
-        toReg, toType, line = function(node, stack, condition,reg1, reg2)
+        toReg, toType, line = function(node, stack, condition, reg1, reg2)
         self.line += line
 
         stack.pop()
@@ -1729,7 +1731,6 @@ class Mips:
 
         stack.append((self.offset, toType, True))
         self.offset -= 4
-
 
     def popRightStack(self):
         if self.enteredFunctionCall > 0:
@@ -1767,7 +1768,8 @@ class Mips:
                 # str_ = "@.str" + str(string[1]) if int(string[1]) > 0 else "@.str"
                 # line = str_ + " = private unnamed_addr constant " + inbound + " c\"" + str(string[2]) + "\", align 1\n"
                 if string[0] != 0:
-                    name = "str" + string[1]  # TODO naam verkrijgen (moet normaal op het moment dat we de printf zelf tegenkomen gemaakt worden) + stringvorm
+                    name = "str" + string[
+                        1]  # TODO naam verkrijgen (moet normaal op het moment dat we de printf zelf tegenkomen gemaakt worden) + stringvorm
                     str_ = name + ":\t"
                     line = str_ + "." + "asciiz\t" + str(string[2]) + "\n"
                     file.write(line)

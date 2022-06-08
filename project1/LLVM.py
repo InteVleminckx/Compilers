@@ -874,6 +874,7 @@ class LLVM:
 
         if len(self.logicalStack) > 0:
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
+                self.popRightStack()
                 toReg__, type, line = self.compare("ne", str(node.value), 0, node.type, "INT", False, False, True)
                 self.line += line
                 self.determineBranch(node, node.parent, toReg__)

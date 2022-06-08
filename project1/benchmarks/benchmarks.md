@@ -4,7 +4,7 @@
 | binaryOperations2     | V             | V             |
 | breakAndContinue      | V             | X             |
 | comparisons1          | V             | X             |
-| comparisons2          | V             | X             |
+| comparisons2          | V             | V             |
 | dereferenceAssignment | X             | X             |
 | fibonacciRecursive    | V             | X             |
 | floatToIntConversion  | V             | V             |
