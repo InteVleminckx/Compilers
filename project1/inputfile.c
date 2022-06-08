@@ -13,8 +13,10 @@
 //float b = 6.6;
 //char c = 'c';
 int main(){
-    int a = 5;
-    char b = 'g';
+    float b = 5.5;
+    float d = 10.59454;
+    float u = 5.5;
+    float c = b;
 //    printf("Hello %c World %c !", 'a', 'b');
 //    printf("Hello! %f", 5.5);
 //    printf("Hello World!\n");

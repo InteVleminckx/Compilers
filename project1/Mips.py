@@ -25,6 +25,7 @@ class Mips:
         self.line = ""
         self.stackOffset = 0
         self.stringCount = 0
+        self.floatCount = 0
 
         self.assignmentStack = []
         self.functionCallStack = []
@@ -53,6 +54,7 @@ class Mips:
         self.printf = False
         self.scanf = False
 
+        self.floats = []
         self.strings = []
         self.globals = []
 
@@ -630,7 +632,7 @@ class Mips:
 
     def exitUnaryOperation(self, node):
         print("exitUnaryOperation")
-        # We controlerne of het een ++ of -- is
+        # We controleren of het een ++ of -- is
         child = node.children[0]
         tableLookup__ = tableLookup(child)
         symbolTable = \
@@ -755,7 +757,6 @@ class Mips:
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredReturn:
             self.returnStack.append((str(self.register - 1), outputtype, True))
-
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
@@ -1341,12 +1342,14 @@ class Mips:
         #     0] + rightPoint + " " + reg2 + "" \
         #                                    ", " + \
         #              types[type][1] + "\n"
-        self.line += "\tsw\t" + str(fromRegister) + "," + str(offset) + "($sp)\n"
+
+        storeCommand = "sw" if fromRegister[1] != "f" else "swc1"
+        self.line += "\t" + storeCommand + "\t" + str(fromRegister) + "," + str(offset) + "($sp)\n"
 
     def load(self, fromReg, type, toReg_=None):
 
         line = ""
-        toReg = "$t0"
+        toReg = "$t0" if type != "FLOAT" else "$f0"
 
         if toReg_:
             toReg = toReg_
@@ -1362,10 +1365,10 @@ class Mips:
         #         leftPoint = leftPoint[0:(len(leftPoint) - 1)]
         #         rightPoint = rightPoint[0:(len(rightPoint) - 1)]
         if type != "FLOAT":
-            line += "\tlw\t"+ toReg +", " + str(fromReg) + "($sp)\n"
+            line += "\tlw\t" + toReg + "," + str(fromReg) + "($sp)\n"
 
         else:
-            pass
+            line += "\tlwc1\t" + toReg + "," + str(fromReg) + "($sp)\n"
 
         return toReg, line
 
@@ -1672,12 +1675,29 @@ class Mips:
 
         if type1 != "FLOAT":  # int or char
 
-            line += "\tli " + "$t0, " + str(value) + "\n"
+            line += "\tli\t" + "$t0, " + str(value) + "\n"
             toReg = "$t0"
 
-        else:  # TODO voor floats
-            line = ""
-            self.globals.append(line)
+        else:
+
+            floatName = "fl" + str(self.floatCount)
+            isDuplicateFloatName = False
+            for i in range(len(self.floats)):
+                if self.floats[i][1] == value:
+                    isDuplicateFloatName = True
+                    floatName = self.floats[i][0]
+                    break
+            if not isDuplicateFloatName:
+                self.floats.append((floatName, value))
+                self.floatCount += 1
+
+                globalvar = floatName + ":" + "\t" + "." + global_types[type1] + "\t" + value + "\n"
+                self.globals.append(globalvar)
+
+            line = "\tl.s\t" + "$f0, " + floatName + "\n"
+
+            toReg = "$f0"
+
 
         return toReg, line
 
