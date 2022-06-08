@@ -71,6 +71,7 @@ class Mips:
         self.isMain = False
 
         self.compBranchNr = 0
+        self.labelCount = 0
 
     def enterFunction(self, node):
         print("enterFunction")
@@ -1611,8 +1612,13 @@ class Mips:
                 # We gaan hierna een exit doen, dus we behandelen dan dit geval verder in de log node zelf
 
     def branch(self, boolean, left, right, next, symbol):
-        self.line += "  br i1 %" + str(boolean) + ", label %" + symbol + str(left) + ", label %" + symbol + str(
-            right) + "\n\n"
+        # self.line += "  br i1 %" + str(boolean) + ", label %" + symbol + str(left) + ", label %" + symbol + str(
+        #     right) + "\n\n"
+        # self.line += symbol + str(next) + ":\n"
+
+        self.line += "\tbeq\t" + str(boolean) + ", 1, " + symbol + str(left) + "\n"
+        self.line += "\tbeq\t" + str(boolean) + ", 0, " + symbol + str(right) + "\n\n"
+
         self.line += symbol + str(next) + ":\n"
 
     def floatToInt(self, reg):
