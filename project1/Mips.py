@@ -526,7 +526,7 @@ class Mips:
 
                     offset2 = symbol_lookup2.stackOffset
 
-                    toReg, line = self.load(offset2, type1)
+                    toReg, line = self.load(offset2, symbol_lookup2.type)
 
                     self.line += line
                     if symbol_lookup.type == "INT" and symbol_lookup2.type == "FLOAT":
@@ -783,39 +783,43 @@ class Mips:
         print("exitBinOperation")
         # We controleren of we in een assignment zijn gegaan
 
-        func = lambda node1, stack, reg1, reg2: (
+        func = lambda node1, stack, reg1, reg2, type_: (
             self.operate(calculations_[str(node1.value)], reg1, reg2, stack[-2][1], stack[-1][1],
-                         stack[-2][2], stack[-1][2]))
+                         stack[-2][2], stack[-1][2], type_))
 
         toReg = None
         toType = None
 
+        if node.parent.token == "=":
+           toType = node.parent.children[0].type
+
+
         if self.enteredFunctionCall > 0:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitBinOperationStackHandler(self.functionCallStack, node, func)
+            self.exitBinOperationStackHandler(self.functionCallStack, node, func, toType)
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredReturn:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitBinOperationStackHandler(self.returnStack, node, func)
+            self.exitBinOperationStackHandler(self.returnStack, node, func, toType)
 
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitBinOperationStackHandler(self.printfStack, node, func)
+            self.exitBinOperationStackHandler(self.printfStack, node, func, toType)
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredCondition:
-            self.exitBinOperationStackHandler(self.conditionStack, node, func)
+            self.exitBinOperationStackHandler(self.conditionStack, node, func, toType)
 
         elif self.enteredAssignment:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitBinOperationStackHandler(self.assignmentStack, node, func)
+            self.exitBinOperationStackHandler(self.assignmentStack, node, func, toType)
 
         if len(self.logicalStack) > 0: #TODO: nog behandelen
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
@@ -1345,7 +1349,7 @@ class Mips:
 
         return self.register - 1
 
-    def operate(self, operation, num1, num2, type1, type2, isReg1, isReg2): # num1 = t1, num 2 = t2, operation = see calculations global var
+    def operate(self, operation, num1, num2, type1, type2, isReg1, isReg2, LHStype=None): # num1 = t1, num 2 = t2, operation = see calculations global var
 
         line = ""
         type = "INT"
@@ -1353,6 +1357,9 @@ class Mips:
         if type1 == "FLOAT" or type2 == "FLOAT":
             type = "FLOAT"
             operation += ".s"
+
+        if LHStype:
+            type = LHStype
 
         if type == "FLOAT":
             resultReg = "$f0"
@@ -1696,10 +1703,10 @@ class Mips:
         stack.append((self.offset, type, True))  # Ook hier heeft de functioncall voorang
         self.offset -= 4
 
-    def exitBinOperationStackHandler(self, stack, node, function):
+    def exitBinOperationStackHandler(self, stack, node, function, LHStype):
 
         reg1 = '$t0' if stack[-2][1] != "FLOAT" else '$f0'
-        reg2 = '$t1' if stack[-2][1] != "FLOAT" else '$f1'
+        reg2 = '$t1' if stack[-1][1] != "FLOAT" else '$f1'
 
         reg1, line = self.load(stack[-2][0], stack[-2][1], reg1)
         self.line += line
@@ -1707,7 +1714,7 @@ class Mips:
         reg2, line = self.load(stack[-1][0], stack[-1][1], reg2)
         self.line += line
 
-        toReg, toType, line = function(node, stack, reg1, reg2)
+        toReg, toType, line = function(node, stack, reg1, reg2, LHStype)
         self.line += line
 
         stack.pop()

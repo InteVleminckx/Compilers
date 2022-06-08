@@ -1752,11 +1752,13 @@ def symbolLookup(varName, symbolTable, sameScope=True, varLine=None, varColumn=N
                         if prevv[0] < varLine:
                             if prevv[2].register == 0:
                                 prevv[2].register = symbolTable.dict[str(varName)].register
+                                prevv[2].stackOffset = symbolTable.dict[str(varName)].stackOffset
                             return True, prevv[2], sameScope
 
                         elif prevv[0] == varLine and prevv[1] <= varColumn:
                             if prevv[2].register == 0:
                                 prevv[2].register = symbolTable.dict[str(varName)].register
+                                prevv[2].stackOffset = symbolTable.dict[str(varName)].stackOffset
 
                             return True, prevv[2], sameScope
 
