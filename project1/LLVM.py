@@ -206,6 +206,20 @@ class LLVM:
         print("exitPrintf")
         if self.enteredPrintf:
             self.enteredPrintf = False
+
+            #Vervangen van floats naar doubles
+            for i in range(1, len(self.printfStack)):
+                elem = self.printfStack[i]
+
+                if elem[1] == "FLOAT":
+                    self.line += "  %" + str(self.register) + " = fpext float "
+                    self.line += "%" + str(elem[0]) if elem[2] else str(elem)
+                    self.line += " to double\n"
+
+                    self.printfStack[i] = self.register, "DOUBLE", elem[2], elem[3]
+                    self.register += 1
+
+
             text = self.printfStack[0]
             textsize = text[3]
             textcount = text[0]
@@ -230,6 +244,9 @@ class LLVM:
                     if elem[1] == "CHAR" and elem[3] is False:
                         self.line += "i32 "
                         self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
+                    elif elem[1] == "DOUBLE":
+                        self.line += "double " if elem[3] is False else "double* "
+                        self.line += "%" + str(elem[0])
                     else:
                         self.line += types[elem[1]][0] + " " if elem[3] is False else types[elem[1]][0] + "* "
                         self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
