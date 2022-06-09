@@ -5,15 +5,15 @@ void f(int a){
 	return;
 }
 
-//void g(){
-//	printf("World\n");
-//	f();
-//	printf("World\n");
-//}
+void g(){
+	printf("World\n");
+	f();
+	printf("World\n");
+}
 
 int main(){
     // Should print "hello world" twice
 	f();
-//	g();
+	g();
 	return 1;
 }

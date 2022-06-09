@@ -106,7 +106,7 @@ class Mips:
             # register eraan kunnen toekennen
             # TODO: check lines and columns with function
             symbol_lookup = symbolLookup(param[0], symboltable, afterTotalSetup=True)[1]
-            symbol_lookup.register = i
+            # symbol_lookup.register = i
             # Als het een parameter is zetten we dit ook op true
             symbol_lookup.isParam = True
             # We verhogen ook de registercount al
@@ -741,7 +741,8 @@ class Mips:
                 toReg, line = self.load(symbolTable.stackOffset, symbolTable.type)
                 self.line += line
             else:
-                toReg = self.conditionStack[-1][0]
+                toReg, line = self.load(self.conditionStack[-1][0], symbolTable.type)
+                self.line += line
             toReg, toType, line = self.operate(calculations_["+"], toReg, 1, symbolTable.type, "INT", True, False)
             self.line += line
             self.store(toReg, symbolTable.stackOffset)
@@ -753,7 +754,8 @@ class Mips:
                 toReg, line = self.load(symbolTable.stackOffset, symbolTable.type)
                 self.line += line
             else:
-                toReg = self.conditionStack[-1][0]
+                toReg, line = self.load(self.conditionStack[-1][0], symbolTable.type)
+                self.line += line
             toReg, toType, line = self.operate(calculations_["-"], toReg, 1, symbolTable.type, "INT", True, False)
             self.line += line
             self.store(toReg, symbolTable.stackOffset)
@@ -846,7 +848,9 @@ class Mips:
 
         self.line += "\tjal\t" + funcName + "\n"
 
-        # self.line += "\tlw\t$t0, 0($sp)\n"
+        self.line += "\tlw\t$t0, 0($sp)\n"
+        self.store('$t0', self.offset)
+        self.offset -= 4
         if numberOfParams > 0:
             self.line += "\taddi\t" + "$sp, $sp, " + str((4+4*numberOfParams)) + "\n"
 
@@ -865,27 +869,27 @@ class Mips:
         # self.line += ")\n"
         self.enteredFunctionCall -= 1
 
-        self.register += 1
+        # self.register += 1
 
         if self.enteredFunctionCall > 0:
-            self.functionCallStack.append((str(self.register - 1), outputtype, True))
+            self.functionCallStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredReturn:
-            self.returnStack.append((str(self.register - 1), outputtype, True))
+            self.returnStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
-            self.printfStack.append((str(self.register - 1), outputtype, True))
+            self.printfStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredCondition:
-            self.conditionStack.append((str(self.register - 1), outputtype, True))
+            self.conditionStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
 
         # Ook hier kan het zijn dat we een recursieve call hebben van aanroepen in elkaar dus moeten we deze ook eerst voorrang geven
         elif self.enteredAssignment:
             # Als dit het geval is moet de register van deze function call worden toegevoegd aan de stack
-            self.assignmentStack.append((str(self.register - 1), outputtype, True))
+            self.assignmentStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
 
     def enterBinOperation(self, node):
         print("enterBinOperation")
