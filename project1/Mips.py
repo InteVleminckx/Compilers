@@ -379,17 +379,15 @@ class Mips:
                 curString = ""
                 while char != len(actualString):
                     if actualString[char] == "%":
-                        if curString != "":
-                            splitString.append(curString)
                         curString = actualString[char] + actualString[char + 1]
                         splitString.append(curString)
                         curString = ""
                         char += 2
-                    else:
-                        curString += actualString[char]
-                        char += 1
-                        if char == len(actualString):
-                            splitString.append(curString)
+                    # else:
+                    #     curString += actualString[char]
+                    #     char += 1
+                    #     if char == len(actualString):
+                    #         splitString.append(curString)
             else:
                 splitString.append(actualString)
 
@@ -419,7 +417,7 @@ class Mips:
                         self.line += "\tsyscall\n" # result in v0
                         self.line += "\tmove $t0, $v0\n"
 
-                        self.line += ""
+                        self.store("$t0", elem[0])
 
                     elif splitString[i][1] == "f":
                         self.line += "\tli $v0, 6\n"
@@ -1431,17 +1429,11 @@ class Mips:
             if type1 == "INT":
                 # Check of het een register is of niet.
                 if not isReg1:
-                    # num1 = str(num1) + ".0e+00"
                     pass
                 else:
                     toReg = self.intToFloat(str(num1))
                     num1 = str(toReg)
 
-                # line += "  %" + str(self.register) + " = f" + operation + " float "
-                # line += "%" if isReg1 else ""
-                # line += str(num1) + ", "
-                # line += "%" if isReg2 else ""
-                # line += str(num2) + "\n"
                 line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
 
             elif type2 == "INT":
@@ -1453,31 +1445,14 @@ class Mips:
                     toReg = self.intToFloat(str(num2))
                     num2 = str(toReg)
 
-                # line += "  %" + str(self.register) + " = f" + operation + " float "
-                # line += "%" if isReg1 else ""
-                # line += str(num1) + ", "
-                # line += "%" if isReg2 else ""
-                # line += str(num2) + "\n"
                 line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
 
-            else:
-                # Allebei float
-                # line += "  %" + str(self.register) + " = f" + operation + " float "
-                # line += "%" if isReg1 else ""
-                # line += str(num1) + ", "
-                # line += "%" if isReg2 else ""
-                # line += str(num2) + "\n"
+            else: # Allebei float
+
                 line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
 
         elif type == "INT":
-            # if operation == "div":
-            #     operation = "sdiv"
-            #
-            # line += "  %" + str(self.register) + " = " + operation + " i32 "
-            # line += "%" if isReg1 else ""
-            # line += str(num1) + ", "
-            # line += "%" if isReg2 else ""
-            # line += str(num2) + "\n"
+
             if operation == "mfhi":
                 line += "\tdiv\t" + str(num1) + "," + str(num2) + " \t#mod\n"
                 line += "\tmfhi\t $t6  \t# temp for the mod\n"
