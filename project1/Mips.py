@@ -823,28 +823,48 @@ class Mips:
         # We moeten eerst het type van de functie opvragen
         funcName = str(node.children[0].children[0].value)
         symboltable = tableLookup(node.children[0].children[0])
-        # Betekent dat we de naam van de functie hebben, hier moeten we niets mee doen
-        # TODO: ook nog lijn en kolom doorgeven
-        symbol_lookup = symbolLookup(funcName, symboltable, afterTotalSetup=True)[1]
+        symbol_lookup = symbolLookup(funcName, symboltable, afterTotalSetup=True, varLine=node.line, varColumn=node.column)[1]
         outputtype = symbol_lookup.outputTypes[0]
 
-        self.line += "  %" + str(self.register) + " = call " + types[outputtype][0] + " @" + funcName + "("
+        # self.line += "  %" + str(self.register) + " = call " + types[outputtype][0] + " @" + funcName + "("
+        numberOfParams = len(node.children[1].children) if len(node.children) > 1 else 0
+
+        if numberOfParams == 0:
+            # self.line += "\taddi\t" + "$sp, $sp, " + str(-(4)) + "\n"
+            pass
+        else:
+            self.line += "\taddi\t" + "$sp, $sp, " + str(-(4+4*numberOfParams)) + "\n"
+            # offset = 4
+            for i in range(numberOfParams): #TODO floats?
+
+
+                param, line = self.load(self.functionCallStack[i][0]+(4+4*numberOfParams), self.functionCallStack[i][1])
+                self.line += line
+                offset = (i+1)*4
+                # self.line += "\tla\t" + "$a" + str(0) + "," + param + "\n"
+                self.line += "\tsw\t" + param + "," + str(offset) + "($sp)" + " #store parameter  \n"
+
+        self.line += "\tjal\t" + funcName + "\n"
+
+        # self.line += "\tlw\t$t0, 0($sp)\n"
+        if numberOfParams > 0:
+            self.line += "\taddi\t" + "$sp, $sp, " + str((4+4*numberOfParams)) + "\n"
+
         # Er zouden nu op zijn minst even elementen in de stack moeten zitten dan er parameters zijn voor de functie
-        numberOfParams = len(node.children[1].children)
-        for i in range(numberOfParams):
-            # Zit er omgekeerd in dus moeten het er ook omgekeerd terug uithalen
-            elem = self.functionCallStack[-(numberOfParams - i)]
-            self.line += types[elem[1]][0]
-            self.line += " %" + str(elem[0]) if elem[2] else " " + str(elem[0])
-            if i < numberOfParams - 1:
-                self.line += ", "
+        # for i in range(numberOfParams):
+        #     # Zit er omgekeerd in dus moeten het er ook omgekeerd terug uithalen
+        #     elem = self.functionCallStack[-(numberOfParams - i)]
+        #     self.line += types[elem[1]][0]
+        #     self.line += " %" + str(elem[0]) if elem[2] else " " + str(elem[0])
+        #     if i < numberOfParams - 1:
+        #         self.line += ", "
 
         for i in range(numberOfParams):
             self.functionCallStack.pop()
 
-        self.line += ")\n"
-
+        # self.line += ")\n"
         self.enteredFunctionCall -= 1
+
         self.register += 1
 
         if self.enteredFunctionCall > 0:
@@ -1431,7 +1451,7 @@ class Mips:
                 line += "\tlw\t" + toReg + "," + str(fromReg) + place + "\n"
 
             else:
-                line += "\tlwc1\t" + toReg + "," + str(fromReg) + "($sp)\n"
+                line += "\tlwc1\t" + toReg + "," + str(fromReg) + place + "\n"
 
         else:
             if type != "FLOAT":
@@ -1916,7 +1936,8 @@ class Mips:
                     file.write(line)
 
         file.write("\n")
-        file.write(".text")
+        file.write(".text\n")
+        file.write(".globl main\n")
         file.write("\n")
         file.write(self.line)
 
