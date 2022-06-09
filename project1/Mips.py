@@ -127,7 +127,7 @@ class Mips:
             self.hasReturnNode = False
 
         # We gaan nu alle variable alloceren binnen de scope
-        self.stackOffset += 4
+        self.stackOffset += 8
         self.allTables(symboltable)
         self.stackOffset += 4
 
@@ -846,7 +846,9 @@ class Mips:
                 # self.line += "\tla\t" + "$a" + str(0) + "," + param + "\n"
                 self.line += "\tsw\t" + param + "," + str(offset) + "($sp)" + " #store parameter  \n"
 
+        # self.line += "\taddi\t" + "$sp, $sp, " + str((4)) + "\n"
         self.line += "\tjal\t" + funcName + "\n"
+        # self.line += "\taddi\t" + "$sp, $sp, " + str((-4)) + "\n"
 
         self.line += "\tlw\t$t0, 0($sp)\n"
         self.store('$t0', self.offset)
