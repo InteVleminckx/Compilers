@@ -139,6 +139,9 @@ class Mips:
         self.line += line
         self.line += "\n"
 
+        self.storeParams(symboltable)
+
+
     def exitFunction(self, node):
         print("exitFunction")
 
@@ -157,7 +160,8 @@ class Mips:
         print("enterReturn")
 
         self.enteredReturn = True
-        #
+        if self.returnType is None:
+            self.enteredReturn = False
         # # We kunnen een return hebben in een if of else of while of for
         # # Als deze stacks nog niet leeg zijn betekent dat we hier een return aanroepen dus we
         # # voeren geen return uit maar gaan branchen naar de laatste return, dit wordt automatisch gedaan
@@ -228,6 +232,20 @@ class Mips:
 
             line = "\n\tsw\t" + str(toReg) + ", 0($fp)\n" + \
                    "\tlw $ra, " + str(self.stackOffset - 8) + "($sp)\n" + \
+                   "\taddi\t$sp,$fp,0\n" + \
+                   "\tlw\t$fp, -4($sp)\n"
+
+            if not self.isMain:
+                line += "\tjr\t$ra\n\n"
+                self.isMain = False
+
+            self.line += line
+            self.line += "\n"
+            self.enteredReturn = False
+
+        else:
+
+            line = "\tlw $ra, " + str(self.stackOffset - 8) + "($sp)\n" + \
                    "\taddi\t$sp,$fp,0\n" + \
                    "\tlw\t$fp, -4($sp)\n"
 
@@ -864,7 +882,7 @@ class Mips:
         toType = None
 
         if node.parent.token == "=":
-            toType, toReg = node.parent.children[0].type
+            toType = node.parent.children[0].type
 
         if self.enteredFunctionCall > 0:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
@@ -1310,12 +1328,36 @@ class Mips:
                 else:
                     self.allocate(self.register, type, toAllocate[key].pointer)
                 self.stackOffset += 4
-                # if toAllocate[key].isParam:
-                #     params.append((tempReg, toAllocate[key].register, toAllocate[key].type, toAllocate[key].pointer))
+        #         if toAllocate[key].isParam:
+        #             print("")
+        #             params.append((toAllocate[key].stackOffset, toAllocate[key].type))
+        #
+        # # Nu gaan we de parameters hun waarde storen in de nieuwe registers
+        # for i, param in enumerate(params):
+        #     # self.store(param[0], param[1], param[2], True, True, param[3])
+        #     toReg, line = self.load((i+1)*4, param[1])
+        #     self.line += line
+        #     self.store(toReg, param[0])
 
-        # Nu gaan we de parameters hun waarde storen in de nieuwe registers
-        # for param in params:
-        #     self.store(param[0], param[1], param[2], True, True, param[3])
+    def storeParams(self, symbolTable):
+        toAllocate = symbolTable.dict
+        params = []
+        for key in toAllocate:
+
+            type = toAllocate[key].type
+            # We checken dan voor de zekerheid of het wel een identifier is
+            if toAllocate[key].value.token == "IDENTIFIER" or toAllocate[key].value.parent.children[
+                0].token == "IDENTIFIER":
+
+                if toAllocate[key].isParam:
+                    params.append((toAllocate[key].stackOffset, toAllocate[key].type))
+
+        # # Nu gaan we de parameters hun waarde storen in de nieuwe registers
+        for i, param in enumerate(params):
+            toReg, line = self.load((i+1)*4, param[1], isParam=True)
+            self.line += line
+            self.store(toReg, param[0])
+
 
     def allocate(self, register, type, numberOfPointer=0):
         pass
@@ -1374,17 +1416,19 @@ class Mips:
         storeCommand = "sw" if str(fromRegister)[1] != "f" else "swc1"
         self.line += "\t" + storeCommand + "\t" + str(fromRegister) + "," + str(offset) + "($sp)\n"
 
-    def load(self, fromReg, type, toReg_=None, isGlobal=None):
+    def load(self, fromReg, type, toReg_=None, isGlobal=None, isParam=False):
 
         line = ""
         toReg = "$t0" if type != "FLOAT" else "$f0"
-
+        place = "($sp)"
+        if isParam:
+            place = "($fp)"
         if toReg_:
             toReg = toReg_
 
         if not isGlobal:
             if type != "FLOAT":
-                line += "\tlw\t" + toReg + "," + str(fromReg) + "($sp)\n"
+                line += "\tlw\t" + toReg + "," + str(fromReg) + place + "\n"
 
             else:
                 line += "\tlwc1\t" + toReg + "," + str(fromReg) + "($sp)\n"

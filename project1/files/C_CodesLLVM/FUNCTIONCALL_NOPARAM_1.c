@@ -1,19 +1,19 @@
 #include <stdio.h>
 
-void f(){
-	printf("Hello ");
+void f(int a){
+	printf("Hello %d", a);
 	return;
 }
 
-void g(){
-	printf("World\n");
-	f();
-	printf("World\n");
-}
+//void g(){
+//	printf("World\n");
+//	f();
+//	printf("World\n");
+//}
 
 int main(){
     // Should print "hello world" twice
 	f();
-	g();
+//	g();
 	return 1;
 }
