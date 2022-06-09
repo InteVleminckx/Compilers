@@ -1437,7 +1437,6 @@ class Mips:
             elif type2 == "INT":
                 # Check of het een register is of niet.
                 if not isReg2:
-                    # num2 = str(num2) + ".0e+00"
                     pass
                 else:
                     toReg = self.intToFloat(str(num2))
@@ -1486,9 +1485,14 @@ class Mips:
                 num1 = num2
                 num2 = temp
 
+            branchBool = "bc1f"
+            if comparison == "c.ne.s":
+                comparison = "c.eq.s"
+                branchBool = "bc1t"
+
             label = "__false_" + str(self.compBranchNr) + "__\n"
             line += "\t" + comparison + "\t" + num1 + ", " + num2 + "\n"
-            line += "\t" + "bc1f, " + label
+            line += "\t" + branchBool + ", " + label
             line += "\tli\t" + "$t0, " + "1\n"  # resultReg is t0
             line += "\tb\t" + "__resumeComparison_" + str(self.compBranchNr) + "__\n\n"
 
