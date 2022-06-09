@@ -3,7 +3,7 @@
 | binaryOperations1     | V             | V             |
 | binaryOperations2     | V             | V             |
 | breakAndContinue      | V             | V             |
-| comparisons1          | V             | X             |
+| comparisons1          | V             | V             |
 | comparisons2          | V             | V             |
 | dereferenceAssignment | X             | X             |
 | fibonacciRecursive    | V             | X             |

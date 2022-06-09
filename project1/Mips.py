@@ -393,7 +393,7 @@ class Mips:
 
             printfStackIndex = 1
             for i in range(len(splitString)):
-                if splitString[i][0] == "%": # zou normaal altijd het geval moeten zijn
+                if splitString[i][0] == "%":  # zou normaal altijd het geval moeten zijn
 
                     elem = self.scanfStack[printfStackIndex]
                     name = ""
@@ -414,20 +414,20 @@ class Mips:
 
                     if splitString[i][1] == "d":
                         self.line += "\tli $v0, 5\n"
-                        self.line += "\tsyscall\n" # result in v0
+                        self.line += "\tsyscall\n"  # result in v0
                         self.line += "\tmove $t0, $v0\n"
 
                         self.store("$t0", elem[0])
 
                     elif splitString[i][1] == "f":
                         self.line += "\tli $v0, 6\n"
-                        self.line += "\tsyscall\n\n" # result in f0
+                        self.line += "\tsyscall\n\n"  # result in f0
 
                         self.store("$f0", elem[0])
 
                     elif splitString[i][1] == "c":
                         self.line += "\tli $v0, 12\n"
-                        self.line += "\tsyscall\n" # result in v0
+                        self.line += "\tsyscall\n"  # result in v0
                         self.line += "\tmove $t0, $v0\n"
 
                         self.store("$t0", elem[0])
@@ -458,8 +458,6 @@ class Mips:
             #     self.line += ", "
             #     self.line += types[elem[1]][0] + "* "
             #     self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
-
-
 
             self.scanfStack.clear()
             self.enteredScanf = False
@@ -515,8 +513,6 @@ class Mips:
             if not self.isBreaked:
                 self.line += "\tb if" + str(self.ifStack[-1]) + "\n\n"
 
-
-
     def enterElse_stmt(self, node):
         print("enterElse_stmt")
 
@@ -558,7 +554,7 @@ class Mips:
         # self.line += "  br i1 %" + toReg + ", label %" + str(
         #     self.register) + ", label %while" + str(self.whileLabelCount) + "\n\n"
         # self.line += str(self.whileStack[-1][0]) + ":\n"
-        self.line = self.line.replace("while" + str(self.whileStack[-1][0]), "__WHILE_" + str(self.whileCount) +  "__")
+        self.line = self.line.replace("while" + str(self.whileStack[-1][0]), "__WHILE_" + str(self.whileCount) + "__")
         self.whileStack.append((self.whileLabelCount, False))
         self.whileLabelCount += 1
         self.whileCount += 1
@@ -571,7 +567,8 @@ class Mips:
 
         # We maken de andere branch aan
         self.line += "while" + str(self.whileStack[-1][0]) + ":\n"
-        self.line = self.line.replace("while" + str(self.whileStack[-1][0]), "__END_WHILE_" + str(self.whileCount) +  "__")
+        self.line = self.line.replace("while" + str(self.whileStack[-1][0]),
+                                      "__END_WHILE_" + str(self.whileCount) + "__")
         self.whileCount += 1
         self.whileStack.pop()
         self.whileStack.pop()
@@ -899,7 +896,7 @@ class Mips:
         if len(self.logicalStack) > 0:
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 toReg__, type, line = self.compare(
-                    "sne" if toType == "INT" else "c.ne.s", "$zero", toReg, toType, "INT", True, True, True)
+                    "sne" if toType == "INT" else "c.ne.s", "$zero", toReg, "INT", toType, True, True, True)
                 self.popRightStack()
 
                 self.line += line
@@ -926,7 +923,7 @@ class Mips:
                 1]
 
         func = lambda symbol_lookup: (
-            self.load(symbol_lookup.stackOffset, symbol_lookup.type, None,symbol_lookup.isGlobal), symbol_lookup.type)
+            self.load(symbol_lookup.stackOffset, symbol_lookup.type, None, symbol_lookup.isGlobal), symbol_lookup.type)
 
         reg = None
         type = None
@@ -975,7 +972,7 @@ class Mips:
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 # We gaan nu de compare opartion uitvoeren
                 toReg__, type, line = self.compare(
-                    "sne" if type == "INT" else "c.ne.s", "$zero", reg, type, "INT", True, True, True)
+                    "sne" if type == "INT" else "c.ne.s", "$zero", reg, "INT", type, True, True, True)
 
                 # Omdat we da waarde uit de stack al hebben gebruikt moeten we deze nog wel terug verwijderen
                 self.popRightStack()
@@ -1013,7 +1010,7 @@ class Mips:
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 self.popRightStack()
                 toReg__, type, line = self.compare(
-                    "sne" if toType == "INT" else "c.ne.s", "$zero", toReg, toType, "INT", True, True, True)
+                    "sne" if toType == "INT" else "c.ne.s", "$zero", toReg, "INT", toType, True, True, True)
 
                 self.line += line
                 self.determineBranch(node, node.parent, toReg__)
@@ -1231,7 +1228,7 @@ class Mips:
 
             self.line += "x" + str(self.logLabelCount) + ":\n"
 
-            self.line = self.line.replace("x" + str(self.logLabelCount),  "__label_" + str(self.labelCount) + "__")
+            self.line = self.line.replace("x" + str(self.logLabelCount), "__label_" + str(self.labelCount) + "__")
             self.labelCount += 1
 
             toType = "INT"
@@ -1269,7 +1266,8 @@ class Mips:
         if node.parent.children[-1].token == "WHILE":
             self.line += "\tb while" + str(self.whileLabelCount) + "\n\n"
             self.line += "while" + str(self.whileLabelCount) + ":\n"
-            self.line = self.line.replace("while" + str(self.whileLabelCount), "__WHILE_CONDITION_" + str(self.whileCount) + "__")
+            self.line = self.line.replace("while" + str(self.whileLabelCount),
+                                          "__WHILE_CONDITION_" + str(self.whileCount) + "__")
             self.whileStack.append((self.whileLabelCount, True))
             self.whileLabelCount += 1
             self.whileCount += 1
@@ -1376,7 +1374,7 @@ class Mips:
         storeCommand = "sw" if str(fromRegister)[1] != "f" else "swc1"
         self.line += "\t" + storeCommand + "\t" + str(fromRegister) + "," + str(offset) + "($sp)\n"
 
-    def load(self, fromReg, type, toReg_=None, isGlobal = None):
+    def load(self, fromReg, type, toReg_=None, isGlobal=None):
 
         line = ""
         toReg = "$t0" if type != "FLOAT" else "$f0"
@@ -1447,7 +1445,7 @@ class Mips:
 
                 line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
 
-            else: # Allebei float
+            else:  # Allebei float
 
                 line += "\t" + operation + "\t" + resultReg + "\t," + str(num1) + "," + str(num2) + "\n"
 
