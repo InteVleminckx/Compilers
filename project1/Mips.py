@@ -364,22 +364,105 @@ class Mips:
             text = self.scanfStack[0]
             textsize = text[3]
             textcount = text[0]
+            stringElem = ""
+            for i in range(len(self.strings)):  # om uiteindelijk de string zelf te verkrijgen
+                if textcount == self.strings[i][1]:
+                    stringElem = self.strings[i]
+                    break
 
-            inbound = "[" + str(textsize) + " x i8], [" + str(textsize) + " x i8]*"
-            str_ = "@.str"
-            str_ += str(textcount) if int(textcount) > 0 else ""
-            self.line += "  %" + str(
-                self.register) + " = call i32 (i8*, ...) @__isoc99_scanf(i8* getelementptr inbounds (" + inbound + " " + str_ + ", i64 0, i64 0)"
-            self.register += 1
-            for i in range(1, len(self.scanfStack)):
-                elem = self.scanfStack[i]
-                self.line += ", "
-                self.line += types[elem[1]][0] + "* "
-                self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
+            actualString = stringElem[2][1:-1]
+            splitString = []
+            if len(self.printfStack) > 1:  # dit zal eigenlijk altijd normaal zo zijn
+                char = 0
+                curString = ""
+                while char != len(actualString):
+                    if actualString[char] == "%":
+                        if curString != "":
+                            splitString.append(curString)
+                        curString = actualString[char] + actualString[char + 1]
+                        splitString.append(curString)
+                        curString = ""
+                        char += 2
+                    else:
+                        curString += actualString[char]
+                        char += 1
+                        if char == len(actualString):
+                            splitString.append(curString)
+            else:
+                splitString.append(actualString)
+
+            printfStackIndex = 1
+            for i in range(len(splitString)):
+                if splitString[i][0] == "%": # zou normaal altijd het geval moeten zijn
+
+                    elem = self.scanfStack[printfStackIndex]
+                    name = ""
+                    # if elem[1] == "TEXT":
+                    #     str_ = "str"
+                    #     str_ += str(elem[0])
+                    #     name = str_
+                    # else:
+                    #     # if elem[1] == "CHAR": #TODO: dit ook nog bekijken
+                    #     #     name = str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
+                    #     #     # self.line += "%" + str(elem[0]) if elem[2] else str(ord(str(elem[0])[1]))
+                    #     # else:
+                    #     # self.line += types[elem[1]][0] + " "
+                    #     # self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
+                    #     name = str(elem[0])
+                    #     name, line = self.load(name, elem[1])
+                    #     self.line += line
+
+                    if splitString[i][1] == "d":
+                        self.line += "\tli $v0, 5\n"
+                        self.line += "\tsyscall\n" # result in v0
+                        self.line += "\tmove $t0, $v0\n"
+
+                        self.line += ""
+
+                    elif splitString[i][1] == "f":
+                        self.line += "\tli $v0, 6\n"
+                        self.line += "\tsyscall\n\n" # result in f0
+
+                        self.line += ""
+
+                    elif splitString[i][1] == "c":
+                        self.line += "\tli $v0, 12\n"
+                        self.line += "\tsyscall\n" # result in v0
+                        self.line += "\tmove $t0, $v0\n"
+
+                        self.line += ""
+
+                    elif splitString[i][1] == "s":
+                        buffer = "buffer" + str(self.stringCount)
+                        length = 32
+                        self.strings.append((0, str(self.stringCount), str(length)))
+                        line = buffer + ":\t" + ".space\t" + str(length) + "\n"
+                        self.globals.append(line)
+                        self.line += "\tli $v0, 8\n"
+                        self.line += "\tla $a0, " + buffer + "\n"
+                        self.line += "\tli $a1, " + str(length) + "\n"
+                        self.line += "\tsyscall\n\n"
+
+                        self.stringCount += 1
+
+                    printfStackIndex += 1
+
+            # inbound = "[" + str(textsize) + " x i8], [" + str(textsize) + " x i8]*"
+            # str_ = "@.str"
+            # str_ += str(textcount) if int(textcount) > 0 else ""
+            # self.line += "  %" + str(
+            #     self.register) + " = call i32 (i8*, ...) @__isoc99_scanf(i8* getelementptr inbounds (" + inbound + " " + str_ + ", i64 0, i64 0)"
+            # self.register += 1
+            # for i in range(1, len(self.scanfStack)):
+            #     elem = self.scanfStack[i]
+            #     self.line += ", "
+            #     self.line += types[elem[1]][0] + "* "
+            #     self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
+
+
 
             self.scanfStack.clear()
             self.enteredScanf = False
-            self.line += ")\n"
 
     def enterIf_stmt(self, node):
         print("enterIf_stmt")

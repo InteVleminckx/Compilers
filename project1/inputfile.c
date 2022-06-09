@@ -13,10 +13,11 @@
 //float b = 6.6;
 //char c = 'c';
 int main(){
-    float b = 5.5;
-    float d = 10.59454;
-    float u = 5.5;
-    float c = b;
+    int x;
+	int y;
+    printf("Enter two numbers:");
+	scanf("%d%d", &x, &y);
+//	printf("%d; %d", x, y);
 //    printf("Hello %c World %c !", 'a', 'b');
 //    printf("Hello! %f", 5.5);
 //    printf("Hello World!\n");
