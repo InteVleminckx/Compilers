@@ -2,26 +2,26 @@
 |-----------------------|---------------|---------------|
 | binaryOperations1     | V             | V             |
 | binaryOperations2     | V             | V             |
-| breakAndContinue      | V             | X             |
+| breakAndContinue      | V             | V             |
 | comparisons1          | V             | X             |
 | comparisons2          | V             | V             |
 | dereferenceAssignment | X             | X             |
 | fibonacciRecursive    | V             | X             |
 | floatToIntConversion  | V             | V             |
-| for                   | V             | X             |
+| for                   | V             | V             |
 | forwardDeclarations   | V             | X             |
-| if                    | V             | X             |
-| ifElse                | V             | X             |
+| if                    | V             | V             |
+| ifElse                | V             | V             |
 | intToFloatConversion  | V             | V             |
 | modulo                | V             | V             |
 | pointerArgument       | X             | X             |
-| prime                 | V             | X             |
+| prime                 | V             | V             |
 | printf1               | V             | V             |
 | printf2               | V             | V             |
 | printf3               | V             | V             |
-| scanf1                | V             | X             |
+| scanf1                | V             | V             |
 | scanf2                | V             | X             |
-| scoping               | V             | X             |
+| scoping               | V             | V             |
 | unaryOperations       | X             | X             |
 | variables1            | V             | V             |
 | variables2            | V             | V             |
@@ -31,5 +31,5 @@
 | variables6            | V             | X             |
 | variables7            | V             | X             |
 | variables8            | V             | X             |
-| while                 | V             | X             |
+| while                 | V             | V             |
 

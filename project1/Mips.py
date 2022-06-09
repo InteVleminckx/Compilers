@@ -65,13 +65,15 @@ class Mips:
         self.whileLabelCount = 0
 
         self.register = 0
-        # NOTE: We houden een globale offset bij zodat we weten wat de huidige offset is
         self.offset = -4
 
         self.isMain = False
 
         self.compBranchNr = 0
         self.labelCount = 0
+        self.reverseCount = 0
+        self.ifElseCount = 0
+        self.whileCount = 0
 
     def enterFunction(self, node):
         print("enterFunction")
@@ -372,7 +374,7 @@ class Mips:
 
             actualString = stringElem[2][1:-1]
             splitString = []
-            if len(self.printfStack) > 1:  # dit zal eigenlijk altijd normaal zo zijn
+            if len(self.scanfStack) > 1:  # dit zal eigenlijk altijd normaal zo zijn
                 char = 0
                 curString = ""
                 while char != len(actualString):
@@ -423,14 +425,14 @@ class Mips:
                         self.line += "\tli $v0, 6\n"
                         self.line += "\tsyscall\n\n" # result in f0
 
-                        self.line += ""
+                        self.store("$f0", elem[0])
 
                     elif splitString[i][1] == "c":
                         self.line += "\tli $v0, 12\n"
                         self.line += "\tsyscall\n" # result in v0
                         self.line += "\tmove $t0, $v0\n"
 
-                        self.line += ""
+                        self.store("$t0", elem[0])
 
                     elif splitString[i][1] == "s":
                         buffer = "buffer" + str(self.stringCount)
@@ -475,6 +477,8 @@ class Mips:
         self.ifStack.append(self.ifLabelCount)
         self.ifLabelCount += 1
         toReg = condtion[0]
+        toReg, line = self.load(toReg, condtion[1])
+        self.line += line
         if self.wasLogical or not condtion[2]:
             # De logical gaat normaal gezien altijd een int returnen dat
             # Deze moeten we eerst nog omzetten naar een bool (i1)
@@ -484,8 +488,8 @@ class Mips:
 
         self.branch(str(toReg), str(self.ifStack[-2]), str(self.ifStack[-1]), self.ifStack[-2], "if")
 
-        self.line = self.line.replace("if" + str(self.ifStack[-2]), str(self.register))
-        self.register += 1
+        self.line = self.line.replace("if" + str(self.ifStack[-2]), "__IF_" + str(self.ifElseCount) + "__")
+        self.ifElseCount += 1
 
     def exitIf_stmt(self, node):
         print("exitIf_stmt")
@@ -495,10 +499,10 @@ class Mips:
 
             if not self.isBreaked:
                 # We branchen nu gewoon naar de volgende branch met het laatste element in de stack
-                self.line += "  br label %if" + str(self.ifStack[-1]) + "\n\n"
+                self.line += "\tb if" + str(self.ifStack[-1]) + "\n\n"
                 self.line += "if" + str(self.ifStack[-1]) + ":\n"
-                self.line = self.line.replace("if" + str(self.ifStack[-1]), str(self.register))
-                self.register += 1
+                self.line = self.line.replace("if" + str(self.ifStack[-1]), "__END_IF_" + str(self.ifElseCount) + "__")
+                self.ifElseCount += 1
                 # Poppen de 2 labels uit de stack
 
             else:
@@ -511,7 +515,9 @@ class Mips:
             self.ifStack.append(self.ifLabelCount)
             self.ifLabelCount += 1
             if not self.isBreaked:
-                self.line += "  br label %if" + str(self.ifStack[-1]) + "\n\n"
+                self.line += "\tb if" + str(self.ifStack[-1]) + "\n\n"
+
+
 
     def enterElse_stmt(self, node):
         print("enterElse_stmt")
@@ -519,8 +525,9 @@ class Mips:
         # nu maken we het deel voor de else aan
         if not self.isBreaked:
             self.line += "if" + str(self.ifStack[-2]) + ":\n"
-            self.line = self.line.replace("if" + str(self.ifStack[-2]), str(self.register))
-            self.register += 1
+            self.line = self.line.replace("if" + str(self.ifStack[-2]), "__ELSE_" + str(self.ifElseCount) + "__")
+            self.ifElseCount += 1
+
         else:
             self.isBreaked = False
 
@@ -529,11 +536,10 @@ class Mips:
 
         if not self.isBreaked:
             # Nu branchen we nog naar de laatst toegevoegde else
-            self.line += "  br label %if" + str(self.ifStack[-1]) + "\n\n"
+            self.line += "\tb if" + str(self.ifStack[-1]) + "\n\n"
             self.line += "if" + str(self.ifStack[-1]) + ":\n"
-            self.line = self.line.replace("if" + str(self.ifStack[-1]), str(self.register))
-            self.register += 1
-
+            self.line = self.line.replace("if" + str(self.ifStack[-1]), "__END_IF_ELSE_" + str(self.ifElseCount) + "__")
+            self.ifElseCount += 1
 
         else:
             self.isBreaked = False
@@ -547,23 +553,28 @@ class Mips:
         print("enterWhile_stmt")
         # We gaan nu de branch maken
 
-        self.line += "  br i1 %" + str(self.conditionStack[-1][0]) + ", label %" + str(
-            self.register) + ", label %while" + str(self.whileLabelCount) + "\n\n"
-        self.line += str(self.register) + ":\n"
-        self.register += 1
+        toReg, line = self.load(self.conditionStack[-1][0], self.conditionStack[-1][1])
+        self.line += line
+        self.branch(toReg, self.whileStack[-1][0], self.whileLabelCount, self.whileStack[-1][0], "while")
+
+        # self.line += "  br i1 %" + toReg + ", label %" + str(
+        #     self.register) + ", label %while" + str(self.whileLabelCount) + "\n\n"
+        # self.line += str(self.whileStack[-1][0]) + ":\n"
+        self.line = self.line.replace("while" + str(self.whileStack[-1][0]), "__WHILE_" + str(self.whileCount) +  "__")
         self.whileStack.append((self.whileLabelCount, False))
         self.whileLabelCount += 1
+        self.whileCount += 1
 
     def exitWhile_stmt(self, node):
         print("exitWhile_stmt")
 
         # We maken een branch naar het begin van de while loop, dit zou de voorlaatste value moeten zijn in de stack
-        self.line += "  br label %" + str(self.whileStack[-2][0]) + "\n\n"
+        self.line += "\tb __WHILE_CONDITION_" + str(self.whileStack[-2][0]) + "__\n\n"
 
         # We maken de andere branch aan
         self.line += "while" + str(self.whileStack[-1][0]) + ":\n"
-        self.line = self.line.replace("while" + str(self.whileStack[-1][0]), str(self.register))
-        self.register += 1
+        self.line = self.line.replace("while" + str(self.whileStack[-1][0]), "__END_WHILE_" + str(self.whileCount) +  "__")
+        self.whileCount += 1
         self.whileStack.pop()
         self.whileStack.pop()
 
@@ -714,25 +725,25 @@ class Mips:
         if str(node.value) == "++":
             toReg = None
             if not self.enteredCondition:
-                toReg, line = self.load(symbolTable.register, symbolTable.type, symbolTable.pointer)
+                toReg, line = self.load(symbolTable.stackOffset, symbolTable.type)
                 self.line += line
             else:
                 toReg = self.conditionStack[-1][0]
-            toReg, toType, line = self.operate("add", toReg, 1, symbolTable.type, "INT", True, False)
+            toReg, toType, line = self.operate(calculations_["+"], toReg, 1, symbolTable.type, "INT", True, False)
             self.line += line
-            self.store(toReg, symbolTable.register, toType, True, True, symbolTable.pointer)
+            self.store(toReg, symbolTable.stackOffset)
 
 
         elif str(node.value) == "--":
             toReg = None
             if not self.enteredCondition:
-                toReg, line = self.load(symbolTable.register, symbolTable.type, symbolTable.pointer)
+                toReg, line = self.load(symbolTable.stackOffset, symbolTable.type)
                 self.line += line
             else:
                 toReg = self.conditionStack[-1][0]
-            toReg, toType, line = self.operate("sub", toReg, 1, symbolTable.type, "INT", True, False)
+            toReg, toType, line = self.operate(calculations_["-"], toReg, 1, symbolTable.type, "INT", True, False)
             self.line += line
-            self.store(toReg, symbolTable.register, toType, True, True, symbolTable.pointer)
+            self.store(toReg, symbolTable.stackOffset)
 
     def enterBreak(self, node):
         print("enterBreak")
@@ -745,18 +756,18 @@ class Mips:
 
         if len(self.ifStack) % 2 == 0:
             # We branchen naar de while zijn eind en maken de if zijn false aan
-            self.line += "  br label %while" + str(self.whileStack[-1][0]) + "\n\n"
+            self.line += "\tb while" + str(self.whileStack[-1][0]) + "\n\n"
             self.line += "if" + str(self.ifStack[-1]) + ":\n"
-            self.line = self.line.replace("if" + str(self.ifStack[-1]), str(self.register))
-            self.register += 1
+            self.line = self.line.replace("if" + str(self.ifStack[-1]), "__END_IF_" + str(self.ifElseCount) + "__")
+            self.ifElseCount += 1
             self.isBreaked = True
 
         elif len(self.ifStack) % 3 == 0:
             # We branchen naar de while zijn eind en maken de label voor de branchen buiten de else aan
-            self.line += "  br label %while" + str(self.whileStack[-1][0]) + "\n\n"
+            self.line += "\tb while" + str(self.whileStack[-1][0]) + "\n\n"
             self.line += "if" + str(self.ifStack[-1]) + ":\n"
-            self.line = self.line.replace("if" + str(self.ifStack[-1]), str(self.register))
-            self.register += 1
+            self.line = self.line.replace("if" + str(self.ifStack[-1]), "__END_IF_ELSE_" + str(self.ifElseCount) + "__")
+            self.ifElseCount += 1
             self.isBreaked = True
 
     def enterContinue(self, node):
@@ -769,19 +780,19 @@ class Mips:
         # Als de lengte van onze stack %3 == 0 is dan zitten we in de else
 
         if len(self.ifStack) % 2 == 0:
-            # We branchen naar de while zijn eind en maken de if zijn false aan
-            self.line += "  br label %" + str(self.whileStack[-2][0]) + "\n\n"
+            # We branchen naar de while zijn condition en maken de if zijn false aan
+            self.line += "\tb __WHILE_CONDITION_" + str(self.whileStack[-2][0]) + "__\n\n"
             self.line += "if" + str(self.ifStack[-1]) + ":\n"
-            self.line = self.line.replace("if" + str(self.ifStack[-1]), str(self.register))
-            self.register += 1
+            self.line = self.line.replace("if" + str(self.ifStack[-1]), "__END_IF_ELSE_" + str(self.ifElseCount) + "__")
+            self.ifElseCount += 1
             self.isBreaked = True
 
         elif len(self.ifStack) % 3 == 0:
-            # We branchen naar de while zijn eind en maken de label voor de branchen buiten de else aan
-            self.line += "  br label %" + str(self.whileStack[-2][0]) + "\n\n"
+            # We branchen naar de while zijn condition en maken de label voor de branchen buiten de else aan
+            self.line += "\tb __WHILE_CONDITION_" + str(self.whileStack[-2][0]) + "__\n\n"
             self.line += "if" + str(self.ifStack[-1]) + ":\n"
-            self.line = self.line.replace("if" + str(self.ifStack[-1]), str(self.register))
-            self.register += 1
+            self.line = self.line.replace("if" + str(self.ifStack[-1]), "__END_IF_ELSE_" + str(self.ifElseCount) + "__")
+            self.ifElseCount += 1
             self.isBreaked = True
 
     def enterFuncCall(self, node):
@@ -858,38 +869,39 @@ class Mips:
         toType = None
 
         if node.parent.token == "=":
-            toType = node.parent.children[0].type
+            toType, toReg = node.parent.children[0].type
 
         if self.enteredFunctionCall > 0:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitBinOperationStackHandler(self.functionCallStack, node, func, toType)
+            toType, toReg = self.exitBinOperationStackHandler(self.functionCallStack, node, func, toType)
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredReturn:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitBinOperationStackHandler(self.returnStack, node, func, toType)
+            toType, toReg = self.exitBinOperationStackHandler(self.returnStack, node, func, toType)
 
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitBinOperationStackHandler(self.printfStack, node, func, toType)
+            toType, toReg = self.exitBinOperationStackHandler(self.printfStack, node, func, toType)
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredCondition:
-            self.exitBinOperationStackHandler(self.conditionStack, node, func, toType)
+            toType = self.exitBinOperationStackHandler(self.conditionStack, node, func, toType)
 
         elif self.enteredAssignment:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitBinOperationStackHandler(self.assignmentStack, node, func, toType)
+            toType, toReg = self.exitBinOperationStackHandler(self.assignmentStack, node, func, toType)
 
-        if len(self.logicalStack) > 0:  # TODO: nog behandelen
+        if len(self.logicalStack) > 0:
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
-                toReg__, type, line = self.compare("ne", toReg, 0, toType, "INT", True, False, True)
+                toReg__, type, line = self.compare(
+                    "sne" if toType == "INT" else "c.ne.s", "$zero", toReg, toType, "INT", True, True, True)
                 self.popRightStack()
 
                 self.line += line
@@ -916,21 +928,21 @@ class Mips:
                 1]
 
         func = lambda symbol_lookup: (
-            self.load(symbol_lookup.stackOffset, symbol_lookup.type), symbol_lookup.type)
+            self.load(symbol_lookup.stackOffset, symbol_lookup.type, None,symbol_lookup.isGlobal), symbol_lookup.type)
 
         reg = None
         type = None
 
         # als we een functioncall hebben dan heeft dit voorrang op een assignment omdat een functioncall in een assignment kan voorkomen
         if self.enteredFunctionCall > 0:
-            self.exitIdentifierStackHandler(self.functionCallStack, symbol_lookup, func)
+            type, reg = self.exitIdentifierStackHandler(self.functionCallStack, symbol_lookup, func)
 
         elif self.enteredReturn:
-            self.exitIdentifierStackHandler(self.returnStack, symbol_lookup, func)
+            type, reg = self.exitIdentifierStackHandler(self.returnStack, symbol_lookup, func)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
-            self.exitIdentifierStackHandler(self.printfStack, symbol_lookup, func)
+            type, reg = self.exitIdentifierStackHandler(self.printfStack, symbol_lookup, func)
 
             # # Als het een char is moeten we deze ook nog is omzetten naar een int
             # if type == "CHAR":
@@ -940,11 +952,11 @@ class Mips:
             # self.printfStack.append((reg[0], type, True))
 
         elif self.enteredScanf:
-            self.exitIdentifierStackHandler(self.scanfStack, symbol_lookup, func)
+            type, reg = self.exitIdentifierStackHandler(self.scanfStack, symbol_lookup, func)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredCondition:
-            self.exitIdentifierStackHandler(self.conditionStack, symbol_lookup, func)
+            type, reg = self.exitIdentifierStackHandler(self.conditionStack, symbol_lookup, func)
 
         # We controleren of we in een assignment zijn gegaan en dat het niet het linkerdeel is van de assign
         elif self.enteredAssignment and node.parent.token != "=":
@@ -959,12 +971,13 @@ class Mips:
             # # We geven het register mee en het type en zeggen dat een register is
             # self.assignmentStack.append((reg[0], type, True))
 
-            self.exitIdentifierStackHandler(self.assignmentStack, symbol_lookup, func)
+            type, reg = self.exitIdentifierStackHandler(self.assignmentStack, symbol_lookup, func)
 
-        if len(self.logicalStack) > 0:  # TODO: later afhandelen
+        if len(self.logicalStack) > 0:
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 # We gaan nu de compare opartion uitvoeren
-                toReg__, type, line = self.compare("ne", reg[0], 0, type, "INT", True, False, True)
+                toReg__, type, line = self.compare(
+                    "sne" if type == "INT" else "c.ne.s", "$zero", reg, type, "INT", True, True, True)
 
                 # Omdat we da waarde uit de stack al hebben gebruikt moeten we deze nog wel terug verwijderen
                 self.popRightStack()
@@ -977,32 +990,32 @@ class Mips:
 
     def exitType(self, node):
         print("exitType")
-
+        toReg, toType = None, None
         # Functioncall krijgt voorrang
         if self.enteredFunctionCall > 0:
-            self.exitTypeStackHandler(self.functionCallStack, node)
+            toReg, toType = self.exitTypeStackHandler(self.functionCallStack, node)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredReturn:
-            self.exitTypeStackHandler(self.returnStack, node)
+            toReg, toType = self.exitTypeStackHandler(self.returnStack, node)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
-            self.exitTypeStackHandler(self.printfStack, node)
+            toReg, toType = self.exitTypeStackHandler(self.printfStack, node)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredCondition:
-            self.exitTypeStackHandler(self.conditionStack, node)
+            toReg, toType = self.exitTypeStackHandler(self.conditionStack, node)
 
         # We controleren of we in een assignment zijn gegaan
         elif self.enteredAssignment:
-            self.exitTypeStackHandler(self.assignmentStack, node)
+            toReg, toType = self.exitTypeStackHandler(self.assignmentStack, node)
 
         if len(self.logicalStack) > 0:  # TODO: dit later nog afhandelen
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
                 self.popRightStack()
                 toReg__, type, line = self.compare(
-                    "sne" if self.logicalStack[-1][0].type == "INT" and self.logicalStack[-1][1].type == "INT" else "c.ne.s", "$zero",str(node.value), node.type, "INT", True, True, True)
+                    "sne" if toType == "INT" else "c.ne.s", "$zero", toReg, toType, "INT", True, True, True)
 
                 self.line += line
                 self.determineBranch(node, node.parent, toReg__)
@@ -1063,23 +1076,23 @@ class Mips:
         elif self.enteredReturn:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitComparisonStackHandler(self.returnStack, node, func, False)
+            toType, toReg = self.exitComparisonStackHandler(self.returnStack, node, func, False)
 
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitComparisonStackHandler(self.printfStack, node, func, False)
+            toType, toReg = self.exitComparisonStackHandler(self.printfStack, node, func, False)
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredCondition:
-            self.exitComparisonStackHandler(self.conditionStack, node, func, True)
+            toType, toReg = self.exitComparisonStackHandler(self.conditionStack, node, func, True)
 
         elif self.enteredAssignment:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
             # Waar we de operation moeten uitvoeren
-            self.exitComparisonStackHandler(self.assignmentStack, node, func, False)
+            toType, toReg = self.exitComparisonStackHandler(self.assignmentStack, node, func, False)
 
         if len(self.logicalStack) > 0:  # TODO: dit nog bekijken
             if node == self.logicalStack[-1][0] or node == self.logicalStack[-1][1]:
@@ -1150,14 +1163,14 @@ class Mips:
                     # We voeren nog een comparison uit
 
                     self.branch(node.fromRegBrM, node.trueLabelM, node.falseLabelM, node.trueLabelM, "x")
-                    self.line = self.line.replace("x" + str(node.trueLabelM), "__label" + str(self.labelCount) + "__")
+                    self.line = self.line.replace("x" + str(node.trueLabelM), "__label_" + str(self.labelCount) + "__")
                     self.labelCount += 1
                     parent.falseLabelM = node.falseLabelM
 
                 elif logicals[str(parent.value)] == "OR":
                     # We branchen met het Falselabel van de node
                     self.branch(node.fromRegBrM, node.trueLabelM, node.falseLabelM, node.falseLabelM, "x")
-                    self.line = self.line.replace("x" + str(node.falseLabelM), "__label" + str(self.labelCount) + "__")
+                    self.line = self.line.replace("x" + str(node.falseLabelM), "__label_" + str(self.labelCount) + "__")
                     self.labelCount += 1
                     parent.trueLabelM = node.trueLabelM
 
@@ -1187,13 +1200,13 @@ class Mips:
             if not self.isComparison:
                 # We maken eerst de branch aan met een nieuw falseLabel
                 self.branch(node.fromRegBrM, node.trueLabelM, node.falseLabelM, node.falseLabelM, "x")
-                self.line = self.line.replace("x" + str(node.falseLabelM), "__label" + str(self.labelCount) + "__")
+                self.line = self.line.replace("x" + str(node.falseLabelM), "__label_" + str(self.labelCount) + "__")
                 self.labelCount += 1
             else:
                 self.isComparison = False
                 self.wasLogical = True
                 self.branch(node.fromRegBrM, node.trueLabelM, node.falseLabelM, node.falseLabelM, "x")
-                self.line = self.line.replace("x" + str(node.falseLabelM), "__label" + str(self.labelCount) + "__")
+                self.line = self.line.replace("x" + str(node.falseLabelM), "__label_" + str(self.labelCount) + "__")
                 self.labelCount += 1
 
             # Nu gaan we hier een false in het eind register plaatsen
@@ -1206,7 +1219,7 @@ class Mips:
             # Nu de true branch
             self.line += "x" + str(node.trueLabelM) + ":\n"
 
-            self.line = self.line.replace("x" + str(node.trueLabelM), "__label" + str(self.labelCount) + "__")
+            self.line = self.line.replace("x" + str(node.trueLabelM), "__label_" + str(self.labelCount) + "__")
             self.labelCount += 1
 
             # We storen een true in het eind register
@@ -1220,7 +1233,7 @@ class Mips:
 
             self.line += "x" + str(self.logLabelCount) + ":\n"
 
-            self.line = self.line.replace("x" + str(self.logLabelCount),  "__label" + str(self.labelCount) + "__")
+            self.line = self.line.replace("x" + str(self.logLabelCount),  "__label_" + str(self.labelCount) + "__")
             self.labelCount += 1
 
             toType = "INT"
@@ -1256,12 +1269,12 @@ class Mips:
 
         # We kijken of het een condition is van een while of niet, als dit zo is dan moeten we eerst een branch doen
         if node.parent.children[-1].token == "WHILE":
-            self.line += "  br label %while" + str(self.whileLabelCount) + "\n\n"
+            self.line += "\tb while" + str(self.whileLabelCount) + "\n\n"
             self.line += "while" + str(self.whileLabelCount) + ":\n"
-            self.line = self.line.replace("while" + str(self.whileLabelCount), str(self.register))
-            self.whileStack.append((self.register, True))
-            self.register += 1
+            self.line = self.line.replace("while" + str(self.whileLabelCount), "__WHILE_CONDITION_" + str(self.whileCount) + "__")
+            self.whileStack.append((self.whileLabelCount, True))
             self.whileLabelCount += 1
+            self.whileCount += 1
 
     def exitCondition(self, node):
         print("exitCondition")
@@ -1331,7 +1344,8 @@ class Mips:
         if type == 'CHAR':
             value = value.replace("'", '"')
         name = str(node.value)
-        # symbolTable.register = name
+        symbolTable.stackOffset = name
+        symbolTable.isGlobal = True
         line = name + ":" + "\t" + "." + global_types[type] + " " + value + "\n"
         self.globals.append(line)
 
@@ -1364,7 +1378,7 @@ class Mips:
         storeCommand = "sw" if str(fromRegister)[1] != "f" else "swc1"
         self.line += "\t" + storeCommand + "\t" + str(fromRegister) + "," + str(offset) + "($sp)\n"
 
-    def load(self, fromReg, type, toReg_=None):
+    def load(self, fromReg, type, toReg_=None, isGlobal = None):
 
         line = ""
         toReg = "$t0" if type != "FLOAT" else "$f0"
@@ -1372,21 +1386,19 @@ class Mips:
         if toReg_:
             toReg = toReg_
 
-        # for i in range(numberOfPointer + 1):
-        #     line += "  %" + str(self.register) + " = load " + types[type][0] + leftPoint + ", " + types[type][
-        #         0] + rightPoint + " "
-        #     line += "%" + str(fromReg) + ", " + types[type][1] + "\n" if str(fromReg).isdigit() else "@" + str(
-        #         fromReg) + ", " + types[type][1] + "\n"
-        #     fromReg = self.register
-        #     self.register += 1
-        #     if numberOfPointer > 0:
-        #         leftPoint = leftPoint[0:(len(leftPoint) - 1)]
-        #         rightPoint = rightPoint[0:(len(rightPoint) - 1)]
-        if type != "FLOAT":
-            line += "\tlw\t" + toReg + "," + str(fromReg) + "($sp)\n"
+        if not isGlobal:
+            if type != "FLOAT":
+                line += "\tlw\t" + toReg + "," + str(fromReg) + "($sp)\n"
+
+            else:
+                line += "\tlwc1\t" + toReg + "," + str(fromReg) + "($sp)\n"
 
         else:
-            line += "\tlwc1\t" + toReg + "," + str(fromReg) + "($sp)\n"
+            if type != "FLOAT":
+                line += "\tlw\t" + toReg + "," + str(fromReg) + "\n"
+
+            else:
+                line += "\tlwc1\t" + toReg + "," + str(fromReg) + "\n"
 
         return toReg, line
 
@@ -1501,15 +1513,15 @@ class Mips:
                 num1 = num2
                 num2 = temp
 
-            label = "__false" + str(self.compBranchNr) + "__\n"
+            label = "__false_" + str(self.compBranchNr) + "__\n"
             line += "\t" + comparison + "\t" + num1 + ", " + num2 + "\n"
             line += "\t" + "bc1f, " + label
             line += "\tli\t" + "$t0, " + "1\n"  # resultReg is t0
-            line += "\tb\t" + "__resumeComparison" + str(self.compBranchNr) + "__\n\n"
+            line += "\tb\t" + "__resumeComparison_" + str(self.compBranchNr) + "__\n\n"
 
-            line += "__false" + str(self.compBranchNr) + "__:\n"
+            line += "__false_" + str(self.compBranchNr) + "__:\n"
             line += "\tli $t0, 0\n\n"
-            line += "__resumeComparison" + str(self.compBranchNr) + "__:\n"
+            line += "__resumeComparison_" + str(self.compBranchNr) + "__:\n"
 
             self.compBranchNr += 1
         else:
@@ -1530,10 +1542,9 @@ class Mips:
 
         if str(parent.parent.value) in logicals:
             if logicals[str(parent.parent.value)] == "NOT":
-                self.line += "  %" + str(self.register) + " = xor i1 %" + str(fromReg) + ', true\n'
-                parent.fromRegBrM = self.register
-                fromReg = self.register
-                self.register += 1
+                self.reverseBool()
+                parent.fromRegBrM = "$t0"
+                fromReg = "$t0"
 
         if node == parent.children[0]:
             # Nu kijken we of de parent een OR of AND is
@@ -1570,12 +1581,12 @@ class Mips:
                 if str(node.value) in data_comp_instr and str(parent.value) in logicals:
                     # if str(parent.value) in comparisons and str(parent.value.value) not in logicals:
                     self.branch(fromReg, node.trueLabelM, node.falseLabelM, node.trueLabelM, "x")
-                    self.line = self.line.replace("x" + str(node.trueLabelM), "__label" + str(self.labelCount) + "__")
+                    self.line = self.line.replace("x" + str(node.trueLabelM), "__label_" + str(self.labelCount) + "__")
                     self.labelCount += 1
 
                 elif (str(node.token) == "IDENTIFIER" or str(node.token) in types):
                     self.branch(fromReg, node.trueLabelM, node.falseLabelM, node.trueLabelM, "x")
-                    self.line = self.line.replace("x" + str(node.trueLabelM), "__label" + str(self.labelCount) + "__")
+                    self.line = self.line.replace("x" + str(node.trueLabelM), "__label_" + str(self.labelCount) + "__")
                     self.labelCount += 1
 
                 else:
@@ -1616,12 +1627,12 @@ class Mips:
                 if str(node.value) in data_comp_instr and str(parent.value) in logicals:
                     # if str(parent.value) in comparisons and str(parent.value.value) not in logicals:
                     self.branch(fromReg, node.trueLabelM, node.falseLabelM, node.falseLabelM, "x")
-                    self.line = self.line.replace("x" + str(node.falseLabelM), "__label" + str(self.labelCount) + "__")
+                    self.line = self.line.replace("x" + str(node.falseLabelM), "__label_" + str(self.labelCount) + "__")
                     self.labelCount += 1
 
                 elif (str(node.token) == "IDENTIFIER" or str(node.token) in types):
                     self.branch(fromReg, node.trueLabelM, node.falseLabelM, node.falseLabelM, "x")
-                    self.line = self.line.replace("x" + str(node.falseLabelM), "__label" + str(self.labelCount) + "__")
+                    self.line = self.line.replace("x" + str(node.falseLabelM), "__label_" + str(self.labelCount) + "__")
                     self.labelCount += 1
 
                 else:
@@ -1631,9 +1642,8 @@ class Mips:
                 parent.trueLabelM = node.trueLabelM
 
             elif logicals[str(parent.value)] == "NOT":
-                self.line += "  %" + str(self.register) + " = xor i1 %" + str(fromReg) + ', true\n'
-                parent.fromRegBrM = self.register
-                self.register += 1
+                self.reverseBool()
+                parent.fromRegBrM = "$t0"
 
                 if str(parent.parent.value) not in logicals:
                     node.trueLabelM = self.logLabelCount
@@ -1768,13 +1778,21 @@ class Mips:
         self.store(toReg, self.offset)
         stack.append((self.offset, node.token, True))
         self.offset -= 4
+        return toReg, node.type
 
     def exitIdentifierStackHandler(self, stack, symbol_lookup, function):
         reg, type = function(symbol_lookup)
         self.line += reg[1]
         self.store(reg[0], self.offset)
-        stack.append((self.offset, type, True))  # Ook hier heeft de functioncall voorang
+
+        if not self.enteredScanf:
+            stack.append((self.offset, type, True))  # Ook hier heeft de functioncall voorang
+
+        else:
+            stack.append((symbol_lookup.stackOffset, type, True))  # Ook hier heeft de functioncall voorang
+
         self.offset -= 4
+        return type, reg[0]
 
     def exitBinOperationStackHandler(self, stack, node, function, LHStype):
 
@@ -1798,6 +1816,7 @@ class Mips:
 
         stack.append((self.offset, toType, True))
         self.offset -= 4
+        return toType, toReg
 
     def exitComparisonStackHandler(self, stack, node, function, condition):
         reg1 = '$t0' if stack[-2][1] != "FLOAT" else '$f0'
@@ -1820,6 +1839,18 @@ class Mips:
 
         stack.append((self.offset, toType, True))
         self.offset -= 4
+        return toType, toReg
+
+    def reverseBool(self):
+
+        self.line += "\tbeq\t$t0, 0, __reverse_" + str(self.reverseCount) + "__\n"
+        self.line += "\tli\t$t0, 0\n"
+        self.line += "\tb __continue_" + str(self.reverseCount) + "__\n\n"
+        self.line += "__reverse_" + str(self.reverseCount) + "__:\n"
+        self.line += "\tli\t$t0, 1\n"
+        self.line += "\tb __continue_" + str(self.reverseCount) + "__\n\n"
+        self.line += "__continue_" + str(self.reverseCount) + "__:\n"
+        self.reverseCount += 1
 
     def popRightStack(self):
         if self.enteredFunctionCall > 0:
