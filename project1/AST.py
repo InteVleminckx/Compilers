@@ -599,20 +599,6 @@ class ASTprinter(mathGrammerListener):
     # Enter a parse tree produced by mathGrammerParser#function_def.
     def enterFunction_def(self, ctx: mathGrammerParser.Function_defContext):
 
-        #  if ctx.getChildCount() == 4:
-        #      ast.createNode("FUNC_DEF", "FUNC_DEF", 4, ctx.start.line, ctx.start.column)
-        #  elif ctx.getChildCount() == 3:
-        #      print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        #      print(ctx.getChild(0).getText())
-        #      print(ctx.getChild(1).getText())
-        #      print(ctx.getChild(2).getText())
-        #      print(ctx.getChild(0).getChildCount())
-        #      print(ctx.getChild(1).getChildCount())
-        #      print(ctx.getChild(2).getChildCount())
-        #      print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        #      ast.createNode("FUNC_DEF", "FUNC_DEF", 4, ctx.start.line, ctx.start.column)
-        #  else:
-        #      pass
 
         # We komen een function definition tegen, als deze 3 kinderen heeft gaan we hiervoor een nieuwe branch aanmaken
         # Deze branch heeft dan 4 childnodes voor return type, name, parameters, scope

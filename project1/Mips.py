@@ -875,6 +875,25 @@ class Mips:
 
         # self.register += 1
 
+        # if self.enteredFunctionCall > 0:
+        #     self.functionCallStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
+        #
+        # # Ook hier heeft de functioncall eerst voorrang
+        # elif self.enteredReturn:
+        #     self.returnStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
+        #
+        # # Ook hier heeft de functioncall eerst voorrang
+        # elif self.enteredPrintf:
+        #     self.printfStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
+        #
+        # # Ook hier heeft de functioncall eerst voorrang
+        # elif self.enteredCondition:
+        #     self.conditionStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
+        #
+        # # Ook hier kan het zijn dat we een recursieve call hebben van aanroepen in elkaar dus moeten we deze ook eerst voorrang geven
+        # elif self.enteredAssignment:
+        #     # Als dit het geval is moet de register van deze function call worden toegevoegd aan de stack
+        #     self.assignmentStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
         if self.enteredFunctionCall > 0:
             self.functionCallStack.append((str(self.offset +4 ), outputtype, True))
 
@@ -920,7 +939,192 @@ class Mips:
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredReturn:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
-            # Waar we de operation moeten uitvoeren
+            # Waar we de operation moeten uitvoeren.data
+            # str1:	.asciiz	"Enter a number:"
+            # str4:	.asciiz	"fib("
+            # str5:	.asciiz	")\t= "
+            # str6:	.asciiz	";\n"
+            # str2:	.asciiz	"%d"
+            #
+            # .text
+            # .globl main
+            #
+            # f:
+            # 	sw	$fp, -4($sp)
+            # 	addi	$fp,$sp,0
+            # 	addi	$sp,$sp,-16
+            # 	sw $ra, 8($sp)
+            #
+            # 	lw	$t0,4($fp)
+            # 	sw	$t0,4($sp)
+            # 	lw	$t0,4($sp)
+            # 	sw	$t0,-4($sp)
+            # 	li	$t0, 2
+            # 	sw	$t0,-8($sp)
+            # 	lw	$t0,-4($sp)
+            # 	lw	$t1,-8($sp)
+            # 	slt	$t0, $t0, $t1
+            # 	sw	$t0,-4($sp)
+            # 	lw	$t0,-4($sp)
+            # 	beq	$t0, 1, __IF_0__
+            # 	beq	$t0, 0, __ELSE_1__
+            #
+            # __IF_0__:
+            # 	lw	$t0,4($sp)
+            # 	sw	$t0,-8($sp)
+            # 	lw	$t0,-8($sp)
+            #
+            # 	sw	$t0, 0($fp)
+            # 	lw $ra, 8($sp)
+            # 	addi	$sp,$fp,0
+            # 	lw	$fp, -4($sp)
+            # 	jr	$ra
+            #
+            #
+            # 	b __END_IF_ELSE_2__
+            #
+            # __ELSE_1__:
+            # 	lw	$t0,4($sp)
+            # 	sw	$t0,-12($sp)
+            # 	li	$t0, 1
+            # 	sw	$t0,-16($sp)
+            # 	lw	$t0,-12($sp)
+            # 	lw	$t1,-16($sp)
+            # 	sub	$t0	,$t0,$t1
+            # 	sw	$t0,-12($sp)
+            # 	addi	$sp, $sp, -8
+            # 	lw	$t0,-4($sp)
+            # 	sw	$t0,4($sp) #store parameter
+            # 	jal	f
+            # 	lw	$t0, 0($sp)
+            # 	sw	$t0,-16($sp)
+            # 	addi	$sp, $sp, 8
+            # 	lw	$t0,4($sp)
+            # 	sw	$t0,-20($sp)
+            # 	li	$t0, 2
+            # 	sw	$t0,-24($sp)
+            # 	lw	$t0,-20($sp)
+            # 	lw	$t1,-24($sp)
+            # 	sub	$t0	,$t0,$t1
+            # 	sw	$t0,-20($sp)
+            # 	addi	$sp, $sp, -8
+            # 	lw	$t0,-12($sp)
+            # 	sw	$t0,4($sp) #store parameter
+            # 	jal	f
+            # 	lw	$t0, 0($sp)
+            # 	sw	$t0,-24($sp)
+            # 	addi	$sp, $sp, 8
+            # 	lw	$t0,-24($sp)
+            # 	lw	$t1,-32($sp)
+            # 	add	$t0	,$t0,$t1
+            # 	sw	$t0,-20($sp)
+            # 	lw	$t0,-20($sp)
+            #
+            # 	sw	$t0, 0($fp)
+            # 	lw $ra, 8($sp)
+            # 	addi	$sp,$fp,0
+            # 	lw	$fp, -4($sp)
+            # 	jr	$ra
+            #
+            #
+            # 	b __END_IF_ELSE_2__
+            #
+            # __END_IF_ELSE_2__:
+            #
+            # 	lw $ra, 8($sp)
+            # 	addi	$sp,$fp,0
+            # 	lw	$fp, -4($sp)
+            # 	jr	$ra
+            #
+            # main:
+            # 	sw	$fp, -4($sp)
+            # 	addi	$fp,$sp,0
+            # 	addi	$sp,$sp,-20
+            # 	sw $ra, 12($sp)
+            #
+            # 	la $a0, str1
+            # 	li $v0, 4
+            # 	syscall
+            #
+            # 	lw	$t0,4($sp)
+            # 	sw	$t0,-24($sp)
+            # 	li $v0, 5
+            # 	syscall
+            # 	move $t0, $v0
+            # 	sw	$t0,4($sp)
+            # 	li	$t0, 1
+            # 	sw	$t0,8($sp)
+            # 	b __WHILE_CONDITION_0__
+            #
+            # __WHILE_CONDITION_0__:
+            # 	lw	$t0,8($sp)
+            # 	sw	$t0,-28($sp)
+            # 	lw	$t0,-28($sp)
+            # 	add	$t0	,$t0,1
+            # 	sw	$t0,8($sp)
+            # 	lw	$t0,4($sp)
+            # 	sw	$t0,-32($sp)
+            # 	lw	$t0,-28($sp)
+            # 	lw	$t1,-32($sp)
+            # 	sle	$t0, $t0, $t1
+            # 	sw	$t0,-28($sp)
+            # 	lw	$t0,-28($sp)
+            # 	beq	$t0, 1, __WHILE_1__
+            # 	beq	$t0, 0, __END_WHILE_2__
+            #
+            # __WHILE_1__:
+            # 	lw	$t0,8($sp)
+            # 	sw	$t0,-32($sp)
+            # 	lw	$t0,8($sp)
+            # 	sw	$t0,-36($sp)
+            # 	addi	$sp, $sp, -8
+            # 	lw	$t0,-28($sp)
+            # 	sw	$t0,4($sp) #store parameter
+            # 	jal	f
+            # 	lw	$t0, 0($sp)
+            # 	sw	$t0,-40($sp)
+            # 	addi	$sp, $sp, 8
+            # 	la $a0, str4
+            # 	li $v0, 4
+            # 	syscall
+            #
+            # 	lw	$t0,-32($sp)
+            # 	la $a0, ($t0)
+            # 	li $v0, 1
+            # 	syscall
+            #
+            # 	la $a0, str5
+            # 	li $v0, 4
+            # 	syscall
+            #
+            # 	lw	$t0,-48($sp)
+            # 	la $a0, ($t0)
+            # 	li $v0, 1
+            # 	syscall
+            #
+            # 	la $a0, str6
+            # 	li $v0, 4
+            # 	syscall
+            #
+            # 	b __WHILE_CONDITION_0__
+            #
+            # __END_WHILE_2__:
+            # 	li	$t0, 0
+            # 	sw	$t0,-44($sp)
+            # 	lw	$t0,-44($sp)
+            #
+            # 	sw	$t0, 0($fp)
+            # 	lw $ra, 12($sp)
+            # 	addi	$sp,$fp,0
+            # 	lw	$fp, -4($sp)
+            #
+            #
+            # 	lw $ra, 12($sp)
+            # 	addi	$sp,$fp,0
+            # 	lw	$fp, -4($sp)
+            # exit:
+            # 	li $v0, 10
+            # 	syscall
             toType, toReg = self.exitBinOperationStackHandler(self.returnStack, node, func, toType)
 
 

@@ -1,6 +1,7 @@
+void f();
+
 int main(){
     int x = 5;
-    char c = 'a';
-    x + c;
+    x = f();
     return 1;
 }
