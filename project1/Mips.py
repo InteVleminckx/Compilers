@@ -230,7 +230,7 @@ class Mips:
             toReg, line = self.load(returnReg[0], returnReg[1])
             self.line += line
 
-            line = "\n\tsw\t" + str(toReg) + ", 0($fp)\n" + \
+            line = "\n\tsw\t" + str(toReg) + ", 0($fp)\t\t#add return value on the stack\n" + \
                    "\tlw $ra, " + str(self.stackOffset - 8) + "($sp)\n" + \
                    "\taddi\t$sp,$fp,0\n" + \
                    "\tlw\t$fp, -4($sp)\n"
@@ -844,18 +844,20 @@ class Mips:
                 self.line += line
                 offset = (i+1)*4
                 # self.line += "\tla\t" + "$a" + str(0) + "," + param + "\n"
-                self.line += "\tsw\t" + param + "," + str(offset) + "($sp)" + " #store parameter  \n"
+                self.line += "\tsw\t" + param + "," + str(offset) + "($sp)" + "\t\t#add function argument to the stack  \n"
 
         # self.line += "\taddi\t" + "$sp, $sp, " + str((4)) + "\n"
         self.line += "\tjal\t" + funcName + "\n"
         # self.line += "\taddi\t" + "$sp, $sp, " + str((-4)) + "\n"
 
-        self.line += "\tlw\t$t0, 0($sp)\n"
-        self.store('$t0', self.offset)
-        self.offset -= 4
+        self.line += "\tlw\t$t0, 0($sp)\t\t#load return value from the stack\n"
+
+
         if numberOfParams > 0:
             self.line += "\taddi\t" + "$sp, $sp, " + str((4+4*numberOfParams)) + "\n"
 
+        self.store('$t0', self.offset)
+        self.offset -= 4
         # Er zouden nu op zijn minst even elementen in de stack moeten zitten dan er parameters zijn voor de functie
         # for i in range(numberOfParams):
         #     # Zit er omgekeerd in dus moeten het er ook omgekeerd terug uithalen
@@ -874,24 +876,24 @@ class Mips:
         # self.register += 1
 
         if self.enteredFunctionCall > 0:
-            self.functionCallStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
+            self.functionCallStack.append((str(self.offset +4 ), outputtype, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredReturn:
-            self.returnStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
+            self.returnStack.append((str(self.offset+4), outputtype, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
-            self.printfStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
+            self.printfStack.append((str(self.offset+4), outputtype, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredCondition:
-            self.conditionStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
+            self.conditionStack.append((str(self.offset+4), outputtype, True))
 
         # Ook hier kan het zijn dat we een recursieve call hebben van aanroepen in elkaar dus moeten we deze ook eerst voorrang geven
         elif self.enteredAssignment:
             # Als dit het geval is moet de register van deze function call worden toegevoegd aan de stack
-            self.assignmentStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
+            self.assignmentStack.append((str(self.offset+4), outputtype, True))
 
     def enterBinOperation(self, node):
         print("enterBinOperation")
@@ -1446,9 +1448,9 @@ class Mips:
 
         line = ""
         toReg = "$t0" if type != "FLOAT" else "$f0"
-        place = "($sp)"
+        place = "($sp)\t\t#load local variable or temp register from stack"
         if isParam:
-            place = "($fp)"
+            place = "($fp)\t\t#load function argument from stack"
         if toReg_:
             toReg = toReg_
 
