@@ -1,4 +1,1 @@
-int main(){
-    int x[0.5];
-    return 0;
-}
+[ Error ] line 2, position 4 : Array access type/size type mismatch.

@@ -1535,6 +1535,27 @@ def folding(node):
                 node.children[0].column) + " : " + "(pointer) operation error.")
             exit(1)
 
+        if op_list.count(str(node.value)):  # comp op
+            node1array = False
+            node2array = False
+
+            table = tableLookup(node.children[0])
+            symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
+                                         varColumn=node.children[0].column)
+            if symbol_lookup[0]:  # normaal altijd true
+                node1array = True if symbol_lookup[1].arrayData is not False else False
+
+            table = tableLookup(node.children[1])
+            symbol_lookup = symbolLookup(node.children[1].value, table, varLine=node.children[1].line,
+                                         varColumn=node.children[1].column)
+            if symbol_lookup[0]:  # normaal altijd true
+                node2pointer = True if symbol_lookup[1].arrayData is not False else False
+
+            if node1array is True or node2array is True:
+                print("[ Error ] line " + str(node.children[0].line) + ", position " + str(
+                    node.children[0].column) + " : " + "Array compare error.")
+                exit(1)
+
 
     if value_c0 is None:
         return False
@@ -2429,9 +2450,29 @@ def semanticAnalysisVisitor(node):
         if travelNode.token == "FUNC_DEF": # returntypes vergelijken
             expectedReturnType = travelNode.parent.children[0].children[0].token
             if node.children[0].type != expectedReturnType:
-                print("[ Warning ] line " + str(node.line) + ", position " + str(
+                print("[ Error ] line " + str(node.line) + ", position " + str(
                     node.column) + " : " + "Return type mismatch.")
                 exit(1)
+
+    elif node.token == "ARRAY":
+        if len(node.children[1].children) > 0:
+            for i in range(len(node.children[1].children)):
+                if node.children[1].children[i].type != "INT":
+                    print("[ Error ] line " + str(node.line) + ", position " + str(
+                        node.column) + " : " + "Array access type/size type mismatch.")
+                    exit(1)
+
+        if node.children[0].isDeclaration is False:
+            table = tableLookup(node.children[0])
+            symbol_lookup = symbolLookup(node.children[0].value, table,
+                                         varLine=node.children[0].line,
+                                         varColumn=node.children[0].column)
+            if symbol_lookup[0]:
+                if symbol_lookup[1].arrayData is False:
+                    print("[ Error ] line " + str(node.line) + ", position " + str(
+                        node.column) + " : " + "Array access type/size type mismatch.")
+                    exit(1)
+
 
     if len(node.children) > 0:
         for child in node.children:
