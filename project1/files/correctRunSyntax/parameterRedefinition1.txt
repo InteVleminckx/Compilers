@@ -1,7 +1,1 @@
-
-// declaration with the same parameter
-int f(int a, int a);
-
-int main(){
-    return 0;
-}
+[ Error ] line 3, position 13 : Duplicate declaration

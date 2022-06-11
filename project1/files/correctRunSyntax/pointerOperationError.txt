@@ -1,8 +1,2 @@
-
-int main(){
-        int* a;
-        int* b;
-        a + b;
-        return 1;
-}
+[ Error ] line 5, position 8 : (pointer) operation error.
 

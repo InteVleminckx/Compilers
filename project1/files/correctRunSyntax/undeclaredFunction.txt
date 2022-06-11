@@ -1,4 +1,1 @@
-int main(){
-    f();
-    return 0;
-}
+[ Error ] line 2, position 4 : Undefined or Uninitialized Reference.

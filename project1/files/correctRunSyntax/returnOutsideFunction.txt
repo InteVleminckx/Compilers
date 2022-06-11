@@ -1,5 +1,1 @@
-return 5;
-
-int main(){
-    return 0;
-}
+[ Error ] line 1, position 0 : Return outside function.

@@ -1,8 +1,1 @@
-int x;
-int x = 5;
-// variable redefinition
-int x = 5;
-
-int main(){
-    return 0;
-}
+[ Error ] line 2, position 0 : Duplicate declaration

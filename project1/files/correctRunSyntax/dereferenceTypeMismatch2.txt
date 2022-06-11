@@ -1,6 +1,1 @@
-
-int main(){
-	int* p;
-	p = &5;
-	return 1;
-}
+[ Warning ] line 4, position 6 : Dereference type mismatch.

@@ -1,5 +1,1 @@
-#include <nonExistantFile.h>
-
-int main(){
-	return 0;
-}
+[ Warning ] line 1, position 0 : Invalid include error.

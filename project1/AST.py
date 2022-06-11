@@ -506,6 +506,13 @@ class ASTprinter(mathGrammerListener):
                 ast.createNode(str(ctx.getChild(0)), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
                                ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
 
+                if ast.nextConst:
+                    ast.nextConst = False
+                ast.nextType = ""
+                ast.nextOverwrite = False
+                ast.pointerAmount = 0
+                ast.referenceAmount = 0
+
                 if self.createArray[0]:
                     ast.createNode("INDICES", "INDICES", self.createArray[1], ctx.start.line, ctx.start.column)
                     self.createArray = (False, 0)
@@ -766,7 +773,7 @@ class ASTprinter(mathGrammerListener):
                                            ast.nextType, ast.nextConst, ast.nextOverwrite, ast.pointerAmount,
                                            ast.referenceAmount)
                             ast.lastCreated.isDeclaration = True
-                            if ast.nextConst:
+                            if ast.nextConst: #NOTE: setting back
                                 ast.nextConst = False
                             ast.nextType = ""
                             ast.nextOverwrite = False
@@ -829,6 +836,13 @@ class ASTprinter(mathGrammerListener):
                                ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
                 ast.lastCreated.isDeclaration = True
 
+                if ast.nextConst: #NOTE setting back
+                    ast.nextConst = False
+                ast.nextType = ""
+                ast.nextOverwrite = False
+                ast.pointerAmount = 0
+                ast.referenceAmount = 0
+
             elif type(ctx.getChild(1)) == mathGrammerParser.ReferenceContext:
 
                 type_ = None
@@ -841,6 +855,13 @@ class ASTprinter(mathGrammerListener):
                 ast.createNode(ctx.IDENTIFIER(), "IDENTIFIER", 0, ctx.start.line, ctx.start.column, ast.nextType,
                                ast.nextConst, ast.nextOverwrite, ast.pointerAmount, ast.referenceAmount)
                 ast.lastCreated.isDeclaration = True
+
+                if ast.nextConst: #NOTE: setting back
+                    ast.nextConst = False
+                ast.nextType = ""
+                ast.nextOverwrite = False
+                ast.pointerAmount = 0
+                ast.referenceAmount = 0
 
     # Enter a parse tree produced by mathGrammerParser#initializer_list.
     def enterInitializer_list(self, ctx: mathGrammerParser.Initializer_listContext):
@@ -1493,6 +1514,28 @@ def folding(node):
     value_c1, value_c1_t, isIden1 = getValuesChildren(node.children[1]) if len(node.children) == 2 else (
         None, None, False)
 
+    if len(node.children) == 2:
+        node1pointer = 0
+        node2pointer = 0
+        if node.children[0].pointer == 0:
+            if node.children[1].pointer == 0:
+                table = tableLookup(node.children[0])
+                symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line, varColumn=node.children[0].column)
+                if symbol_lookup[0]: # normaal altijd true
+                    node1pointer = symbol_lookup[1].pointer
+
+                table = tableLookup(node.children[1])
+                symbol_lookup = symbolLookup(node.children[1].value, table, varLine=node.children[1].line,
+                                             varColumn=node.children[1].column)
+                if symbol_lookup[0]:  # normaal altijd true
+                    node2pointer = symbol_lookup[1].pointer
+
+        if node1pointer > 0 or node2pointer > 0:
+            print("[ Error ] line " + str(node.children[0].line) + ", position " + str(
+                node.children[0].column) + " : " + "(pointer) operation error.")
+            exit(1)
+
+
     if value_c0 is None:
         return False
 
@@ -1837,6 +1880,40 @@ def setupSymbolTables(tree, node=None):
             tree.symbolTableList.append(s)
             wasNewBlockOpened = True
 
+        if node.token == "FORDECL" and node.children[0].token == "RETURN_TYPE":
+            value = "FORDECL"
+            type = node.children[0].children[0].token
+            isConst = False
+            isOverwritten = False
+            inputTypes = [node.children[0].children[0].token]
+            outputTypes = []
+            functionParameters = []
+            for i in range(len(node.children[2].children)):
+                outputTypes.append(node.children[2].children[i].type)
+                functionParameters.append(node.children[2].children[i].value)
+
+            semanticAnalysis(node.children[1].children[0])
+
+            tableValue = Value(type, value, isConst, isOverwritten, outputTypes, inputTypes, functionParameters,
+                               line=node.children[1].children[0].line, column=node.children[1].children[0].column)
+            tree.symbolTableStack[-1].addVar(str(node.children[1].children[0].value), tableValue)
+
+            s = SymbolTable()
+            s.enclosingSTable = tree.symbolTableStack[-1]
+
+            s.astNode = node
+            node.symbolTablePointer = s
+            node__ = node
+            while node__.parent is not None:
+                node__ = node__.parent
+                if node__.symbolTablePointer is not None:
+                    break
+
+            node__.symbolTablePointer.childrenTables.append(s)
+            tree.symbolTableStack.append(s)
+            tree.symbolTableList.append(s)
+            wasNewBlockOpened = True
+
         ## geval 2: we openen geen nieuw block ##
 
         if node.token == "=":  # variabele toevoegen aan symbol table
@@ -1956,7 +2033,14 @@ def setupSymbolTables(tree, node=None):
         elif node.token == "UN_OP":
             if str(node.value) == "*":
                 if len(node.children) < 2:
-                    if not node.token == "IDENTIFIER": #TODO node.children[1]
+                    if not node.children[0].token == "IDENTIFIER":
+                        print("[ Warning ] line " + str(node.line) + ", position " + str(
+                            node.column) + " : " + "Dereference type mismatch.")
+                    else:
+                        pass
+            elif str(node.value) == "&":
+                if len(node.children) < 2:
+                    if not node.children[0].token == "IDENTIFIER":
                         print("[ Warning ] line " + str(node.line) + ", position " + str(
                             node.column) + " : " + "Dereference type mismatch.")
                     else:
@@ -2005,26 +2089,51 @@ def semanticAnalysis(node, child1=None, child2=None, f=False):
                         par_node = node.parent.parent.children[2]
                         ret_node = node.parent.parent.children[0].children[0].token
                         par_len = len(symbol_lookup[1].inputTypes)
+
+                        sameParTypesAndLength = True
                         if symbol_lookup[1].inputTypes[0] is None or symbol_lookup[1].inputTypes[0] == '':
                             par_len = 0
                         if symbol_lookup[1].inputTypes[0] is None and par_node.children[0] is None:
                             pass
+
                         else:
+
                             if len(par_node.children) != par_len:
-                                print("[ Error ] line " + str(node.line) + ", position " + str(
-                                    node.column) + " : " + "Duplicate function declaration (different amount of parameters).")
-                                exit(1)
+                                sameParTypesAndLength = False
+                                if type(symbol_lookup[1].value) == str:
+                                    if str(symbol_lookup[1].value) == "FORDECL":
+                                        print("[ Error ] line " + str(node.line) + ", position " + str(
+                                            node.column) + " : " + "definition of function with wrong amount of parameters.")
+                                        exit(1)
                             else:
                                 # check types
                                 for i in range(len(par_node.children)):
                                     if par_node.children[i].type != symbol_lookup[1].inputTypes[i]:
+                                        sameParTypesAndLength = False
+                                        if type(symbol_lookup[1].value) == str:
+                                            if str(symbol_lookup[1].value) == "FORDECL":
+                                                print("[ Error ] line " + str(node.line) + ", position " + str(
+                                                    node.column) + " : " + "definition of function with wrong parameter type.")
+                                                exit(1)
+                        if sameParTypesAndLength is True:
+                            if symbol_lookup[1].outputTypes[0] != ret_node:
+                                if type(symbol_lookup[1].value) == str:
+                                    if str(symbol_lookup[1].value) == "FORDECL":
                                         print("[ Error ] line " + str(node.line) + ", position " + str(
-                                            node.column) + " : " + "Duplicate function declaration (different parameter types).")
+                                            node.column) + " : " + "definition of function with wrong return type.")
                                         exit(1)
-                        if symbol_lookup[1].outputTypes[0] != ret_node:
-                            print("[ Error ] line " + str(node.line) + ", position " + str(
-                                node.column) + " : " + "Duplicate function declaration (different return values).")
-                            exit(1)
+                                else:
+                                    print("[ Error ] line " + str(node.line) + ", position " + str(
+                                        node.column) + " : " + "function redefinition.")
+                                    exit(1)
+                            else: # als de returntypes hetzelfde zijn
+                                if type(symbol_lookup[1].value) == str:
+                                    if str(symbol_lookup[1].value) == "FORDECL":
+                                        pass
+                                elif symbol_lookup[1].value.parent.token == "BRANCH":
+                                    print("[ Error ] line " + str(node.line) + ", position " + str(
+                                        node.column) + " : " + "function redefinition.")
+                                    exit(1)
 
     else:
         table = tableLookup(child1)
@@ -2317,8 +2426,12 @@ def semanticAnalysisVisitor(node):
                 exit(1)
                 break
             travelNode = travelNode.parent
-
-        # check for return type vs actual return type
+        if travelNode.token == "FUNC_DEF": # returntypes vergelijken
+            expectedReturnType = travelNode.parent.children[0].children[0].token
+            if node.children[0].type != expectedReturnType:
+                print("[ Warning ] line " + str(node.line) + ", position " + str(
+                    node.column) + " : " + "Return type mismatch.")
+                exit(1)
 
     if len(node.children) > 0:
         for child in node.children:
@@ -2404,3 +2517,6 @@ def checkMain(tree):
     symbol_lookup = symbolLookup("main", table)
     if not symbol_lookup[0]:
         print("[ Error ] Function 'main' not found.")
+    else: # voor het geval er een variabele met de naam 'main' is.
+        if symbol_lookup[1].outputTypes is None:
+            print("[ Error ] Function 'main' not found.")

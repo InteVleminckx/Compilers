@@ -90,3 +90,6 @@ P3: LLVM: We don't fully support all llvm generation. The files that are provide
 - https://graphviz.org/doc/info/lang.html
 - https://en.cppreference.com/w/c/language/operator_precedence
 - https://llvm.org/docs/LangRef.html
+- https://www.d.umn.edu/~gshute/mips/data-comparison.xhtml#int-compare
+- https://godbolt.org/ (for mips code inspiration)
+- https://www.youtube.com/watch?v=ewpo1NERc3o&ab_channel=Intermation

@@ -1,3 +1,10 @@
+### Implementation status:
+
+V: Working. \
+-: Partially working with known problems (described below).  
+X: Not working or not implemented.  
+(blanco): TODO.
+
 | Benchmark             | CompletedLLVM | CompletedMips |
 |-----------------------|---------------|---------------|
 | binaryOperations1     | V             | V             |

@@ -1,5 +1,1 @@
-int main(){
-    int* x;
-    'a' + *x;
-    return 1;
-}
+[ Warning ] line 3, position 4 : Operation of incompatible types

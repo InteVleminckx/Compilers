@@ -1,5 +1,1 @@
-int main(){
-	continue;
-	break;
-	return 1;
-}
+[ Error ] line 2, position 1 : Invalid loop control statement.

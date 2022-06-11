@@ -1,5 +1,1 @@
-
-int main(){
-    z = x + y;
-    return 0;
-}
+[ Error ] line 3, position 4 : Uninitialized Reference.
