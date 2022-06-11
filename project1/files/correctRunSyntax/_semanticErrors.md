@@ -7,10 +7,10 @@ X: Not working or not implemented.
 
 | Benchmark                         | Status |
 |-----------------------------------|--------|
-| arrayAccessTypeMismatch.c         | X      |
-| arrayAccessTypeMismatch2.c        | X      |
-| arrayCompareError.c               | X      |
-| arraySizeTypeMismatch.c           | X      |
+| arrayAccessTypeMismatch.c         | V      |
+| arrayAccessTypeMismatch2.c        | V      |
+| arrayCompareError.c               | V      |
+| arraySizeTypeMismatch.c           | V      |
 | declarationDeclarationMismatch1.c | V      |
 | declarationDeclarationMismatch2.c | V      |
 | declarationDeclarationMismatch3.c | V      |
