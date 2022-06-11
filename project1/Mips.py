@@ -617,7 +617,7 @@ class Mips:
 
                     offset2 = symbol_lookup2.stackOffset
 
-                    toReg, line = self.load(offset2, symbol_lookup2.type)
+                    toReg, line = self.load(offset2, symbol_lookup2.type, numberOfPointer=symbol_lookup2.pointer)
 
                     self.line += line
                     if symbol_lookup.type == "INT" and symbol_lookup2.type == "FLOAT":
@@ -738,10 +738,10 @@ class Mips:
         if str(node.value) == "++":
             toReg = None
             if not self.enteredCondition:
-                toReg, line = self.load(symbolTable.stackOffset, symbolTable.type)
+                toReg, line = self.load(symbolTable.stackOffset, symbolTable.type, numberOfPointer=symbolTable.pointer)
                 self.line += line
             else:
-                toReg, line = self.load(self.conditionStack[-1][0], symbolTable.type)
+                toReg, line = self.load(self.conditionStack[-1][0], symbolTable.type, numberOfPointer=symbolTable.pointer)
                 self.line += line
             toReg, toType, line = self.operate(calculations_["+"], toReg, 1, symbolTable.type, "INT", True, False)
             self.line += line
@@ -751,10 +751,10 @@ class Mips:
         elif str(node.value) == "--":
             toReg = None
             if not self.enteredCondition:
-                toReg, line = self.load(symbolTable.stackOffset, symbolTable.type)
+                toReg, line = self.load(symbolTable.stackOffset, symbolTable.type, numberOfPointer=symbolTable.pointer)
                 self.line += line
             else:
-                toReg, line = self.load(self.conditionStack[-1][0], symbolTable.type)
+                toReg, line = self.load(self.conditionStack[-1][0], symbolTable.type, numberOfPointer=symbolTable.pointer)
                 self.line += line
             toReg, toType, line = self.operate(calculations_["-"], toReg, 1, symbolTable.type, "INT", True, False)
             self.line += line
@@ -1173,7 +1173,7 @@ class Mips:
                 1]
 
         func = lambda symbol_lookup: (
-            self.load(symbol_lookup.stackOffset, symbol_lookup.type, None, symbol_lookup.isGlobal), symbol_lookup.type)
+            self.load(symbol_lookup.stackOffset, symbol_lookup.type, None, symbol_lookup.isGlobal, numberOfPointer=symbol_lookup.pointer), symbol_lookup.type)
 
         reg = None
         type = None
@@ -1648,7 +1648,7 @@ class Mips:
         storeCommand = "sw" if str(fromRegister)[1] != "f" else "swc1"
         self.line += "\t" + storeCommand + "\t" + str(fromRegister) + "," + str(offset) + "($sp)\n"
 
-    def load(self, fromReg, type, toReg_=None, isGlobal=None, isParam=False):
+    def load(self, fromReg, type, toReg_=None, isGlobal=None, isParam=False, numberOfPointer=0):
 
         line = ""
         toReg = "$t0" if type != "FLOAT" else "$f0"
@@ -1658,19 +1658,39 @@ class Mips:
         if toReg_:
             toReg = toReg_
 
-        if not isGlobal:
-            if type != "FLOAT":
-                line += "\tlw\t" + toReg + "," + str(fromReg) + place + "\n"
-
+        if numberOfPointer == 0:
+            if not isGlobal:
+                if type != "FLOAT":
+                    line += "\tlw\t" + toReg + "," + str(fromReg) + place + "\n"
+                else:
+                    line += "\tlwc1\t" + toReg + "," + str(fromReg) + place + "\n"
             else:
-                line += "\tlwc1\t" + toReg + "," + str(fromReg) + place + "\n"
+                if type != "FLOAT":
+                    line += "\tlw\t" + toReg + "," + str(fromReg) + "\n"
+                else:
+                    line += "\tlwc1\t" + toReg + "," + str(fromReg) + "\n"
 
         else:
-            if type != "FLOAT":
-                line += "\tlw\t" + toReg + "," + str(fromReg) + "\n"
+            prevPointerReg = ""
+            for i in range(numberOfPointer + 1):
 
-            else:
-                line += "\tlwc1\t" + toReg + "," + str(fromReg) + "\n"
+                if not isGlobal:
+                    if type != "FLOAT":
+                        line += "\tlw\t" + toReg + "," + str(fromReg) + place + "\n"
+                    else:
+                        line += "\tlwc1\t" + toReg + "," + str(fromReg) + place + "\n"
+                fromReg = ""
+                place = "(" + toReg + ")"
+
+                # line += "  %" + str(self.register) + " = load " + types[type][0] + leftPoint + ", " + types[type][
+                #     0] + rightPoint + " "
+                # line += "%" + str(fromReg) + ", " + types[type][1] + "\n" if str(fromReg).isdigit() else "@" + str(
+                #     fromReg) + ", " + types[type][1] + "\n"
+                # fromReg = self.register
+                # self.register += 1
+                # if numberOfPointer > 0:
+                #     leftPoint = leftPoint[0:(len(leftPoint) - 1)]
+                #     rightPoint = rightPoint[0:(len(rightPoint) - 1)]
 
         return toReg, line
 
