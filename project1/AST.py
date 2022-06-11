@@ -2449,10 +2449,21 @@ def semanticAnalysisVisitor(node):
             travelNode = travelNode.parent
         if travelNode.token == "FUNC_DEF": # returntypes vergelijken
             expectedReturnType = travelNode.parent.children[0].children[0].token
-            if node.children[0].type != expectedReturnType:
-                print("[ Error ] line " + str(node.line) + ", position " + str(
-                    node.column) + " : " + "Return type mismatch.")
-                exit(1)
+            if node.children[0].token == "IDENTIFIER":
+                table = tableLookup(node.children[0])
+                symbol_lookup = symbolLookup(node.children[0].value, table,
+                                             varLine=node.children[0].line,
+                                             varColumn=node.children[0].column)
+                if symbol_lookup[0]:
+                    if symbol_lookup[1].type != expectedReturnType:
+                        print("[ Error ] line " + str(node.line) + ", position " + str(
+                            node.column) + " : " + "Return type mismatch.")
+                        exit(1)
+            else:
+                if node.children[0].type != expectedReturnType:
+                    print("[ Error ] line " + str(node.line) + ", position " + str(
+                        node.column) + " : " + "Return type mismatch.")
+                    exit(1)
 
     elif node.token == "ARRAY":
         if len(node.children[1].children) > 0:
