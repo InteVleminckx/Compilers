@@ -63,7 +63,7 @@ X: Not working or not implemented.
 |         | 1.2 Abstract Syntax Tree                                           | V      | V    | V    |
 |         | 1.3 Visualization                                                  | V      | V    | V    |
 |         | 1.4 Semantic Analysis                                              | V      | V    | V    |
-|         | 1.5 Optimizations (mandatory) (Unreachable code and dead code)     | X      | X    | X    |
+|         | 1.5 Optimizations (mandatory) (Unreachable code and dead code)     | X      | -    | -    |
 |         | (mandatory) after break or continue                                | X      | X    | X    |
 |         | (optional) Unused variables                                        | -      | X    | X    |
 |         | (optional) Untrue conditionals                                     | V      | V    | V    |
