@@ -18,71 +18,71 @@ V: Working. \
 X: Not working or not implemented.  
 (blanco): TODO.
 
-| Project | Functionality                                                      | Status |
-|---------|--------------------------------------------------------------------|--------|
-| 1       | (mandatory) Binary operations +, -, *, and /.                      | V      |
-|         | (mandatory) Binary operations >, <, and ==.                        | V      |
-|         | (mandatory) Unary operators + and -.                               | V      |
-|         | (mandatory) Brackets to overwrite the order of operations.         | V      |
-|         | (mandatory) Logical operators AND, OR, and NOT.                    | V      |
-|         | (optional) Comparison operators >=, <=, and !=.                    | V      |
-|         | (optional) Binary operator %.                                      | V      |
-|         | 2.2 Abstract Syntax Tree                                           | V      |
-|         | 2.3 Visualization                                                  | V      |
-|         | 2.4 Constant Folding                                               | V      |
-| 2       | (mandatory) Types.                                                 | V      |
-|         | (mandatory) Reserved words.                                        | V      |
-|         | (mandatory) Variables.                                             | V      |
-|         | (mandatory) Pointer Operations.                                    | V      |
-|         | (optional) Identifier Operations.                                  | V      |
-|         | (optional) Conversions.                                            | -      |
-|         | 1.2 Abstract Syntax Tree                                           | V      |
-|         | 1.3 Visualization                                                  | V      |
-|         | 1.4 Constant Propagation                                           | V      |
-|         | 2 Error Analysis                                                   | V      |
-|         | 2.1 Syntax Errors                                                  | V      |
-|         | 2.2 Semantic Errors                                                | V      |
-|         | Symbol table creation                                              | V      |
-| 3       | (mandatory) Comments.                                              | V      |
-|         | Optional comment stuff                                             | X      |
-|         | (mandatory) Printf.                                                | V      |
-|         | 1.2 Abstract Syntax Tree                                           | V      |
-|         | 1.3 Visualization                                                  | V      |
-|         | 2 Code Generation: LLVM                                            | V      |
-| 4       | (mandatory) Reserved words (if, else, while, for, break, continue) | V      |
-|         | (optional) switch, case and default.                               | X      |
-|         | (mandatory) Scopes.                                                | V      |
-|         | 1.2 Abstract Syntax Tree                                           | V      |
-|         | 1.3 Visualization                                                  | V      |
-|         | 1.4 Semantic Analysis                                              | V      |
-|         | 1.5 Code Generation: LLVM                                          | V      |
-| 5       | (mandatory) Reserved words (return and void)                       | V      |
-|         | (mandatory) Scopes                                                 | V      |
-|         | (mandatory) Local and global variables                             | V      |
-|         | (mandatory) Functions                                              | V      |
-|         | 1.2 Abstract Syntax Tree                                           | V      |
-|         | 1.3 Visualization                                                  | V      |
-|         | 1.4 Semantic Analysis                                              | V      |
-|         | 1.5 Optimizations (mandatory) (Unreachable code and dead code)     | -      |
-|         | (mandatory) after break or continue                                | -      |
-|         | (optional) Unused variables                                        | -      |
-|         | (optional) Untrue conditionals                                     | V      |
-|         | 1.6 Code Generation: LLVM                                          | V      |
-| 6       | (mandatory) Arrays                                                 | V      |
-|         | (optional) multi-dimensional arrays.                               | V      |
-|         | (optional) assignments of complete arrays or array rows            | V      |
-|         | (optional) dynamic arrays.                                         | -      |
-|         | (mandatory) Import                                                 | V      |
-|         | 1.2 Abstract Syntax Tree                                           | V      |
-|         | 1.3 Visualization                                                  | V      |
-|         | 1.4 Code Generation: LLVM                                          | -      |
+| Project | Functionality                                                      | Status | LLVM | MIPS |
+|---------|--------------------------------------------------------------------|--------|------|------|
+| 1       | (mandatory) Binary operations +, -, *, and /.                      | V      | V    | V    |
+|         | (mandatory) Binary operations >, <, and ==.                        | V      | V    | V    |
+|         | (mandatory) Unary operators + and -.                               | V      | V    | V    |
+|         | (mandatory) Brackets to overwrite the order of operations.         | V      | V    | V    |
+|         | (mandatory) Logical operators AND, OR, and NOT.                    | V      | V    | V    |
+|         | (optional) Comparison operators >=, <=, and !=.                    | V      | V    | V    |
+|         | (optional) Binary operator %.                                      | V      | V    | V    |
+|         | 2.2 Abstract Syntax Tree                                           | V      | V    | V    |
+|         | 2.3 Visualization                                                  | V      | V    | V    |
+|         | 2.4 Constant Folding                                               | V      | V    | V    |
+| 2       | (mandatory) Types.                                                 | V      | V    | V    |
+|         | (mandatory) Reserved words.                                        | V      | V    | V    |
+|         | (mandatory) Variables.                                             | V      | V    | V    |
+|         | (mandatory) Pointer Operations.                                    | V      | V    | V    |
+|         | (optional) Identifier Operations.                                  | V      | V    | V    |
+|         | (optional) Conversions.                                            | -      | V    | V    |
+|         | 1.2 Abstract Syntax Tree                                           | V      | V    | V    |
+|         | 1.3 Visualization                                                  | V      | V    | V    |
+|         | 1.4 Constant Propagation                                           | V      | V    | V    |
+|         | 2 Error Analysis                                                   | V      | V    | V    |
+|         | 2.1 Syntax Errors                                                  | V      | V    | V    |
+|         | 2.2 Semantic Errors                                                | V      | V    | V    |
+|         | Symbol table creation                                              | V      | V    | V    |
+| 3       | (mandatory) Comments.                                              | V      | V    | V    |
+|         | Optional comment stuff                                             | X      | V    | V    |
+|         | (mandatory) Printf.                                                | V      | V    | V    |
+|         | 1.2 Abstract Syntax Tree                                           | V      | V    | V    |
+|         | 1.3 Visualization                                                  | V      | V    | V    |
+|         | 2 Code Generation: LLVM                                            | V      | V    | V    |
+| 4       | (mandatory) Reserved words (if, else, while, for, break, continue) | V      | V    | V    |
+|         | (optional) switch, case and default.                               | X      | X    | X    |
+|         | (mandatory) Scopes.                                                | V      | V    | V    |
+|         | 1.2 Abstract Syntax Tree                                           | V      | V    | V    |
+|         | 1.3 Visualization                                                  | V      | V    | V    |
+|         | 1.4 Semantic Analysis                                              | V      | V    | V    |
+|         | 1.5 Code Generation: LLVM                                          | V      | V    | V    |
+| 5       | (mandatory) Reserved words (return and void)                       | V      | V    | V    |
+|         | (mandatory) Scopes                                                 | V      | V    | V    |
+|         | (mandatory) Local and global variables                             | V      | V    | V    |
+|         | (mandatory) Functions                                              | V      | V    | V    |
+|         | 1.2 Abstract Syntax Tree                                           | V      | V    | V    |
+|         | 1.3 Visualization                                                  | V      | V    | V    |
+|         | 1.4 Semantic Analysis                                              | V      | V    | V    |
+|         | 1.5 Optimizations (mandatory) (Unreachable code and dead code)     | X      | X    | X    |
+|         | (mandatory) after break or continue                                | X      | X    | X    |
+|         | (optional) Unused variables                                        | -      | X    | X    |
+|         | (optional) Untrue conditionals                                     | V      | V    | V    |
+|         | 1.6 Code Generation: LLVM                                          | V      | V    | V    |
+| 6       | (mandatory) Arrays                                                 | V      | V    | -    |
+|         | (optional) multi-dimensional arrays.                               | V      | X    | X    |
+|         | (optional) assignments of complete arrays or array rows            | V      | X    | X    |
+|         | (optional) dynamic arrays.                                         | -      | X    | X    |
+|         | (mandatory) Import                                                 | V      | V    | V    |
+|         | 1.2 Abstract Syntax Tree                                           | V      | V    | V    |
+|         | 1.3 Visualization                                                  | V      | V    | V    |
+|         | 1.4 Code Generation: LLVM                                          | -      | V    | V    |
 
 **Known problems:**\
-P2: Conversions: Right now, all (implicit) conversions (e.g. int to float too) raise a warning (=>semantic analysis). This can/will be fixed in the future.
-We also haven't paid any attention to assignment between pointers and type checking when assigning a pointer yet.
 We don't know what dynamic arrays are supposed to be.
 
-P3: LLVM: We don't fully support all llvm generation. The files that are provided in the folder project1/files/C_CodeLLVM contains the C code that we can convert to llvm.
+MIPS: with arrays, if you use expressions inside the [] brackets, it doesn't work (same for identifiers) and using an array value on the RHS isn't supported (there were no benchmarks for this), and those are the things here, together with the usage (excluding declaration) of global arrays that doesn't work (for arrays).
+LLVM/MIPS: dereference assignment and pointer argument (because of pointer dereference mostly) don't work properly. We support pointers though.
+
 
 **Extra functionality, not described in the assignment sheet:** \
 /
