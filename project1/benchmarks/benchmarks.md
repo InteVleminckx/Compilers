@@ -16,7 +16,7 @@ X: Not working or not implemented.
 | fibonacciRecursive    | V             | X             |
 | floatToIntConversion  | V             | V             |
 | for                   | V             | V             |
-| forwardDeclarations   | V             | X             |
+| forwardDeclarations   | V             | V             |
 | if                    | V             | V             |
 | ifElse                | V             | V             |
 | intToFloatConversion  | V             | V             |
