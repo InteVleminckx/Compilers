@@ -2058,8 +2058,7 @@ class Mips:
         inputfile = inputfile[pos:]
         filename = str(inputfile[:len(inputfile) - 2]) + ".asm"
         # self.file = open("files/GeneratedMIPS/" + filename, "w")
-        file = open("files/GeneratedMips/" + filename, "w")
-
+        file = open("files/GeneratedMIPS/" + filename, "w")
         file.write(".data")
         file.write("\n")
 
@@ -2083,7 +2082,7 @@ class Mips:
         file.write(".globl main\n")
         file.write("\n")
         file.write(self.line)
-
+        print(self.line)
         # if self.printf:
         #     file.write("declare dso_local i32 @printf(i8*, ...)\n")
         # if self.scanf:

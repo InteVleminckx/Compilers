@@ -2498,7 +2498,7 @@ def semanticAnalysisVisitor(node):
     elif node.token == "ARRAY":
         if len(node.children[1].children) > 0:
             for i in range(len(node.children[1].children)):
-                if node.children[1].children[i].type != "INT":
+                if node.children[1].children[i].type == "FLOAT" or node.children[1].children[i].type == "CHAR":
                     print("[ Error ] line " + str(node.line) + ", position " + str(
                         node.column) + " : " + "Array access type/size type mismatch.")
                     exit(1)

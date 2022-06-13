@@ -58,8 +58,11 @@ def main(argv):
     optimize(a)
     semanticAnalysisVisitor(a.root)
     createGraph(a, argv[1], 1)
-    generation = CodeGeneration(a)
-    generation.generateCode(argv[1])
+
+    if(argv[3] == 'True'):
+        generation = CodeGeneration(a, argv[2])
+        generation.generateCode(argv[1])
+
     print("")
     # llvm.toLLVM(argv[1])
 

@@ -4,10 +4,10 @@
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
-TOP="*-----------------------GENERATING SYNTAXFILES------------------------*"
+TOP="*------------------------GENERATING MIPSFILES-------------------------*"
 echo $TOP
 
-FILES="./files/C_CodesSyntax/*.c"
+FILES="./files/C_CodesMIPS/*.c"
 for f in $FILES
 do
 # Check if "$f" FILE exists and is a regular file and then only copy it #
@@ -36,9 +36,8 @@ do
 	    done 
 	    LINE="$LINE*"
 	    echo -e "$LINE"
+    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py" $f " False" "True" > "./files/outputMIPS/$FILE.txt"
 
-    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py False False" $f > "./files/GeneratedSyntaxOutput/$FILE.txt"
-    
      
 
 
