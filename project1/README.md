@@ -5,6 +5,8 @@
 The build script is ***buildscript.sh*** (present in the project folder). This allows to generate the python classes (ANTLR).
 The test script, which runs all the test in the files folder, and puts the output in the folder that is provide for the generated files, is ***script.sh*** (present in the project folder).
 You can simply run ./script.sh in the project1/ folder. In the terminal, you will get an overview of which file outputs were correct.
+The folder "files" provide all codes in seperate folders that can be executed for LLVM, MIPS and syntax. The other folders contain the generated code from the presetation and the correct code to compare
+the generated code.
 
 ## Progress:
 

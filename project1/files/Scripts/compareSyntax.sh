@@ -7,7 +7,7 @@ NC='\033[0m'
 TOP="*---------------------------COMPARE SYNTAXEN--------------------------*"
 echo $TOP
 cd "files/"
-FILES="correctSyntaxOutput/*.txt"
+FILES="correctRunSyntax/*.txt"
 for f in $FILES
 do
 # Check if "$f" FILE exists and is a regular file and then only copy it #
@@ -15,7 +15,7 @@ do
   then
     FILE=${f##*/}
     FILE=${FILE%.*}
-    if cmp --silent -- "correctSyntaxOutput/$FILE.txt" "GeneratedSyntaxOutput/$FILE.txt"; then
+    if cmp --silent -- "correctRunSyntax/$FILE.txt" "GeneratedSyntaxOutput/$FILE.txt"; then
        	    LINE="*---- $FILE"
 	    LENL=$((${#TOP} - ${#LINE} - 10))
 	    LINE="$LINE "

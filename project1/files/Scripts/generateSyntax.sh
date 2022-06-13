@@ -37,7 +37,7 @@ do
 	    LINE="$LINE*"
 	    echo -e "$LINE"
 
-    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py False False" $f > "./files/GeneratedSyntaxOutput/$FILE.txt"
+    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py" $f "False" "False" > "./files/GeneratedSyntaxOutput/$FILE.txt"
     
      
 

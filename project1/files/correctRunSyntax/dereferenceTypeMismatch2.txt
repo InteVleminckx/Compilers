@@ -1,1 +1,2 @@
 [ Warning ] line 4, position 6 : Dereference type mismatch.
+
