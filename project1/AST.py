@@ -1217,8 +1217,8 @@ class ASTprinter(mathGrammerListener):
 
 def createGraph(ast, inputfile, number=0):
     # TODO: terug veranderen
-    # path = "./files/GeneratedAST/"
-    path = "./testfiles/"
+    path = "./files/GeneratedAST/"
+    # path = "./testfiles/"
     file = path
     afterSlash = re.search("[^/]+$", inputfile)  # build folder changes inputfile path
     pos = afterSlash.start()
