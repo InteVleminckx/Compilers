@@ -462,18 +462,6 @@ class Mips:
 
                     printfStackIndex += 1
 
-            # inbound = "[" + str(textsize) + " x i8], [" + str(textsize) + " x i8]*"
-            # str_ = "@.str"
-            # str_ += str(textcount) if int(textcount) > 0 else ""
-            # self.line += "  %" + str(
-            #     self.register) + " = call i32 (i8*, ...) @__isoc99_scanf(i8* getelementptr inbounds (" + inbound + " " + str_ + ", i64 0, i64 0)"
-            # self.register += 1
-            # for i in range(1, len(self.scanfStack)):
-            #     elem = self.scanfStack[i]
-            #     self.line += ", "
-            #     self.line += types[elem[1]][0] + "* "
-            #     self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
-
             self.scanfStack.clear()
             self.enteredScanf = False
 
@@ -713,7 +701,7 @@ class Mips:
                         toReg = self.floatToInt(toReg)
                     elif symbol_lookup.type == "FLOAT" and symbol_lookup2.type == "INT":
                         toReg = self.intToFloat(toReg)
-                    self.store(toReg, reg1, type1, True, True, symboltable.pointer)
+                    self.storeArray(reg1, str(((int(str(node.children[0].children[1].children[0].value)))*(-4))), toReg)
                 else:
                     # We nemen hier gewoon de waarde zelf van het attribuut
                     val = str(node.children[1].value)
@@ -722,7 +710,11 @@ class Mips:
                     # elif symbol_lookup.type == "FLOAT" and node.children[1].type == "INT":
                     #     toReg = self.intToFloat(toReg)
 
-                    self.store(val, reg1, type1, False, True)
+                    toReg, line = self.loadInReg(val, type1)
+                    self.line += line
+                    self.storeArray(reg1, str(((int(str(node.children[0].children[1].children[0].value)))*(-4))), toReg)
+
+                    # self.store(val, reg1) # , type1, False, True)
 
                 # Na we dit hebben gedaan kunnen we enterAss terug afzetten
                 self.enteredAssignment = False
@@ -765,8 +757,8 @@ class Mips:
                 reg = self.loadArray(reg, symbol_lookup.arrayData[0], type,
                                      node.children[0].children[1].children[0].value)
 
-                # En we doen store
-                self.store(elem[0], reg, type, True, True, symbol_lookup.pointer)
+                # load
+                self.store(elem[0], reg) # type, True, True, symbol_lookup.pointer)
                 self.enteredAssignment = False
 
     def enterUnaryOperation(self, node):
@@ -992,192 +984,7 @@ class Mips:
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredReturn:
             # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
-            # Waar we de operation moeten uitvoeren.data
-            # str1:	.asciiz	"Enter a number:"
-            # str4:	.asciiz	"fib("
-            # str5:	.asciiz	")\t= "
-            # str6:	.asciiz	";\n"
-            # str2:	.asciiz	"%d"
-            #
-            # .text
-            # .globl main
-            #
-            # f:
-            # 	sw	$fp, -4($sp)
-            # 	addi	$fp,$sp,0
-            # 	addi	$sp,$sp,-16
-            # 	sw $ra, 8($sp)
-            #
-            # 	lw	$t0,4($fp)
-            # 	sw	$t0,4($sp)
-            # 	lw	$t0,4($sp)
-            # 	sw	$t0,-4($sp)
-            # 	li	$t0, 2
-            # 	sw	$t0,-8($sp)
-            # 	lw	$t0,-4($sp)
-            # 	lw	$t1,-8($sp)
-            # 	slt	$t0, $t0, $t1
-            # 	sw	$t0,-4($sp)
-            # 	lw	$t0,-4($sp)
-            # 	beq	$t0, 1, __IF_0__
-            # 	beq	$t0, 0, __ELSE_1__
-            #
-            # __IF_0__:
-            # 	lw	$t0,4($sp)
-            # 	sw	$t0,-8($sp)
-            # 	lw	$t0,-8($sp)
-            #
-            # 	sw	$t0, 0($fp)
-            # 	lw $ra, 8($sp)
-            # 	addi	$sp,$fp,0
-            # 	lw	$fp, -4($sp)
-            # 	jr	$ra
-            #
-            #
-            # 	b __END_IF_ELSE_2__
-            #
-            # __ELSE_1__:
-            # 	lw	$t0,4($sp)
-            # 	sw	$t0,-12($sp)
-            # 	li	$t0, 1
-            # 	sw	$t0,-16($sp)
-            # 	lw	$t0,-12($sp)
-            # 	lw	$t1,-16($sp)
-            # 	sub	$t0	,$t0,$t1
-            # 	sw	$t0,-12($sp)
-            # 	addi	$sp, $sp, -8
-            # 	lw	$t0,-4($sp)
-            # 	sw	$t0,4($sp) #store parameter
-            # 	jal	f
-            # 	lw	$t0, 0($sp)
-            # 	sw	$t0,-16($sp)
-            # 	addi	$sp, $sp, 8
-            # 	lw	$t0,4($sp)
-            # 	sw	$t0,-20($sp)
-            # 	li	$t0, 2
-            # 	sw	$t0,-24($sp)
-            # 	lw	$t0,-20($sp)
-            # 	lw	$t1,-24($sp)
-            # 	sub	$t0	,$t0,$t1
-            # 	sw	$t0,-20($sp)
-            # 	addi	$sp, $sp, -8
-            # 	lw	$t0,-12($sp)
-            # 	sw	$t0,4($sp) #store parameter
-            # 	jal	f
-            # 	lw	$t0, 0($sp)
-            # 	sw	$t0,-24($sp)
-            # 	addi	$sp, $sp, 8
-            # 	lw	$t0,-24($sp)
-            # 	lw	$t1,-32($sp)
-            # 	add	$t0	,$t0,$t1
-            # 	sw	$t0,-20($sp)
-            # 	lw	$t0,-20($sp)
-            #
-            # 	sw	$t0, 0($fp)
-            # 	lw $ra, 8($sp)
-            # 	addi	$sp,$fp,0
-            # 	lw	$fp, -4($sp)
-            # 	jr	$ra
-            #
-            #
-            # 	b __END_IF_ELSE_2__
-            #
-            # __END_IF_ELSE_2__:
-            #
-            # 	lw $ra, 8($sp)
-            # 	addi	$sp,$fp,0
-            # 	lw	$fp, -4($sp)
-            # 	jr	$ra
-            #
-            # main:
-            # 	sw	$fp, -4($sp)
-            # 	addi	$fp,$sp,0
-            # 	addi	$sp,$sp,-20
-            # 	sw $ra, 12($sp)
-            #
-            # 	la $a0, str1
-            # 	li $v0, 4
-            # 	syscall
-            #
-            # 	lw	$t0,4($sp)
-            # 	sw	$t0,-24($sp)
-            # 	li $v0, 5
-            # 	syscall
-            # 	move $t0, $v0
-            # 	sw	$t0,4($sp)
-            # 	li	$t0, 1
-            # 	sw	$t0,8($sp)
-            # 	b __WHILE_CONDITION_0__
-            #
-            # __WHILE_CONDITION_0__:
-            # 	lw	$t0,8($sp)
-            # 	sw	$t0,-28($sp)
-            # 	lw	$t0,-28($sp)
-            # 	add	$t0	,$t0,1
-            # 	sw	$t0,8($sp)
-            # 	lw	$t0,4($sp)
-            # 	sw	$t0,-32($sp)
-            # 	lw	$t0,-28($sp)
-            # 	lw	$t1,-32($sp)
-            # 	sle	$t0, $t0, $t1
-            # 	sw	$t0,-28($sp)
-            # 	lw	$t0,-28($sp)
-            # 	beq	$t0, 1, __WHILE_1__
-            # 	beq	$t0, 0, __END_WHILE_2__
-            #
-            # __WHILE_1__:
-            # 	lw	$t0,8($sp)
-            # 	sw	$t0,-32($sp)
-            # 	lw	$t0,8($sp)
-            # 	sw	$t0,-36($sp)
-            # 	addi	$sp, $sp, -8
-            # 	lw	$t0,-28($sp)
-            # 	sw	$t0,4($sp) #store parameter
-            # 	jal	f
-            # 	lw	$t0, 0($sp)
-            # 	sw	$t0,-40($sp)
-            # 	addi	$sp, $sp, 8
-            # 	la $a0, str4
-            # 	li $v0, 4
-            # 	syscall
-            #
-            # 	lw	$t0,-32($sp)
-            # 	la $a0, ($t0)
-            # 	li $v0, 1
-            # 	syscall
-            #
-            # 	la $a0, str5
-            # 	li $v0, 4
-            # 	syscall
-            #
-            # 	lw	$t0,-48($sp)
-            # 	la $a0, ($t0)
-            # 	li $v0, 1
-            # 	syscall
-            #
-            # 	la $a0, str6
-            # 	li $v0, 4
-            # 	syscall
-            #
-            # 	b __WHILE_CONDITION_0__
-            #
-            # __END_WHILE_2__:
-            # 	li	$t0, 0
-            # 	sw	$t0,-44($sp)
-            # 	lw	$t0,-44($sp)
-            #
-            # 	sw	$t0, 0($fp)
-            # 	lw $ra, 12($sp)
-            # 	addi	$sp,$fp,0
-            # 	lw	$fp, -4($sp)
-            #
-            #
-            # 	lw $ra, 12($sp)
-            # 	addi	$sp,$fp,0
-            # 	lw	$fp, -4($sp)
-            # exit:
-            # 	li $v0, 10
-            # 	syscall
+
             toType, toReg = self.exitBinOperationStackHandler(self.returnStack, node, func, toType)
 
         # Ook hier heeft de functioncall eerst voorrang
@@ -1687,8 +1494,9 @@ class Mips:
 
                 toAllocate[key].stackOffset = self.stackOffset - 4
                 if toAllocate[key].arrayData is not False:
-                    pass
-                    # self.line += "  %" + str(self.register) + " = alloca ["
+                    for i in range(int(str(toAllocate[key].arrayData[0]))-1): # support voor één dimensie enkel
+                        toAllocate[key].stackOffset += 4
+                        self.stackOffset += 4
                     # length = str(toAllocate[key].arrayData[0])
                     # self.line += length + " x " + types[type][0] + "], " + types[type][1] + "\n"
                 self.stackOffset += 4
@@ -1819,9 +1627,13 @@ class Mips:
 
     def loadArray(self, offset, length, type, index, isGlobal):
 
-        self.register += 1
+        toReg = "$t3"
+        if isGlobal:
+            self.line += "\tla\t $t3, " + str(offset) + "#loading array\n"
+        else:
+            self.line += "\tla\t $t3, " + str(offset) + "($sp) #loading array\n"
 
-        return self.register - 1
+        return toReg
 
     def operate(self, operation, num1, num2, type1, type2, isReg1, isReg2,
                 LHStype=None):  # num1 = t1, num 2 = t2, operation = see calculations global var

@@ -2119,7 +2119,7 @@ def semanticAnalysis(node, child1=None, child2=None, f=False):
 
                         else:
 
-                            if len(par_node.children) != par_len:
+                            if len(par_node.children) != par_len and par_node.children[0].token != "NONE":
                                 sameParTypesAndLength = False
                                 if type(symbol_lookup[1].value) == str:
                                     if str(symbol_lookup[1].value) == "FORDECL":
@@ -2190,7 +2190,7 @@ def semanticAnalysisVisitor(node):
 
         if len(node.children[1].children) == 0:  # if the right child doesn't have any children.
             if symbol_lookup_child2[0]:  # if the right child is found in a symbol table.
-                if node.children[0].type != symbol_lookup_child2[1].type:
+                if (node.children[0].type != symbol_lookup_child2[1].type) and node.children[0].type != "FLOAT":
                     # Operation or assignment of incompatible types.
                     print("[ Warning ] line " + str(node.line) + ", position " + str(
                         node.column) + " : " + "Assignment of incompatible types")
@@ -2204,7 +2204,7 @@ def semanticAnalysisVisitor(node):
                 elif (type(node.children[1].value) == str and str(node.children[1].value)[0] == "\'") or node.children[
                     1].token == "CHAR":
                     child2Type = "CHAR"
-                if node.children[0].type != child2Type:
+                if node.children[0].type != child2Type and node.children[0].type != "FLOAT":
                     print("[ Warning ] line " + str(node.line) + ", position " + str(
                         node.column) + " : " + "Assignment of incompatible types")
         else:  # for a whole expression
@@ -2213,12 +2213,12 @@ def semanticAnalysisVisitor(node):
                 symbol_lookup = symbolLookup(node.children[0].value, table, varLine=node.children[0].line,
                                              varColumn=node.children[0].column)
                 if symbol_lookup[0]:
-                    if symbol_lookup[1].type != evaluateExpressionType(node.children[1]):
+                    if symbol_lookup[1].type != evaluateExpressionType(node.children[1]) and symbol_lookup[1].type != "FLOAT":
                         print("[ Warning ] line " + str(node.line) + ", position " + str(
                             node.column) + " : " + "Assignment of incompatible types")
 
             else:  # van de vorm 'type x = ...'
-                if node.children[0].type != evaluateExpressionType(node.children[1]):
+                if node.children[0].type != evaluateExpressionType(node.children[1]) and node.children[0].type != "FLOAT":
                     print("[ Warning ] line " + str(node.line) + ", position " + str(
                         node.column) + " : " + "Assignment of incompatible types")
 
@@ -2465,29 +2465,35 @@ def semanticAnalysisVisitor(node):
                 exit(1)
                 break
             travelNode = travelNode.parent
-        if travelNode.token == "FUNC_DEF": # returntypes vergelijken
+        if travelNode.token == "FUNC_DEF":  # returntypes vergelijken
             expectedReturnType = travelNode.parent.children[0].children[0].token
-            if node.children[0].token == "IDENTIFIER":
-                table = tableLookup(node.children[0])
-                symbol_lookup = symbolLookup(node.children[0].value, table,
-                                             varLine=node.children[0].line,
-                                             varColumn=node.children[0].column)
-                if symbol_lookup[0]:
-                    if symbol_lookup[1].type != expectedReturnType:
-                        print("[ Error ] line " + str(node.line) + ", position " + str(
-                            node.column) + " : " + "Return type mismatch.")
-                        exit(1)
-            else:
-                if len(node.children[0].children) > 1:
-                    if evaluateExpressionType(node.children[0]) != expectedReturnType:
-                        print("[ Error ] line " + str(node.line) + ", position " + str(
-                            node.column) + " : " + "Return type mismatch.")
-                        exit(1)
+            if len(node.children) != 0:  # enkel return;
+                if node.children[0].token == "IDENTIFIER":
+                    table = tableLookup(node.children[0])
+                    symbol_lookup = symbolLookup(node.children[0].value, table,
+                                                 varLine=node.children[0].line,
+                                                 varColumn=node.children[0].column)
+                    if symbol_lookup[0]:
+                        if symbol_lookup[1].type != expectedReturnType:
+                            print("[ Error ] line " + str(node.line) + ", position " + str(
+                                node.column) + " : " + "Return type mismatch.")
+                            exit(1)
                 else:
-                    if node.children[0].type != expectedReturnType:
-                        print("[ Error ] line " + str(node.line) + ", position " + str(
-                            node.column) + " : " + "Return type mismatch.")
-                        exit(1)
+                    if len(node.children[0].children) > 1:
+                        if evaluateExpressionType(node.children[0]) != expectedReturnType:
+                            print("[ Error ] line " + str(node.line) + ", position " + str(
+                                node.column) + " : " + "Return type mismatch.")
+                            exit(1)
+                    else:
+                        if node.children[0].type != expectedReturnType:
+                            print("[ Error ] line " + str(node.line) + ", position " + str(
+                                node.column) + " : " + "Return type mismatch.")
+                            exit(1)
+            else:
+                if expectedReturnType is not None:
+                    print("[ Error ] line " + str(node.line) + ", position " + str(
+                        node.column) + " : " + "Return type mismatch.")
+                    exit(1)
 
     elif node.token == "ARRAY":
         if len(node.children[1].children) > 0:
