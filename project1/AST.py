@@ -2204,9 +2204,21 @@ def semanticAnalysisVisitor(node):
                 elif (type(node.children[1].value) == str and str(node.children[1].value)[0] == "\'") or node.children[
                     1].token == "CHAR":
                     child2Type = "CHAR"
-                if node.children[0].type != child2Type and node.children[0].type != "FLOAT":
-                    print("[ Warning ] line " + str(node.line) + ", position " + str(
-                        node.column) + " : " + "Assignment of incompatible types")
+                if node.children[0].token == "ARRAY":
+                    leftChildType = ""
+                    table = tableLookup(node.children[0].children[0])
+                    symbol_lookup = symbolLookup(node.children[0].children[0].value, table,
+                                                 varLine=node.children[0].children[0].line,
+                                                 varColumn=node.children[0].children[0].column)
+                    if symbol_lookup[0]:
+                        leftChildType = symbol_lookup[1].type
+                    if leftChildType != child2Type:
+                        print("[ Warning ] line " + str(node.line) + ", position " + str(
+                            node.column) + " : " + "Assignment of incompatible types")
+                else:
+                    if node.children[0].type != child2Type and node.children[0].type != "FLOAT":
+                        print("[ Warning ] line " + str(node.line) + ", position " + str(
+                            node.column) + " : " + "Assignment of incompatible types")
         else:  # for a whole expression
             if node.children[0].isOverwritten:  # van de vorm 'x = ...'
                 table = tableLookup(node.children[0])
@@ -2218,9 +2230,14 @@ def semanticAnalysisVisitor(node):
                             node.column) + " : " + "Assignment of incompatible types")
 
             else:  # van de vorm 'type x = ...'
-                if node.children[0].type != evaluateExpressionType(node.children[1]) and node.children[0].type != "FLOAT":
-                    print("[ Warning ] line " + str(node.line) + ", position " + str(
-                        node.column) + " : " + "Assignment of incompatible types")
+                if node.children[1].token == "UN_OP":
+                    pass
+                else:
+
+                    if node.children[0].type != evaluateExpressionType(node.children[1]) and node.children[
+                        0].type != "FLOAT":
+                        print("[ Warning ] line " + str(node.line) + ", position " + str(
+                            node.column) + " : " + "Assignment of incompatible types")
 
     elif node.token == "FUNC_DEF":
         parameters = node.parent.children[2]
@@ -2394,10 +2411,41 @@ def semanticAnalysisVisitor(node):
                             elif params[i][-1] == "s":
                                 expectedType = "STRING"
 
-                            if expectedType != evaluateExpressionType(node.children[i + 1]):
-                                print("[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
-                                    node.children[
-                                        i + 1].column) + " : " + "In function call, passing of incompatible type")
+                            if node.children[i + 1].token == "ARRAY":
+                                table = tableLookup(node.children[i + 1].children[
+                                                        0])  # i + 1 want de arguments beginnen bij de tweede node (niet de eerste)
+                                symbol_lookup = symbolLookup(node.children[i + 1].children[0].value, table,
+                                                             varLine=node.children[i + 1].line,
+                                                             varColumn=node.children[i + 1].column)
+                                if symbol_lookup[0]:
+                                    if expectedType != symbol_lookup[1].type:
+                                        print(
+                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[
+                                                    i + 1].column) + " : " + "In function call, passing of incompatible type")
+
+                            else:
+                                if node.children[i + 1].token == "UN_OP":
+                                    table = tableLookup(node.children[i + 1].children[
+                                                            0])  # i + 1 want de arguments beginnen bij de tweede node (niet de eerste)
+                                    symbol_lookup = symbolLookup(node.children[i + 1].children[0].value, table,
+                                                                 varLine=node.children[i + 1].line,
+                                                                 varColumn=node.children[i + 1].column)
+                                    if symbol_lookup[0]:
+                                        if expectedType != symbol_lookup[1].type:
+                                            print("[ Warning ] line " + str(
+                                                node.children[i + 1].line) + ", position " + str(
+                                                node.children[
+                                                    i + 1].column) + " : " + "In function call, passing of incompatible type")
+
+                                else:
+                                    if expectedType != evaluateExpressionType(node.children[i + 1]):
+                                        print(
+                                            "[ Warning ] line " + str(node.children[i + 1].line) + ", position " + str(
+                                                node.children[
+                                                    i + 1].column) + " : " + "In function call, passing of incompatible type")
+
+
 
                     else:
 
