@@ -37,6 +37,7 @@ class Mips:
         self.ifStack = []
         self.whileStack = []
         self.scanfStack = []
+        self.arrayStack = []
 
         self.enteredAssignment = False
         self.enteredFunctionCall = 0
@@ -44,6 +45,7 @@ class Mips:
         self.enteredPrintf = False
         self.enteredCondition = False
         self.enteredScanf = False
+        self.enteredArray = False
 
         self.returnType = ""
         self.hasReturnNode = (False, 0)
@@ -64,7 +66,6 @@ class Mips:
         self.ifLabelCount = 0
         self.whileLabelCount = 0
 
-        self.register = 0
         self.offset = -4
 
         self.isMain = False
@@ -106,11 +107,9 @@ class Mips:
             # register eraan kunnen toekennen
             # TODO: check lines and columns with function
             symbol_lookup = symbolLookup(param[0], symboltable, afterTotalSetup=True)[1]
-            # symbol_lookup.register = i
             # Als het een parameter is zetten we dit ook op true
             symbol_lookup.isParam = True
             # We verhogen ook de registercount al
-            # self.register += 1
             # if i < len(parameters) - 1:
             #     self.line += ", "
 
@@ -118,7 +117,6 @@ class Mips:
         self.line += "\n"
 
         # We verhogen de registercount nog maals 1 keer
-        # self.register += 1
 
         # We gaan eerst nog controleren of we een return node hebben
         # Zoniet en het is geen void dan maken we hier ook nog een register voor vrij
@@ -182,7 +180,6 @@ class Mips:
         #         symboltable = tableLookup(node.children[0])
         #         symbol_lookup = symbolLookup(str(node.children[0].value), symboltable, afterTotalSetup=True,
         #                                      varLine=node.children[0].line, varColumn=node.children[0].column)[1]
-        #         reg = symbol_lookup.register
         #         reg, line = self.load(reg, self.returnType, symbol_lookup.pointer)
         #         self.line += line
         #         self.line += "  ret " + types[self.returnType][0] + " %" + str(reg)
@@ -570,7 +567,6 @@ class Mips:
         self.branch(toReg, self.whileStack[-1][0], self.whileLabelCount, self.whileStack[-1][0], "while")
 
         # self.line += "  br i1 %" + toReg + ", label %" + str(
-        #     self.register) + ", label %while" + str(self.whileLabelCount) + "\n\n"
         # self.line += str(self.whileStack[-1][0]) + ":\n"
         self.line = self.line.replace("while" + str(self.whileStack[-1][0]), "__WHILE_" + str(self.whileCount) + "__")
         self.whileStack.append((self.whileLabelCount, False))
@@ -701,15 +697,15 @@ class Mips:
                                              varLine=node.children[0].children[0].line,
                                              varColumn=node.children[0].children[0].column)[1]
                 type1 = symbol_lookup.type
-                reg1 = self.loadArray(symbol_lookup.register, symbol_lookup.arrayData[0], type1,
-                                      node.children[0].children[1].children[0].value)
+                reg1 = self.loadArray(symbol_lookup.stackOffset, symbol_lookup.arrayData[0], type1,
+                                      node.children[0].children[1].children[0].value, symbol_lookup.isGlobal)
                 # Dan controleren we nog of de rechterkant een identifier is of niet
                 if node.children[1].token == "IDENTIFIER":
                     # Moeten hiervoor zijn register ook terug opvragen
                     symboltable2 = tableLookup(node.children[1])
                     symbol_lookup2 = symbolLookup(str(node.children[1].value), symboltable2, afterTotalSetup=True,
                                                   varLine=node.children[1].line, varColumn=node.children[1].column)[1]
-                    reg2 = symbol_lookup2.register
+                    reg2 = symbol_lookup2.stackOffset
 
                     toReg, line = self.load(reg2, symbol_lookup2.type, symbol_lookup2.pointer)
                     self.line += line
@@ -763,7 +759,7 @@ class Mips:
                     symbolLookup(str(node.children[0].children[0].value), symboltable, afterTotalSetup=True,
                                  varLine=node.children[0].children[0].line,
                                  varColumn=node.children[0].children[0].column)[1]
-                reg = symbol_lookup.register
+                reg = symbol_lookup.stackOffset
                 type = symbol_lookup.type
 
                 reg = self.loadArray(reg, symbol_lookup.arrayData[0], type,
@@ -882,7 +878,6 @@ class Mips:
         symbol_lookup = symbolLookup(funcName, symboltable, afterTotalSetup=True, varLine=node.line, varColumn=node.column)[1]
         outputtype = symbol_lookup.outputTypes[0]
 
-        # self.line += "  %" + str(self.register) + " = call " + types[outputtype][0] + " @" + funcName + "("
         numberOfParams = len(node.children[1].children) if len(node.children) > 1 else 0
 
         if numberOfParams == 0:
@@ -927,7 +922,6 @@ class Mips:
         # self.line += ")\n"
         self.enteredFunctionCall -= 1
 
-        # self.register += 1
 
         # if self.enteredFunctionCall > 0:
         #     self.functionCallStack.append((str(self.offset + 4 - (4+4*numberOfParams)), outputtype, True))
@@ -954,6 +948,10 @@ class Mips:
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredReturn:
             self.returnStack.append((str(self.offset+4), outputtype, True))
+
+        # Ook hier heeft de functioncall eerst voorrang
+        elif self.enteredArray:
+            self.arrayStack.append((str(self.offset+4), outputtype, True))
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
@@ -1182,6 +1180,11 @@ class Mips:
             # 	syscall
             toType, toReg = self.exitBinOperationStackHandler(self.returnStack, node, func, toType)
 
+        # Ook hier heeft de functioncall eerst voorrang
+        elif self.enteredArray:
+            # Dit betekent dat we normaal gezien 2 items heb de stack hebben zitten
+            # Waar we de operation moeten uitvoeren
+            toType, toReg = self.exitBinOperationStackHandler(self.arrayStack, node, func, toType)
 
         # Ook hier heeft de functioncall eerst voorrang
         elif self.enteredPrintf:
@@ -1214,7 +1217,7 @@ class Mips:
     def exitIdentifier(self, node):
 
         # print("exitIdentifier")
-        if node.parent.token == "NAME":
+        if node.parent.token == "NAME" or node.parent.token == "ARRAY":
             return
 
         if node.parent.parent.token == "ROOT":
@@ -1242,14 +1245,15 @@ class Mips:
             type, reg = self.exitIdentifierStackHandler(self.returnStack, symbol_lookup, func)
 
         # Ook hier heeft de functioncall voorang
+        elif self.enteredArray:
+            type, reg = self.exitIdentifierStackHandler(self.arrayStack, symbol_lookup, func)
+
+        # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
             type, reg = self.exitIdentifierStackHandler(self.printfStack, symbol_lookup, func)
 
             # # Als het een char is moeten we deze ook nog is omzetten naar een int
             # if type == "CHAR":
-            #     self.line += "  %" + str(self.register) + " = sext i8 %" + str(reg[0]) + " to i32\n"
-            #     reg = self.register, reg[1]
-            #     self.register += 1
             # self.printfStack.append((reg[0], type, True))
 
         elif self.enteredScanf:
@@ -1264,7 +1268,6 @@ class Mips:
             # We voegen het toe aan de stack
             # We laden eerst de variable in een nieuw register
             # Moet wel eerst het huidige register opvragen
-            # reg = [symbol_lookup.register]
             # if str(node.parent.value) != "&":
             #     # if symbol_lookup.pointer == 0:
             #     reg, type = func(symbol_lookup, tempReg)
@@ -1292,6 +1295,10 @@ class Mips:
 
     def exitType(self, node):
         # print("exitType")
+
+        if str(node.parent.token) == "INDICES":
+            return
+
         toReg, toType = None, None
         # Functioncall krijgt voorrang
         if self.enteredFunctionCall > 0:
@@ -1300,6 +1307,10 @@ class Mips:
         # Ook hier heeft de functioncall voorang
         elif self.enteredReturn:
             toReg, toType = self.exitTypeStackHandler(self.returnStack, node)
+
+        # Ook hier heeft de functioncall voorang
+        elif self.enteredArray:
+            toReg, toType = self.exitTypeStackHandler(self.arrayStack, node)
 
         # Ook hier heeft de functioncall voorang
         elif self.enteredPrintf:
@@ -1443,8 +1454,6 @@ class Mips:
 
         # We gaan ook een final register alloceren waar de uitkomst in komt
         # if self.finalRegLog is None:
-        #     self.finalRegLog = self.register
-        #     self.register += 1
         #     self.allocate(self.finalRegLog, "INT")
 
     def exitLogical(self, node):
@@ -1549,8 +1558,11 @@ class Mips:
                 # Ook hier heeft de functioncall eerst voorrang
             elif self.enteredReturn:
                 self.returnStack.append((self.offset, toType, True))
-
                 # Ook hier heeft de functioncall eerst voorrang
+            elif self.enteredArray:
+                self.arrayStack.append((self.offset, toType, True))
+
+            # Ook hier heeft de functioncall eerst voorrang
             elif self.enteredPrintf:
                 self.printfStack.append((self.offset, toType, True))
 
@@ -1598,6 +1610,69 @@ class Mips:
         # print("exitArray")
         pass
 
+    def enterIndices(self, node):
+        # print("enterIndices")
+        if not node.parent.children[0].isDeclaration:
+            self.enteredArray = True
+
+    def exitIndices(self, node):
+        # print("exitIndices")
+
+        if self.enteredArray:
+            # print("")
+            node_ = node.parent.children[0]
+            lookup = tableLookup(node_)
+            symbol = symbolLookup(node_.value, lookup, afterTotalSetup=True, varLine=node_.line, varColumn=node_.column)[1]
+            toReg =""
+
+
+            # Functioncall krijgt voorrang
+            if self.enteredFunctionCall > 0:
+                toReg = symbol.stackOffset - int(str(node.children[0].value)) * 4
+                toReg,line = self.load(toReg, symbol.type)
+                self.line += line
+                self.store(toReg, self.offset)
+                self.offset -=4
+                self.functionCallStack.append((str(toReg), symbol.type, True))
+
+            # Ook hier heeft de functioncall voorang
+            elif self.enteredReturn:
+                toReg = symbol.stackOffset - int(str(node.children[0].value)) * 4
+                toReg,line = self.load(toReg, symbol.type)
+                self.line += line
+                self.store(toReg, self.offset)
+                self.offset -=4
+                self.returnStack.append((str(toReg), symbol.type, True))
+
+            # Ook hier heeft de functioncall voorang
+            elif self.enteredPrintf:
+                toReg = symbol.stackOffset - int(str(node.children[0].value)) * 4
+                toReg,line = self.load(toReg, symbol.type)
+                self.line += line
+                self.store(toReg, self.offset)
+                self.offset -=4
+                self.printfStack.append((str(self.offset + 4), symbol.type, True, False))
+
+            # Ook hier heeft de functioncall voorang
+            elif self.enteredCondition:
+                toReg = symbol.stackOffset - int(str(node.children[0].value)) * 4
+                toReg,line = self.load(toReg, symbol.type)
+                self.line += line
+                self.store(toReg, self.offset)
+                self.offset -=4
+                self.conditionStack.append((str(toReg), symbol.type, True))
+
+            # We controleren of we in een assignment zijn gegaan
+            elif self.enteredAssignment:
+                toReg = symbol.stackOffset - int(str(node.children[0].value)) * 4
+                toReg,line = self.load(toReg, symbol.type)
+                self.line += line
+                self.store(toReg, self.offset)
+                self.offset -=4
+                self.assignmentStack.append((str(toReg), symbol.type, True))
+
+        self.enteredArray = False
+
     def allocateVariables(self, symbolTable):
         # We vragen de dict op met alle variable
         toAllocate = symbolTable.dict
@@ -1616,8 +1691,6 @@ class Mips:
                     # self.line += "  %" + str(self.register) + " = alloca ["
                     # length = str(toAllocate[key].arrayData[0])
                     # self.line += length + " x " + types[type][0] + "], " + types[type][1] + "\n"
-                else:
-                    self.allocate(self.register, type, toAllocate[key].pointer)
                 self.stackOffset += 4
         #         if toAllocate[key].isParam:
 #         #             print("")
@@ -1649,14 +1722,6 @@ class Mips:
             self.line += line
             self.store(toReg, param[0])
 
-
-    def allocate(self, register, type, numberOfPointer=0):
-        pass
-        # pointerAm = ""
-        # for i in range(numberOfPointer):
-        #     pointerAm += "*"
-        #
-        # self.line += "  %" + str(register) + " = alloca " + types[type][0] + pointerAm + ", " + types[type][1] + "\n"
 
     def allTables(self, symbolTable):
         self.allocateVariables(symbolTable)
@@ -1741,23 +1806,18 @@ class Mips:
                 fromReg = ""
                 place = "0(" + toReg + ")"
 
-                # line += "  %" + str(self.register) + " = load " + types[type][0] + leftPoint + ", " + types[type][
-                #     0] + rightPoint + " "
-                # line += "%" + str(fromReg) + ", " + types[type][1] + "\n" if str(fromReg).isdigit() else "@" + str(
-                #     fromReg) + ", " + types[type][1] + "\n"
-                # fromReg = self.register
-                # self.register += 1
                 # if numberOfPointer > 0:
                 #     leftPoint = leftPoint[0:(len(leftPoint) - 1)]
                 #     rightPoint = rightPoint[0:(len(rightPoint) - 1)]
 
         return toReg, line
 
-    def loadArray(self, fromReg, length, type, index):
+    def storeArray(self, toAddr, offset, fromReg):
 
-        self.line += "  %" + str(self.register) + " = getelementptr inbounds [" + str(length) + " x " + types[type][
-            0] + "], [" + str(length) + " x " + types[type][0] + "]* %" + str(fromReg) + ", i64 0, i64 " + str(
-            index) + "\n"
+        self.line += "\tsw\t" + fromReg + ", " + offset + "(" + toAddr + ")\n"
+
+
+    def loadArray(self, offset, length, type, index, isGlobal):
 
         self.register += 1
 
@@ -1859,12 +1919,6 @@ class Mips:
         else:
             line += "\t" + comparison + "\t" + resultReg + ", " + num1 + ", " + num2 + "\n"
 
-        if not isCondition and len(self.logicalStack) == 0:
-            # Geeft een bool terug dus deze moeten we dan nog omzetten naar een integer, dit moet enkel wanneer we geen conditie hebben
-            # Want conditions hebben wel bools nodig
-            # line += "  %" + str(self.register) + " = zext i1 %" + str(self.register - 1) + " to i32\n"
-            # self.register += 1
-            pass
 
         return resultReg, "INT", line
 
@@ -2047,30 +2101,16 @@ class Mips:
         self.line += symbol + str(next) + ":\n"
 
     def floatToInt(self, reg):
-        # self.line += "  %" + str(self.register) + " = fptosi float %" + str(reg) + " to i32\n"
-        # self.register += 1
         self.line += "\tcvt.w.s\t" + reg + "," + reg + "\n" + \
                      "\tmfc1\t" + "$t0" + "," + reg + "\n"
         return "$t0"
 
     def intToFloat(self, reg):
-        # self.line += "  %" + str(self.register) + " = sitofp i32 %" + str(reg) + " to float\n"
-        # self.register += 1
+
 
         self.line += "\tmtc1\t" + reg + ", $f6\n" + \
                      "\tcvt.s.w\t $f6, $f6\n"
         return "$f6"
-
-    def noReturn(self):
-        self.line += "  %" + str(self.register) + " = alloca " + types[self.returnType][0] + ", " + \
-                     types[self.returnType][1] + "\n"
-        # TODO: dit is maar iets raars wat ik hier heb gedaan, nog eens bekijken op deze gevallen
-        # self.register += 1
-        # self.line += "  %" + str(self.register) + " = load " + types[self.returnType][0] + ", " + \
-        #              types[self.returnType][0] + "* %" + str(self.register - 1) + ", " + types[self.returnType][
-        #                  1] + "\n"
-        self.hasReturnNode = (False, self.register)
-        self.register += 1
 
     def loadInReg(self, value, type1):
 
@@ -2206,7 +2246,7 @@ class Mips:
         inputfile = inputfile[pos:]
         filename = str(inputfile[:len(inputfile) - 2]) + ".asm"
         # self.file = open("files/GeneratedMIPS/" + filename, "w")
-        file = open("testfiles/generated/" + filename, "w")
+        file = open("files/GeneratedMips/" + filename, "w")
 
         file.write(".data")
         file.write("\n")

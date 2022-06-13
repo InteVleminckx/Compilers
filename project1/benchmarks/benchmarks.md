@@ -32,7 +32,7 @@ X: Not working or not implemented.
 | unaryOperations       | X             | X             |
 | variables1            | V             | V             |
 | variables2            | V             | V             |
-| variables3            | V             | X             |
+| variables3            | V             | V             |
 | variables4            | V             | V             |
 | variables5            | V             | V             |
 | variables6            | V             | V             |

@@ -213,7 +213,7 @@ class LLVM:
 
                 if elem[1] == "FLOAT":
                     self.line += "  %" + str(self.register) + " = fpext float "
-                    self.line += "%" + str(elem[0]) if elem[2] else str(elem)
+                    self.line += "%" + str(elem[0]) if elem[2] else str(elem[0])
                     self.line += " to double\n"
 
                     self.printfStack[i] = self.register, "DOUBLE", elem[2], elem[3]
@@ -425,7 +425,7 @@ class LLVM:
                 else:
                     # We nemen hier gewoon de waarde zelf van het attribuut
                     val = str(node.children[1].value)
-                    if symbol_lookup.type == "INT" and node.children[1].type == "FLOAT":
+                    if symbol_lookup.type == "INT" and node.children[1].type == "FLOAT" or symbol_lookup.type == "INT" and node.children[1].token == "FLOAT":
                         val = val.partition('.')[0]
                     # elif symbol_lookup.type == "FLOAT" and node.children[1].type == "INT":
                     #     toReg = self.intToFloat(toReg)
@@ -1306,10 +1306,10 @@ class LLVM:
             reg1 = str(ord(str(reg1[1])))
 
         if type == "FLOAT":
-            if not isReg1:
-                reg1 = str(reg1) + "e+00"
-            if not isReg2:
-                reg2 = str(reg2) + "e+00"
+            if not isReg1 and not reg1.count("."):
+                reg1 = str(reg1) + ".0e+00"
+            if not isReg2 and not reg2.count("."):
+                reg2 = str(reg2) + ".0e+00"
 
         self.line += "  store " + types[type][0] + leftPoint + " " + reg1 + ", " + types[type][
             0] + rightPoint + " " + reg2 + "" \
@@ -1653,8 +1653,7 @@ class LLVM:
         pos = afterSlash.start()
         inputfile = inputfile[pos:]
         filename = str(inputfile[:len(inputfile) - 2]) + ".ll"
-        # self.file = open("files/GeneratedLLVM/" + filename, "w")
-        file = open("testfiles/generated/" + filename, "w")
+        file = open("files/GeneratedLLVM/" + filename, "w")
 
         for global_ in self.globals:
             file.write(global_)

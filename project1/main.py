@@ -55,7 +55,7 @@ def main(argv):
     setupSymbolTables(a)
     checkMain(a)
     #TODO: Dit terug aanzetten
-    # optimize(a)
+    optimize(a)
     semanticAnalysisVisitor(a.root)
     createGraph(a, argv[1], 1)
     generation = CodeGeneration(a)
