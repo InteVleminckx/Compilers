@@ -643,6 +643,56 @@ class Mips:
                 # Na we dit hebben gedaan kunnen we enterAss terug afzetten
                 self.enteredAssignment = False
 
+            elif len(node.children[1].children) == 1 and node.children[1].token == "UN_OP":
+                if str(node.children[1].value) == "&":
+                    symboltable = tableLookup(node)
+                    symbol_lookup = symbolLookup(str(node.children[0].value), symboltable, afterTotalSetup=True,
+                                                 varLine=node.children[0].line, varColumn=node.children[0].column)[1]
+                    offset1 = symbol_lookup.stackOffset
+                    type1 = node.children[0].type
+                    # Dan controleren we nog of de rechterkant een identifier is of niet
+                    if node.children[1].children[0].token == "IDENTIFIER":
+                        # Moeten hiervoor zijn register ook terug opvragen
+                        symboltable2 = tableLookup(node.children[1].children[0])
+                        symbol_lookup2 = symbolLookup(str(node.children[1].children[0].value), symboltable2, afterTotalSetup=True,
+                                                      varLine=node.children[1].children[0].line, varColumn=node.children[1].children[0].column)[1]
+
+                        offset2 = symbol_lookup2.stackOffset
+
+                        # toReg, line = self.load(offset2, symbol_lookup2.type, numberOfPointer=symbol_lookup2.pointer)
+
+                        line = ""
+                        toReg = "$t0" if symbol_lookup2.type != "FLOAT" else "$f0"
+                        place = "($sp)\t\t#load local variable or temp register from stack"
+
+                            # if not isGlobal:
+                        if symbol_lookup2.type != "FLOAT":
+                            line += "\tla\t" + toReg + "," + str(offset2) + place + "\n"
+                        else:
+                            line += "\tlwc1\t" + toReg + "," + str(offset2) + place + "\n"
+                            # else:
+                            #     if type != "FLOAT":
+                            #         line += "\tlw\t" + toReg + "," + str(fromReg) + "\n"
+                            #     else:
+                            #         line += "\tlwc1\t" + toReg + "," + str(fromReg) + "\n"
+
+                        self.line += line
+
+                        if symbol_lookup.type == "INT" and symbol_lookup2.type == "FLOAT":
+                            toReg = self.floatToInt(toReg)
+
+                        elif symbol_lookup.type == "FLOAT" and symbol_lookup2.type == "INT":
+                            toReg = self.intToFloat(toReg)
+
+                        self.store(toReg, offset1)
+
+                    else:  # non-identifier rechts
+                        # We nemen hier gewoon de waarde zelf van het attribuut
+                        pass
+
+                    # Na we dit hebben gedaan kunnen we enterAss terug afzetten
+                    self.enteredAssignment = False
+
         else:
             if len(node.children[1].children) == 0:
                 # We vragen de symbol lookup op van het linker deel
@@ -1672,15 +1722,15 @@ class Mips:
 
         else:
             prevPointerReg = ""
-            for i in range(numberOfPointer + 1):
+            for i in range(numberOfPointer+1):
 
                 if not isGlobal:
                     if type != "FLOAT":
-                        line += "\tlw\t" + toReg + "," + str(fromReg) + place + "\n"
+                        line += "\tlw\t" + toReg + "," + str(fromReg) + place + " #p=" + str(numberOfPointer) + "\n"
                     else:
-                        line += "\tlwc1\t" + toReg + "," + str(fromReg) + place + "\n"
+                        line += "\tlwc1\t" + toReg + "," + str(fromReg) + place + " #p=" + str(numberOfPointer) + "\n"
                 fromReg = ""
-                place = "(" + toReg + ")"
+                place = "0(" + toReg + ")"
 
                 # line += "  %" + str(self.register) + " = load " + types[type][0] + leftPoint + ", " + types[type][
                 #     0] + rightPoint + " "

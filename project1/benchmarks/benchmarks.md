@@ -33,9 +33,9 @@ X: Not working or not implemented.
 | variables1            | V             | V             |
 | variables2            | V             | V             |
 | variables3            | V             | X             |
-| variables4            | V             | X             |
+| variables4            | V             | V             |
 | variables5            | V             | V             |
-| variables6            | V             | X             |
+| variables6            | V             | V             |
 | variables7            | V             | X             |
 | variables8            | V             | X             |
 | while                 | V             | V             |
