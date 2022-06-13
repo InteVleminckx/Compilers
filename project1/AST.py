@@ -2255,10 +2255,28 @@ def semanticAnalysisVisitor(node):
                     node.children[1].column) + " : " + "In function call, given less arguments than expected")
             else:  # als het aantal parameters klopt (dan gaan we op types checken)
                 for i in range(len(node.children[1].children)):
-                    if not symbol_lookup[1].inputTypes[i] == node.children[1].children[i].type:
-                        print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
-                            node.children[1].children[
-                                i].column) + " : " + "In function call, passing of incompatible type")
+                    if len(node.children[1].children[i].children) > 1:
+                        _type = evaluateExpressionType(node.children[1].children[i])
+                        if not symbol_lookup[1].inputTypes[i] == _type:
+                            print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
+                                node.children[1].children[
+                                    i].column) + " : " + "In function call, passing of incompatible type")
+                    else:
+                        if node.children[1].children[i].token == "IDENTIFIER":
+                            table1 = tableLookup(node.children[1].children[i])  # we look up the name of the function
+                            symbol_lookup1 = symbolLookup(node.children[1].children[i].value, table1,
+                                                         varLine=node.children[1].children[i].line,
+                                                         varColumn=node.children[1].children[i].column)
+                            if symbol_lookup1[0]:
+                                if not symbol_lookup[1].inputTypes[i] == symbol_lookup1[1].type:
+                                    print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
+                                        node.children[1].children[
+                                            i].column) + " : " + "In function call, passing of incompatible type")
+                        else:
+                            if not symbol_lookup[1].inputTypes[i] == node.children[1].children[i].type:
+                                print("[ Warning ] line " + str(node.children[1].children[i].line) + ", position " + str(
+                                    node.children[1].children[
+                                        i].column) + " : " + "In function call, passing of incompatible type")
 
     elif node.token == "PRINTF" or node.token == "SCANF":  # printf en scanf
 
