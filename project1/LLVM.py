@@ -51,7 +51,7 @@ class LLVM:
         self.whileLabelCount = 0
 
     def enterFunction(self, node):
-        print("enterFunction")
+        # print("enterFunction")
 
         # We enteren een nieuwe functie dus kunnen de registercount terug op 0 zetten
         self.register = 0
@@ -116,7 +116,7 @@ class LLVM:
         self.allTables(symboltable)
 
     def exitFunction(self, node):
-        print("exitFunction")
+        # print("exitFunction")
 
         if not self.hasReturnNode[0]:
             if self.returnType is not None:
@@ -129,7 +129,7 @@ class LLVM:
             self.line += "\n}\n\n"
 
     def enterReturn(self, node):
-        print("enterReturn")
+        # print("enterReturn")
 
         self.enteredReturn = True
 
@@ -170,7 +170,7 @@ class LLVM:
             self.line += "\n}\n\n"
 
     def exitReturn(self, node):
-        print("exitReturn")
+        # print("exitReturn")
         # We controleren nog of we nog de return moeten toepassen, dit is het geval wanneer de bool nog op true staat
         if self.enteredReturn:
 
@@ -196,14 +196,14 @@ class LLVM:
                 self.line += "\n}\n\n"
 
     def enterPrintf(self, node):
-        print("enterPrintf")
+        # print("enterPrintf")
         self.enteredPrintf = True
         # We predefinen hier al de count voor de string links in de printf functie omdat er nadien nog kunnen toegevoegd worden
         self.curPrintf = self.stringCount
         self.printf = True
 
     def exitPrintf(self, node):
-        print("exitPrintf")
+        # print("exitPrintf")
         if self.enteredPrintf:
             self.enteredPrintf = False
 
@@ -256,14 +256,14 @@ class LLVM:
             self.line += ")\n"
 
     def enterScanf(self, node):
-        print("enterScanf")
+        # print("enterScanf")
         self.enteredScanf = True
         # We predefinen hier al de count voor de string links in de printf functie omdat er nadien nog kunnen toegevoegd worden
         self.curPrintf = self.stringCount
         self.scanf = True
 
     def exitScanf(self, node):
-        print("exitScanf")
+        # print("exitScanf")
         if self.enteredScanf:
             self.enteredScanf = False
 
@@ -288,7 +288,7 @@ class LLVM:
             self.line += ")\n"
 
     def enterIf_stmt(self, node):
-        print("enterIf_stmt")
+        # print("enterIf_stmt")
         # De conditie is net gedaan, we halen het resultaat hieruit en branchen
 
         condtion = self.conditionStack[-1]
@@ -311,7 +311,7 @@ class LLVM:
         self.register += 1
 
     def exitIf_stmt(self, node):
-        print("exitIf_stmt")
+        # print("exitIf_stmt")
 
         # Als we geen else hebben
         if node == node.parent.children[-1]:
@@ -337,7 +337,7 @@ class LLVM:
                 self.line += "  br label %if" + str(self.ifStack[-1]) + "\n\n"
 
     def enterElse_stmt(self, node):
-        print("enterElse_stmt")
+        # print("enterElse_stmt")
 
         # nu maken we het deel voor de else aan
         if not self.isBreaked:
@@ -348,7 +348,7 @@ class LLVM:
             self.isBreaked = False
 
     def exitElse_stmt(self, node):
-        print("exitElse_stmt")
+        # print("exitElse_stmt")
 
         if not self.isBreaked:
             # Nu branchen we nog naar de laatst toegevoegde else
@@ -367,7 +367,7 @@ class LLVM:
         self.ifStack.pop()
 
     def enterWhile_stmt(self, node):
-        print("enterWhile_stmt")
+        # print("enterWhile_stmt")
         # We gaan nu de branch maken
 
         self.line += "  br i1 %" + str(self.conditionStack[-1][0]) + ", label %" + str(
@@ -378,7 +378,7 @@ class LLVM:
         self.whileLabelCount += 1
 
     def exitWhile_stmt(self, node):
-        print("exitWhile_stmt")
+        # print("exitWhile_stmt")
 
         # We maken een branch naar het begin van de while loop, dit zou de voorlaatste value moeten zijn in de stack
         self.line += "  br label %" + str(self.whileStack[-2][0]) + "\n\n"
@@ -391,7 +391,7 @@ class LLVM:
         self.whileStack.pop()
 
     def enterAssignment(self, node):
-        print("enterAssignment")
+        # print("enterAssignment")
         self.enteredAssignment = True
 
         # Als we gewoon een assignment hebben van een value aan een variable kunnen we dit direct hier doen
@@ -473,7 +473,7 @@ class LLVM:
             #     self.enteredAssignment = False
 
     def exitAssignment(self, node):
-        print("exitAssignment")
+        # print("exitAssignment")
 
         # We controleren nog of we nog de assignment moeten toepassen, dit is het geval wanneer de bool nog op true staat
         if self.enteredAssignment:
@@ -513,10 +513,11 @@ class LLVM:
                 self.enteredAssignment = False
 
     def enterUnaryOperation(self, node):
-        print("enterUnaryOperation")
+        # print("enterUnaryOperation")
+        pass
 
     def exitUnaryOperation(self, node):
-        print("exitUnaryOperation")
+        # print("exitUnaryOperation")
         # We controlerne of het een ++ of -- is
         child = node.children[0]
         tableLookup__ = tableLookup(child)
@@ -547,10 +548,11 @@ class LLVM:
             self.store(toReg, symbolTable.register, toType, True, True, symbolTable.pointer)
 
     def enterBreak(self, node):
-        print("enterBreak")
+        # print("enterBreak")
+        pass
 
     def exitBreak(self, node):
-        print("exitBreak")
+        # print("exitBreak")
         # We controlleren of we in een if/else waren
         # Als de lengte van onze stack %2 == 0 is dan zitten we in de if
         # Als de lengte van onze stack %3 == 0 is dan zitten we in de else
@@ -572,10 +574,11 @@ class LLVM:
             self.isBreaked = True
 
     def enterContinue(self, node):
-        print("enterContinue")
+        # print("enterContinue")
+        pass
 
     def exitContinue(self, node):
-        print("exitContinue")
+        # print("exitContinue")
         # We controlleren of we in een if/else waren
         # Als de lengte van onze stack %2 == 0 is dan zitten we in de if
         # Als de lengte van onze stack %3 == 0 is dan zitten we in de else
@@ -597,16 +600,16 @@ class LLVM:
             self.isBreaked = True
 
     def enterFuncCall(self, node):
-        print("enterFuncCall")
+        # print("enterFuncCall")
         self.enteredFunctionCall += 1
 
     def exitFuncCall(self, node):
-        print("exitFuncCall")
-
+        # print("exitFuncCall")
         # TODO: naar dit ook nog eens uittesten
         if len(self.logicalStack) > 0:
             if node == self.logicalStack[-1][0]:
-                print("func call")
+                # print("func call")
+                pass
 
         # We moeten eerst het type van de functie opvragen
         funcName = str(node.children[0].children[0].value)
@@ -665,10 +668,11 @@ class LLVM:
             self.assignmentStack.append((str(self.register - 1), outputtype, True))
 
     def enterBinOperation(self, node):
-        print("enterBinOperation")
+        # print("enterBinOperation")
+        pass
 
     def exitBinOperation(self, node):
-        print("exitBinOperation")
+        # print("exitBinOperation")
         # We controleren of we in een assignment zijn gegaan
 
         func = lambda node1, stack: (
@@ -740,11 +744,12 @@ class LLVM:
                 self.determineBranch(node, node.parent, toReg__)
 
     def enterIdentifier(self, node):
-        print("enterIdentifier")
+        # print("enterIdentifier")
+        pass
 
     def exitIdentifier(self, node):
 
-        print("exitIdentifier")
+        # print("exitIdentifier")
         if node.parent.token == "NAME":
             return
 
@@ -839,10 +844,11 @@ class LLVM:
                 self.determineBranch(node, node.parent, toReg__)
 
     def enterType(self, node):
-        print("enterType")
+        # print("enterType")
+        pass
 
     def exitType(self, node):
-        print("exitType")
+        # print("exitType")
 
         # if node.parent.token == "INDICES":
         #     return
@@ -912,10 +918,11 @@ class LLVM:
                 self.stringCount += 1
 
     def enterComparison(self, node):
-        print("enterComparison")
+        # print("enterComparison")
+        pass
 
     def exitComparison(self, node):
-        print("exitComparison")
+        # print("exitComparison")
 
         func = lambda node1, stack, condition: (
             self.compare(comparisons[str(node1.value)], stack[-2][0], stack[-1][0], stack[-2][1], stack[-1][1],
@@ -979,7 +986,7 @@ class LLVM:
                     node.parent.fromRegBr = toReg
 
     def enterLogical(self, node):
-        print("enterLogical")
+        # print("enterLogical")
         """
         Het idee is eigenlijk dat wanneer we een logical betreden dat we op deze moment bekijken in welke 
         situatie ons bevinden
@@ -1021,7 +1028,7 @@ class LLVM:
             self.allocate(self.finalRegLog, "INT")
 
     def exitLogical(self, node):
-        print("exitLogical")
+        # print("exitLogical")
 
         if len(self.logicalStack) > 0:
             self.logicalStack.pop()
@@ -1142,7 +1149,7 @@ class LLVM:
             self.logLabelCount = 0
 
     def enterCondition(self, node):
-        print("enterCondition")
+        # print("enterCondition")
         self.enteredCondition = True
 
         # We kijken of het een condition is van een while of niet, als dit zo is dan moeten we eerst een branch doen
@@ -1155,30 +1162,33 @@ class LLVM:
             self.whileLabelCount += 1
 
     def exitCondition(self, node):
-        print("exitCondition")
+        # print("exitCondition")
         if self.enteredCondition:
             # controleren nog voor de zekerheid
 
             if len(self.conditionStack) > 1:
-                    print("")
+                    # print("")
+                pass
             self.enteredCondition = False
 
     def enterArray(self, node):
-        print("enterArray")
+        # print("enterArray")
+        pass
 
     def exitArray(self, node):
-        print("exitArray")
+        # print("exitArray")
+        pass
 
     def enterIndices(self, node):
-        print("enterIndices")
+        # print("enterIndices")
         if not node.parent.children[0].isDeclaration:
             self.enteredArray = True
 
     def exitIndices(self, node):
-        print("exitIndices")
+        # print("exitIndices")
 
         if self.enteredArray:
-            print("")
+            # print("")
             node_ = node.parent.children[0]
             lookup = tableLookup(node_)
             symbol = symbolLookup(node_.value, lookup, afterTotalSetup=True, varLine=node_.line, varColumn=node_.column)[1]

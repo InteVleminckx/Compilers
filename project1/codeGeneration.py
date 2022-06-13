@@ -34,7 +34,7 @@ class CodeGeneration:
             if node.parent.token == "ROOT" and node.token == "=":
                 return
 
-        print(node.token)
+        # print(node.token)
 
         if node.token == "FORDECL":
             if enter:

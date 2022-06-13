@@ -2460,10 +2460,16 @@ def semanticAnalysisVisitor(node):
                             node.column) + " : " + "Return type mismatch.")
                         exit(1)
             else:
-                if node.children[0].type != expectedReturnType:
-                    print("[ Error ] line " + str(node.line) + ", position " + str(
-                        node.column) + " : " + "Return type mismatch.")
-                    exit(1)
+                if len(node.children[0].children) > 1:
+                    if evaluateExpressionType(node.children[0]) != expectedReturnType:
+                        print("[ Error ] line " + str(node.line) + ", position " + str(
+                            node.column) + " : " + "Return type mismatch.")
+                        exit(1)
+                else:
+                    if node.children[0].type != expectedReturnType:
+                        print("[ Error ] line " + str(node.line) + ", position " + str(
+                            node.column) + " : " + "Return type mismatch.")
+                        exit(1)
 
     elif node.token == "ARRAY":
         if len(node.children[1].children) > 0:

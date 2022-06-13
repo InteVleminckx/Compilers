@@ -76,7 +76,7 @@ class Mips:
         self.whileCount = 0
 
     def enterFunction(self, node):
-        print("enterFunction")
+        # print("enterFunction")
 
         # We enteren een nieuwe functie dus kunnen de registercount terug op 0 zetten
         self.stackOffset = 0
@@ -143,7 +143,7 @@ class Mips:
 
 
     def exitFunction(self, node):
-        print("exitFunction")
+        # print("exitFunction")
 
         if not self.hasReturnNode:
             line = "\n\tlw $ra, " + str(self.stackOffset - 8) + "($sp)\n" + \
@@ -157,7 +157,7 @@ class Mips:
             self.line += line
 
     def enterReturn(self, node):
-        print("enterReturn")
+        # print("enterReturn")
 
         self.enteredReturn = True
         if self.returnType is None:
@@ -199,7 +199,7 @@ class Mips:
         #     self.line += "\n}\n\n"
 
     def exitReturn(self, node):
-        print("exitReturn")
+        # print("exitReturn")
         # We controleren nog of we nog de return moeten toepassen, dit is het geval wanneer de bool nog op true staat
         if self.enteredReturn:
 
@@ -258,14 +258,14 @@ class Mips:
             self.enteredReturn = False
 
     def enterPrintf(self, node):
-        print("enterPrintf")
+        # print("enterPrintf")
         self.enteredPrintf = True
         # We predefinen hier al de count voor de string links in de printf functie omdat er nadien nog kunnen toegevoegd worden
         self.curPrintf = self.stringCount
         self.printf = True
 
     def exitPrintf(self, node):
-        print("exitPrintf")
+        # print("exitPrintf")
         if self.enteredPrintf:
             text = self.printfStack[0]
             textsize = text[3]
@@ -370,14 +370,14 @@ class Mips:
             self.enteredPrintf = False
 
     def enterScanf(self, node):
-        print("enterScanf")
+        # print("enterScanf")
         self.enteredScanf = True
         # We predefinen hier al de count voor de string links in de printf functie omdat er nadien nog kunnen toegevoegd worden
         self.curPrintf = self.stringCount
         self.scanf = True
 
     def exitScanf(self, node):
-        print("exitScanf")
+        # print("exitScanf")
         if self.enteredScanf:
             self.enteredScanf = False
 
@@ -481,7 +481,7 @@ class Mips:
             self.enteredScanf = False
 
     def enterIf_stmt(self, node):
-        print("enterIf_stmt")
+        # print("enterIf_stmt")
         # De conditie is net gedaan, we halen het resultaat hieruit en branchen
 
         condtion = self.conditionStack[-1]
@@ -506,7 +506,7 @@ class Mips:
         self.ifElseCount += 1
 
     def exitIf_stmt(self, node):
-        print("exitIf_stmt")
+        # print("exitIf_stmt")
 
         # Als we geen else hebben
         if node == node.parent.children[-1]:
@@ -532,7 +532,7 @@ class Mips:
                 self.line += "\tb if" + str(self.ifStack[-1]) + "\n\n"
 
     def enterElse_stmt(self, node):
-        print("enterElse_stmt")
+        # print("enterElse_stmt")
 
         # nu maken we het deel voor de else aan
         if not self.isBreaked:
@@ -544,7 +544,7 @@ class Mips:
             self.isBreaked = False
 
     def exitElse_stmt(self, node):
-        print("exitElse_stmt")
+        # print("exitElse_stmt")
 
         if not self.isBreaked:
             # Nu branchen we nog naar de laatst toegevoegde else
@@ -562,7 +562,7 @@ class Mips:
         self.ifStack.pop()
 
     def enterWhile_stmt(self, node):
-        print("enterWhile_stmt")
+        # print("enterWhile_stmt")
         # We gaan nu de branch maken
 
         toReg, line = self.load(self.conditionStack[-1][0], self.conditionStack[-1][1])
@@ -578,7 +578,7 @@ class Mips:
         self.whileCount += 1
 
     def exitWhile_stmt(self, node):
-        print("exitWhile_stmt")
+        # print("exitWhile_stmt")
 
         # We maken een branch naar het begin van de while loop, dit zou de voorlaatste value moeten zijn in de stack
         self.line += "\tb __WHILE_CONDITION_" + str(self.whileStack[-2][0]) + "__\n\n"
@@ -592,7 +592,7 @@ class Mips:
         self.whileStack.pop()
 
     def enterAssignment(self, node):
-        print("enterAssignment")
+        # print("enterAssignment")
         self.enteredAssignment = True
 
         # Als we gewoon een assignment hebben van een value aan een variable kunnen we dit direct hier doen
@@ -732,7 +732,7 @@ class Mips:
                 self.enteredAssignment = False
 
     def exitAssignment(self, node):
-        print("exitAssignment")
+        # print("exitAssignment")
 
         # We controleren nog of we nog de assignment moeten toepassen, dit is het geval wanneer de bool nog op true staat
         if self.enteredAssignment:
@@ -774,10 +774,11 @@ class Mips:
                 self.enteredAssignment = False
 
     def enterUnaryOperation(self, node):
-        print("enterUnaryOperation")
+        # print("enterUnaryOperation")
+        pass
 
     def exitUnaryOperation(self, node):
-        print("exitUnaryOperation")
+        # print("exitUnaryOperation")
         # We controleren of het een ++ of -- is
         child = node.children[0]
         tableLookup__ = tableLookup(child)
@@ -811,10 +812,11 @@ class Mips:
             self.store(toReg, symbolTable.stackOffset)
 
     def enterBreak(self, node):
-        print("enterBreak")
+        # print("enterBreak")
+        pass
 
     def exitBreak(self, node):
-        print("exitBreak")
+        # print("exitBreak")
         # We controlleren of we in een if/else waren
         # Als de lengte van onze stack %2 == 0 is dan zitten we in de if
         # Als de lengte van onze stack %3 == 0 is dan zitten we in de else
@@ -836,10 +838,11 @@ class Mips:
             self.isBreaked = True
 
     def enterContinue(self, node):
-        print("enterContinue")
+        # print("enterContinue")
+        pass
 
     def exitContinue(self, node):
-        print("exitContinue")
+        # print("exitContinue")
         # We controlleren of we in een if/else waren
         # Als de lengte van onze stack %2 == 0 is dan zitten we in de if
         # Als de lengte van onze stack %3 == 0 is dan zitten we in de else
@@ -861,16 +864,17 @@ class Mips:
             self.isBreaked = True
 
     def enterFuncCall(self, node):
-        print("enterFuncCall")
+        # print("enterFuncCall")
         self.enteredFunctionCall += 1
 
     def exitFuncCall(self, node):
-        print("exitFuncCall")
+        # print("exitFuncCall")
 
         # TODO: naar dit ook nog eens uittesten
         if len(self.logicalStack) > 0:
             if node == self.logicalStack[-1][0]:
-                print("func call")
+                # print("func call")
+                pass
 
         # We moeten eerst het type van de functie opvragen
         funcName = str(node.children[0].children[0].value)
@@ -965,10 +969,11 @@ class Mips:
             self.assignmentStack.append((str(self.offset+4), outputtype, True))
 
     def enterBinOperation(self, node):
-        print("enterBinOperation")
+        # print("enterBinOperation")
+        pass
 
     def exitBinOperation(self, node):
-        print("exitBinOperation")
+        # print("exitBinOperation")
         # We controleren of we in een assignment zijn gegaan
 
         func = lambda node1, stack, reg1, reg2, type_: (
@@ -1203,11 +1208,12 @@ class Mips:
                 self.determineBranch(node, node.parent, toReg__)
 
     def enterIdentifier(self, node):
-        print("enterIdentifier")
+        # print("enterIdentifier")
+        pass
 
     def exitIdentifier(self, node):
 
-        print("exitIdentifier")
+        # print("exitIdentifier")
         if node.parent.token == "NAME":
             return
 
@@ -1281,10 +1287,11 @@ class Mips:
                 self.determineBranch(node, node.parent, toReg__)
 
     def enterType(self, node):
-        print("enterType")
+        # print("enterType")
+        pass
 
     def exitType(self, node):
-        print("exitType")
+        # print("exitType")
         toReg, toType = None, None
         # Functioncall krijgt voorrang
         if self.enteredFunctionCall > 0:
@@ -1349,10 +1356,11 @@ class Mips:
                     self.stringCount += 1
 
     def enterComparison(self, node):
-        print("enterComparison")
+        # print("enterComparison")
+        pass
 
     def exitComparison(self, node):
-        print("exitComparison")
+        # print("exitComparison")
 
         func = lambda node1, stack, condition, reg1, reg2: (
             self.compare(data_comp_instr[str(node1.value)] if stack[-2][1] == "INT" and stack[-1][1] == "INT" else
@@ -1398,7 +1406,7 @@ class Mips:
                     node.parent.fromRegBrM = toReg
 
     def enterLogical(self, node):
-        print("enterLogical")
+        # print("enterLogical")
         """
         Het idee is eigenlijk dat wanneer we een logical betreden dat we op deze moment bekijken in welke 
         situatie ons bevinden
@@ -1440,7 +1448,7 @@ class Mips:
         #     self.allocate(self.finalRegLog, "INT")
 
     def exitLogical(self, node):
-        print("exitLogical")
+        # print("exitLogical")
 
         if len(self.logicalStack) > 0:
             self.logicalStack.pop()
@@ -1559,7 +1567,7 @@ class Mips:
             self.offset -= 4
 
     def enterCondition(self, node):
-        print("enterCondition")
+        # print("enterCondition")
         self.enteredCondition = True
 
         # We kijken of het een condition is van een while of niet, als dit zo is dan moeten we eerst een branch doen
@@ -1573,13 +1581,13 @@ class Mips:
             self.whileCount += 1
 
     def exitCondition(self, node):
-        print("exitCondition")
+        # print("exitCondition")
         if self.enteredCondition:
             # controleren nog voor de zekerheid
             self.enteredCondition = False
 
     def enterArray(self, node):
-        print("enterArray")
+        # print("enterArray")
 
         # We checken of het een declaration is of niet
 
@@ -1587,7 +1595,8 @@ class Mips:
             pass
 
     def exitArray(self, node):
-        print("exitArray")
+        # print("exitArray")
+        pass
 
     def allocateVariables(self, symbolTable):
         # We vragen de dict op met alle variable
@@ -1611,7 +1620,7 @@ class Mips:
                     self.allocate(self.register, type, toAllocate[key].pointer)
                 self.stackOffset += 4
         #         if toAllocate[key].isParam:
-        #             print("")
+#         #             print("")
         #             params.append((toAllocate[key].stackOffset, toAllocate[key].type))
         #
         # # Nu gaan we de parameters hun waarde storen in de nieuwe registers
