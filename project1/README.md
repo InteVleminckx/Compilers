@@ -7,6 +7,7 @@ The test script, which runs all the test in the files folder, and puts the outpu
 You can simply run ./script.sh in the project1/ folder. In the terminal, you will get an overview of which file outputs were correct.
 The folder "files" provide all codes in seperate folders that can be executed for LLVM, MIPS and syntax. The other folders contain the generated code from the presetation and the correct code to compare
 the generated code.
+For executing the file u need to give 3 arguments: argv[1] = file, argv[2] = boolean, that says we want to generate LLVM or MIPS and argv[3] = boolean, thats says we just want to control syntax.  
 
 ## Progress:
 
