@@ -36,7 +36,7 @@ do
 	    done 
 	    LINE="$LINE*"
 	    echo -e "$LINE"
-    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py" $f " True True" > "/dev/null"
+    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py" $f "True" "True" > "/dev/null"
 
 
 

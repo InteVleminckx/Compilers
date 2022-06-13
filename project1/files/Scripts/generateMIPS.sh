@@ -36,7 +36,7 @@ do
 	    done 
 	    LINE="$LINE*"
 	    echo -e "$LINE"
-    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py" $f " False" "True" > "./files/outputMIPS/$FILE.txt"
+    python3 "/home/inte/PycharmProjects/Compilers/project1/main.py" $f "False" "True" > "/dev/null"
 
      
 

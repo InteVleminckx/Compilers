@@ -1,1 +1,1 @@
-[ Warning ] line 2, position 4 : Return type mismatch.
+[ Error ] line 2, position 4 : Return type mismatch.

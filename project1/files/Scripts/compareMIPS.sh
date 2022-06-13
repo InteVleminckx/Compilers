@@ -4,10 +4,10 @@
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
-TOP="*---------------------------COMPARE LLVMCODE--------------------------*"
+TOP="*---------------------------COMPARE MIPSCODE--------------------------*"
 echo $TOP
 cd "files/"
-FILES="outputMIPS/*.txt"
+FILES="correctRunOutputMIPS/*.asm"
 for f in $FILES
 do
 # Check if "$f" FILE exists and is a regular file and then only copy it #
@@ -15,7 +15,7 @@ do
   then
     FILE=${f##*/}
     FILE=${FILE%.*}
-    if cmp --silent -- "correctRunOutputMIPS/$FILE.txt" "outputMIPS/$FILE.txt"; then
+    if cmp --silent -- "correctRunOutputMIPS/$FILE.asm" "GeneratedMIPS/$FILE.asm"; then
        	    LINE="*---- $FILE"
 	    LENL=$((${#TOP} - ${#LINE} - 10))
 	    LINE="$LINE "
